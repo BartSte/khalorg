@@ -27,8 +27,7 @@ def main(content: str):
     org: Any = parse_org_agenda_item(content)
     command: list = get_khal_command(org)
     with TempSysArgv(command) as argv:
-        main_khal.commands['new']()
-
+        main_khal()
 
 
 class TempSysArgv:
@@ -46,21 +45,34 @@ class TempSysArgv:
     """
 
     def __init__(self, argv: list):
-        self.old = sys.argv
-        self.new = argv
+        """
 
-        message: str = (
-            "Python's sys.argv is temporary replaced by the following command line "
-            f"arguments: {argv}"
-        )
+        Args:
+            argv (list): 
+        """
+        self.old: list = sys.argv
+        self.new: list = argv
 
-        logging.debug(message)
+        message: str = f"sys.argv will temporary be replaced by: {argv}"
+        logging.info(message)
 
-    def __enter__(self, *_):
+    def __enter__(self):
+        """
+
+        Args:
+            self (): 
+        """
         sys.argv = self.new
         logging.debug(f'Sys argv is set to: {sys.argv}')
+        return self
 
     def __exit__(self, *_):
+        """
+
+        Args:
+            self (): 
+            *_: 
+        """
         sys.argv = self.old
         logging.debug(f'Sys argv is reset to: {sys.argv}')
 
@@ -87,5 +99,3 @@ def get_khal_command(org) -> list:
 
     """
     return ['khal new', '--help']
-
-

@@ -1,10 +1,11 @@
 * TODO Meeting                                                           :LABEL:
   SCHEDULED: <2023-01-01 Sun 12:00-13:00>
+  DEADLINE: <2023-01-10 Tue 14:00> 
   :PROPERTIES:
   :ID: 123
   :CALENDAR: outlook
   :LOCATION: Somewhere
-  :Organizer: Someone (someone@outlook.com)
+  :ORGANIZER: Someone (someone@outlook.com)
   :URL: www.test.com
   :END:
 
