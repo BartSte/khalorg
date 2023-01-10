@@ -7,16 +7,6 @@ import orgparse
 from khal.cli import main_khal
 from orgparse.node import OrgNode
 
-# title: str = child.heading
-# scheduled_start: datetime = child.scheduled.start
-# scheduled_end: datetime = child.scheduled.end
-# deadline_start: datetime = child.deadline.start
-# deadline_end: datetime = child.deadline.end
-# properties: dict = child.properties
-# description: str = child.body
-# description_rich = child.body_rich
-
-
 def main(content: str):
     """
 
@@ -76,19 +66,6 @@ class TempSysArgv:
         sys.argv = self.old
         logging.debug(f'Sys argv is reset to: {sys.argv}')
 
-
-def parse_org_agenda_item(content: str) -> Any:
-    """
-
-    Args:
-        content (str): 
-
-    Returns
-    -------
-
-    """
-    root: OrgNode = orgparse.loads(content)
-    return root.children[0]
 
 
 def get_khal_command(org) -> list:
