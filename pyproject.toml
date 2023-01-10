@@ -1,0 +1,32 @@
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+    "src/typestubs"
+]
+ignore = []
+defineConstant = {}
+stubPath = "src/stubs"
+venv = ".venv"
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+
+executionEnvironments = []
+
+[tool.ruff]
+line-length = 80
+
+select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "N",  # PEP8 naming
+    "D",  # pydocstyle
+]
+
+ignore = ["D203", "D212"]
