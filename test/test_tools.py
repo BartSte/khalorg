@@ -1,7 +1,11 @@
 from datetime import datetime
+from os.path import join
+from test import static
 from unittest import TestCase
 
+from orgparse import loads
 from orgparse.date import OrgDate
+from orgparse.node import OrgNode
 
 from src.tools import OrgAgendaItem
 
@@ -10,46 +14,66 @@ class TestOrgAgendaItem(TestCase):
     """TODO."""
 
     def setUp(self) -> None:
-        self.heading: str = 'test'
-        self.scheduled: OrgDate = OrgDate(datetime(2023, 1, 1),
-                                     datetime(2023, 1, 2))
-        self.deadline: OrgDate = OrgDate(datetime(2023, 1, 1),
-                                    datetime(2023, 1, 2))
+        self.org_file: str = join(static.__path__[0], 'valid.org')
+
+        self.heading: str = 'Meeting'
+        self.time_stamp: OrgDate = OrgDate(datetime(2023, 1, 1, 11, 0))
+        self.scheduled: OrgDate = OrgDate(datetime(2023, 1, 1, 12, 0),
+                                          datetime(2023, 1, 1, 13, 0))
+        self.deadline: OrgDate = OrgDate(datetime(2023, 1, 10, 14, 0))
         self.properties: dict = {'ID': '123',
-                            'CALENDAR': 'outlook',
-                            "LOCATION": 'Somewhere',
-                            "ORGANIZER":  'Someone (someone@outlook.com)'}
-        self.body: str = 'test'
+                                 'CALENDAR': 'outlook',
+                                 "LOCATION": 'Somewhere',
+                                 "ORGANIZER": 'Someone (someone@outlook.com)'}
+        self.body: str = "Hello,\n\nLets have a meeting\n\nRegards,\n\n\nSomeone"
+
+        self.args: list = [self.heading, self.time_stamp, self.scheduled,
+                           self.deadline, self.properties, self.body]
 
         return super().setUp()
+
     def test_eq(self):
         """TODO.
 
         Args:
         ----
-            self (): 
+            self ():
         """
-        a = OrgAgendaItem(self.heading, self.scheduled, self.deadline, self.properties, self.body)
-        b = OrgAgendaItem(self.heading, self.scheduled, self.deadline, self.properties, self.body)
-        c = OrgAgendaItem('xxxxx', self.scheduled, self.deadline, self.properties, self.body)
-        d = OrgAgendaItem(self.heading, None, self.deadline, self.properties, self.body)
-        e = OrgAgendaItem(self.heading, self.scheduled, None, self.properties, self.body)
-        f = OrgAgendaItem(self.heading, self.scheduled, self.deadline, {}, self.body)
-        g = OrgAgendaItem(self.heading, self.scheduled, self.deadline, self.properties, '')
-
+        a: OrgAgendaItem = OrgAgendaItem(*self.args)
+        b: OrgAgendaItem = OrgAgendaItem(*self.args)
         self.assertTrue(a == b)
-        self.assertFalse(a == c)
-        self.assertFalse(a == d)
-        self.assertFalse(a == e)
-        self.assertFalse(a == f)
-        self.assertFalse(a == g)
+
+    def test_not_eq(self):
+        """
+
+        Args:
+        ----
+            self ():
+        """
+        a: OrgAgendaItem = OrgAgendaItem(*self.args)
+        for count, x in enumerate(['x', None, None, {}, '']):
+            other_args: list = list(self.args)  # copy object
+            other_args[count] = x
+            b = OrgAgendaItem(*other_args)
+            self.assertTrue(a != b)
+
+    def test_different_args(self):
+        """
+
+        Args:
+        ----
+            self ():
+        """
+        a: OrgAgendaItem = OrgAgendaItem(*self.args)
+        b: OrgAgendaItem = OrgAgendaItem(*self.args[:3])
+        self.assertFalse(a == b)
 
     def test_no_date(self):
         """TODO.
 
         Args:
         ----
-            self (): 
+            self ():
         """
         with self.assertRaises(AssertionError):
             OrgAgendaItem('test')
@@ -59,12 +83,20 @@ class TestOrgAgendaItem(TestCase):
 
         Args:
         ----
-            self (): 
+            self ():
         """
-        org_scheduled: OrgAgendaItem = OrgAgendaItem('test', scheduled=OrgDate(1))
+        org_scheduled: OrgAgendaItem = OrgAgendaItem(
+            'test', scheduled=OrgDate(1))
         org_deadline: OrgAgendaItem = OrgAgendaItem('test', deadline=OrgDate(1))
-        self.assertIsNone(org_scheduled.deadline)
-        self.assertIsNone(org_deadline.scheduled)
+        self.assertFalse(bool(org_scheduled.deadline))
+        self.assertFalse(bool(org_deadline.scheduled))
 
     def test_form_org_node(self):
-        pass
+        with open(self.org_file) as org:
+            content: str = org.read()
+            node: OrgNode = loads(content)
+        a: OrgAgendaItem = OrgAgendaItem.from_org_node(node)
+        b: OrgAgendaItem = OrgAgendaItem(*self.args)
+
+        message: str = f'\n\na is: {a.__dict__}\n\nb is: {b.__dict__}'
+        #TODO add assert

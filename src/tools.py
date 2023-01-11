@@ -1,5 +1,4 @@
 import logging
-from typing import Union
 
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
@@ -22,34 +21,39 @@ class OrgAgendaItem:
         'date.'
     )
 
-    def __init__(self, heading: str,
-                 scheduled: Union[OrgDate, None] = None,
-                 deadline: Union[OrgDate, None] = None,
+    def __init__(self,
+                 heading: str,
+                 time_stamp: OrgDate = OrgDate(None),
+                 scheduled: OrgDate = OrgDate(None),
+                 deadline: OrgDate = OrgDate(None),
                  properties: dict = {},
                  body: str = ''):
         """
 
         Args:
-        ----
-            heading (str):
-            scheduled (Union[OrgDate, None]):
-            deadline (Union[OrgDate, None]):
-            properties (dict):
-            body (str):
+            self (): 
+            heading (str): 
+            time_stamp (OrgDate): 
+            scheduled (OrgDate): 
+            deadline (OrgDate): 
+            properties (dict): 
+            body (str): 
         """
+        # TODO, only 1 date is parsed py the orgparse, the one that is on top.
+        # the rest is placed in the body of the message. The dates are gathered
+        # in a variable called: datelist
         self.heading: str = heading
-        self.scheduled: Union[OrgDate, None] = scheduled
-        self.deadline: Union[OrgDate, None] = deadline
+        self.time_stamps: OrgDate = time_stamp
+        self.scheduled: OrgDate = scheduled
+        self.deadline: OrgDate = deadline
         self.properties: dict = properties
         self.body: str = body
 
-        assert self.date_is_provided, self.error_no_date
-        logging.debug(f'date_is_provided: {self.date_is_provided}')
-        logging.debug(f'scheduled date is: {self.scheduled}')
-        logging.debug(f'deadline date is: {self.deadline}')
+        assert self.has_date, self.error_no_date
+        logging.debug(f'date_is_provided: {self.has_date}')
 
     @property
-    def date_is_provided(self) -> bool:
+    def has_date(self) -> bool:
         """TODO.
 
         Args:
@@ -59,8 +63,7 @@ class OrgAgendaItem:
         -------
 
         """
-        return any(isinstance(x, OrgDate)
-                   for x in [self.scheduled, self.deadline])
+        return bool(self.time_stamps or self.scheduled or self.deadline)
 
     def __eq__(self, other) -> bool:
         """TODO.
@@ -95,10 +98,20 @@ class OrgAgendaItem:
 
     @classmethod
     def from_org_node(cls, node: OrgNode) -> 'OrgAgendaItem':
+        """
 
-        child: OrgNode = node.children[0]
+        Args:
+            cls ():
+            node (OrgNode):
+
+        Returns
+        -------
+
+        """
+        child: OrgNode = node.root.children[0]
         return cls(
             child.heading,
+            time_stamp=OrgDate(child.datelist[0]),
             scheduled=OrgDate(child.scheduled.start, child.scheduled.end),
             deadline=OrgDate(child.deadline.start, child.deadline.end),
             properties=child.properties,
