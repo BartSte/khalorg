@@ -51,7 +51,8 @@
  
  
 ** Solution
+   #+BEGIN_EXPORT ascii
   ┌───────┐   ┌───────┐    ┌──────────┐    ┌────┐   ┌───┐
   │Outlook├──►│Davmail│───►│Vdirsyncer│───►│Khal│──►│Org│
   └───────┘   └───────┘    └──────────┘    └────┘   └───┘
-
+   #+END_EXPORT
