@@ -1,7 +1,5 @@
-* TODO Meeting                                                           :LABEL:
-  <2023-01-01 11:00 Sun 1:00-2:00>
-  SCHEDULED: <2023-01-01 Sun 2:00>
-  DEADLINE: <2023-01-01 Sun 4:00> 
+* Meeting                                                                :LABEL:
+  <2023-01-01 Sun 01:00-02:00>
   :PROPERTIES:
   :ID: 123
   :CALENDAR: outlook
