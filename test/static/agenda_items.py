@@ -17,5 +17,5 @@ class Valid:
                         "LOCATION": 'Somewhere',
                         "ORGANIZER": 'Someone (someone@outlook.com)',
                         "URL": 'www.test.com'}
-    body: str = "Hello,\n\nLets have a meeting\n\nRegards,\n\n\nSomeone"
+    body: str = "  <2023-01-01 Sun 01:00-02:00>\n\n  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
     args: list = [heading, time_stamps, scheduled, deadline, properties, body]

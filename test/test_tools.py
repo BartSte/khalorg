@@ -51,10 +51,8 @@ class TestOrgAgendaItem(TestCase):
 
     def test_form_org_node(self):
         #TODO the body contains a time stamp. We do not want that.
-        org_file: str = join(static.__path__[0], 'agenda_items', 'valid.org')
-        with open(org_file) as org:
-            content: str = org.read()
-            node: OrgNode = loads(content)
+        
+        node: OrgNode = self.read_org('valid.org')
 
         actual: OrgAgendaItem = OrgAgendaItem.from_org_node(node)
         expected: OrgAgendaItem = OrgAgendaItem(*Valid.args)
@@ -62,3 +60,17 @@ class TestOrgAgendaItem(TestCase):
         message: str = (f'\n\nActual is: {actual.__dict__}'
                         f'\n\nExpexted is: {expected.__dict__}')
         self.assertTrue(actual == expected, msg=message)
+
+    def read_org(self, org_file: str) -> OrgNode:
+        """
+
+        Args:
+            org_file (str): 
+
+        Returns:
+            
+        """
+        org_file: str = join(static.__path__[0], 'agenda_items', org_file)
+        with open(org_file) as org:
+            content: str = org.read()
+            return loads(content)
