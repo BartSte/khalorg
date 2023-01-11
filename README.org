@@ -2,7 +2,7 @@
 #+AUTHOR:    BartSte
 #+DATE:      2023-01-11
 
-* Introcuction
+* Introduction
 ** Motivation
    - Why vdirsyncer <--> org
    - Davmail + outlook workflow.
@@ -23,33 +23,35 @@
 
 
 ** Requirements
-** Functional
-|---------------------------+--------------------------------------------------|
-| Requirement               | Description                                      |
-|---------------------------+--------------------------------------------------|
-| Import vdirsyncer         | It is possible to import calendar items from     |
-| calendar into org         | vdirsyncer into org. It must be imported as a    |
-|                           | plain time stamp.                                |
-|---------------------------+--------------------------------------------------|
-| Export a new org agenda   | Org's export functionality is used to export     |
-| item to vdirsyncer        | a single org item to a vdirsyncer calendar.      |
-|                           | A heading and a plain timestamp are required for |
-|                           | this export.                                     |
-|---------------------------+--------------------------------------------------|
-| Edit an existing calendar | Imported org agenda items can be edited and      |
-| item in vdirsyncer from   | exported so that the vdirsyncer items are        |
-| org.                      | updated instead of duplicated.                   |
-|---------------------------+--------------------------------------------------|
-| Import/Export ~SCHEDULED~ |                                                  |
-| timestamps                |                                                  |
-|---------------------------+--------------------------------------------------|
-| Import/Export ~DEADLINE~  | ??                                               |
-| timestamps                |                                                  |
-|---------------------------+--------------------------------------------------|
-
-** Non-functional
-
-
+*** Functional
+ |---------------------------+-----------------------------------------------|
+ | Requirement               | Description                                   |
+ |---------------------------+-----------------------------------------------|
+ | Import vdirsyncer         | It is possible to import calendar items from  |
+ | calendar into org         | vdirsyncer into org. It must be imported as a |
+ |                           | plain time stamp.                             |
+ |---------------------------+-----------------------------------------------|
+ | Export a new org agenda   | Org's export functionality is used to export  |
+ | item to vdirsyncer        | a single org item to a vdirsyncer calendar.   |
+ |                           | A heading and a plain timestamp are required  |
+ |                           | for this export.                              |
+ |---------------------------+-----------------------------------------------|
+ | Edit an existing calendar | Imported org agenda items can be edited and   |
+ | item in vdirsyncer from   | exported so that the vdirsyncer items are     |
+ | org.                      | updated instead of duplicated.                |
+ |---------------------------+-----------------------------------------------|
+ | Import/Export ~SCHEDULED~ |                                               |
+ | timestamps                |                                               |
+ |---------------------------+-----------------------------------------------|
+ | Import/Export ~DEADLINE~  | ??                                            |
+ | timestamps                |                                               |
+ |---------------------------+-----------------------------------------------|
+ 
+*** Non-functional
+ 
+ 
 ** Solution
-
+  ┌───────┐   ┌───────┐    ┌──────────┐    ┌────┐   ┌───┐
+  │Outlook├──►│Davmail│───►│Vdirsyncer│───►│Khal│──►│Org│
+  └───────┘   └───────┘    └──────────┘    └────┘   └───┘
 
