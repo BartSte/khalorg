@@ -1,10 +1,10 @@
 from datetime import datetime
 from os.path import join
 from test import static
+from test.static.agenda_items import Valid
 from unittest import TestCase
 
 from orgparse import loads
-from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.tools import OrgAgendaItem
@@ -13,25 +13,6 @@ from src.tools import OrgAgendaItem
 class TestOrgAgendaItem(TestCase):
     """TODO."""
 
-    def setUp(self) -> None:
-        self.org_file: str = join(static.__path__[0], 'valid.org')
-
-        self.heading: str = 'Meeting'
-        self.time_stamp: OrgDate = OrgDate(datetime(2023, 1, 1, 11, 0))
-        self.scheduled: OrgDate = OrgDate(datetime(2023, 1, 1, 12, 0),
-                                          datetime(2023, 1, 1, 13, 0))
-        self.deadline: OrgDate = OrgDate(datetime(2023, 1, 10, 14, 0))
-        self.properties: dict = {'ID': '123',
-                                 'CALENDAR': 'outlook',
-                                 "LOCATION": 'Somewhere',
-                                 "ORGANIZER": 'Someone (someone@outlook.com)'}
-        self.body: str = "Hello,\n\nLets have a meeting\n\nRegards,\n\n\nSomeone"
-
-        self.args: list = [self.heading, self.time_stamp, self.scheduled,
-                           self.deadline, self.properties, self.body]
-
-        return super().setUp()
-
     def test_eq(self):
         """TODO.
 
@@ -39,8 +20,8 @@ class TestOrgAgendaItem(TestCase):
         ----
             self ():
         """
-        a: OrgAgendaItem = OrgAgendaItem(*self.args)
-        b: OrgAgendaItem = OrgAgendaItem(*self.args)
+        a: OrgAgendaItem = OrgAgendaItem(*Valid.args)
+        b: OrgAgendaItem = OrgAgendaItem(*Valid.args)
         self.assertTrue(a == b)
 
     def test_not_eq(self):
@@ -50,9 +31,9 @@ class TestOrgAgendaItem(TestCase):
         ----
             self ():
         """
-        a: OrgAgendaItem = OrgAgendaItem(*self.args)
-        for count, x in enumerate(['x', None, None, {}, '']):
-            other_args: list = list(self.args)  # copy object
+        a: OrgAgendaItem = OrgAgendaItem(*Valid.args)
+        for count, x in enumerate(['x', datetime(2024, 1, 1), None, {}, '']):
+            other_args: list = list(Valid.args)  # copy object
             other_args[count] = x
             b = OrgAgendaItem(*other_args)
             self.assertTrue(a != b)
@@ -64,39 +45,20 @@ class TestOrgAgendaItem(TestCase):
         ----
             self ():
         """
-        a: OrgAgendaItem = OrgAgendaItem(*self.args)
-        b: OrgAgendaItem = OrgAgendaItem(*self.args[:3])
+        a: OrgAgendaItem = OrgAgendaItem(*Valid.args)
+        b: OrgAgendaItem = OrgAgendaItem(*Valid.args[:3])
         self.assertFalse(a == b)
 
-    def test_no_date(self):
-        """TODO.
-
-        Args:
-        ----
-            self ():
-        """
-        with self.assertRaises(AssertionError):
-            OrgAgendaItem('test')
-
-    def test_one_date(self):
-        """TODO.
-
-        Args:
-        ----
-            self ():
-        """
-        org_scheduled: OrgAgendaItem = OrgAgendaItem(
-            'test', scheduled=OrgDate(1))
-        org_deadline: OrgAgendaItem = OrgAgendaItem('test', deadline=OrgDate(1))
-        self.assertFalse(bool(org_scheduled.deadline))
-        self.assertFalse(bool(org_deadline.scheduled))
-
     def test_form_org_node(self):
-        with open(self.org_file) as org:
+        #TODO the body contains a time stamp. We do not want that.
+        org_file: str = join(static.__path__[0], 'agenda_items', 'valid.org')
+        with open(org_file) as org:
             content: str = org.read()
             node: OrgNode = loads(content)
-        a: OrgAgendaItem = OrgAgendaItem.from_org_node(node)
-        b: OrgAgendaItem = OrgAgendaItem(*self.args)
 
-        message: str = f'\n\na is: {a.__dict__}\n\nb is: {b.__dict__}'
-        #TODO add assert
+        actual: OrgAgendaItem = OrgAgendaItem.from_org_node(node)
+        expected: OrgAgendaItem = OrgAgendaItem(*Valid.args)
+
+        message: str = (f'\n\nActual is: {actual.__dict__}'
+                        f'\n\nExpexted is: {expected.__dict__}')
+        self.assertTrue(actual == expected, msg=message)
