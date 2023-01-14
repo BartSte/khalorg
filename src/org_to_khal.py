@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 import logging
 import sys
-from typing import Any
 
 import orgparse
 from khal.cli import main_khal

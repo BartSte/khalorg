@@ -1,0 +1,21 @@
+* Meeting                                                                :LABEL:
+  <2023-01-01 Sun 01:00-02:00>
+  <2023-01-01 Mon 03:00-04:00>
+  <2023-01-01 Tue 05:00-06:00>
+  :PROPERTIES:
+  :ID: 123
+  :CALENDAR: outlook
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :URL: www.test.com
+  :END:
+
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+
