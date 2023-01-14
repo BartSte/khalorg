@@ -7,7 +7,6 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :URL: www.test.com
   :END:
-
   Hello,
 
   Lets have a meeting.

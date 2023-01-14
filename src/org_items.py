@@ -2,7 +2,19 @@ from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 
+class OrgAgendaItemError(Exception):
+    """
+    Todo.:
+    ----.
+    """
+
+
 class OrgAgendaItem:
+
+    MESSAGE_MISSING_HEADING: str = (
+        "Invalid org agenda item. At least a heading and a timestamp are "
+        "required."
+    )
 
     def __init__(self,
                  heading: str,
@@ -32,8 +44,15 @@ class OrgAgendaItem:
 
     @classmethod
     def from_org_node(cls, node: OrgNode) -> 'OrgAgendaItem':
-        child: OrgNode = node.root.children[0]
+        """TODO
 
+        Args:
+            node: 
+
+        Returns:
+            
+        """
+        child: OrgNode = cls.get_child_node(node)
         kwargs: dict = dict(active=True, inactive=False, range=True, point=True)
         time_stamps: list = child.get_timestamps(**kwargs)
 
@@ -45,3 +64,18 @@ class OrgAgendaItem:
             properties=child.properties,
             body=child.body
         )
+
+    @classmethod
+    def get_child_node(cls, node: OrgNode) -> OrgNode:
+        """TODO
+
+        Args:
+            node: 
+
+        Returns:
+            
+        """
+        try:
+            return node.root.children[0]
+        except IndexError as error:
+            raise OrgAgendaItemError(cls.MESSAGE_MISSING_HEADING) from error

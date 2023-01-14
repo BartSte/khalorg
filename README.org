@@ -40,10 +40,10 @@
  | item in vdirsyncer from   | exported so that the vdirsyncer items are     |
  | org.                      | updated instead of duplicated.                |
  |---------------------------+-----------------------------------------------|
- | Import/Export ~SCHEDULED~ |                                               |
+ | Import/Export ~SCHEDULED~ | Not supported (yet).                          |
  | timestamps                |                                               |
  |---------------------------+-----------------------------------------------|
- | Import/Export ~DEADLINE~  | ??                                            |
+ | Import/Export ~DEADLINE~  | Not supported (yet).                          |
  | timestamps                |                                               |
  |---------------------------+-----------------------------------------------|
  
@@ -51,6 +51,6 @@
  
  
 ** Solution
-┌───────┐   ┌───────┐    ┌──────────┐    ┌────┐   ┌───┐                         
-│Outlook├──►│Davmail│───►│Vdirsyncer│───►│Khal│──►│Org│                         
-└───────┘   └───────┘    └──────────┘    └────┘   └───┘                         
+┌───────┐   ┌───────┐    ┌──────────┐    ┌────┐   ┌───┐
+│Outlook├──►│Davmail│───►│Vdirsyncer│───►│Khal│──►│Org│
+└───────┘   └───────┘    └──────────┘    └────┘   └───┘

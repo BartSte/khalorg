@@ -5,13 +5,14 @@ from test.static.agenda_items import (
     MaximalValid,
     MinimalValid,
     MultipleTimstampsValid,
+    NoHeading
 )
 from unittest import TestCase
 
 from orgparse import loads
 from orgparse.node import OrgNode
 
-from src.org_items import OrgAgendaItem
+from src.org_items import OrgAgendaItem, OrgAgendaItemError
 from src.tools import get_module_path
 
 
@@ -20,16 +21,16 @@ class TestOrgAgendaItem(TestCase):
 
     def test_eq(self):
         """Two objects with the same arguments must be equal."""
-        a: OrgAgendaItem = OrgAgendaItem(*MaximalValid.args)
-        b: OrgAgendaItem = OrgAgendaItem(*MaximalValid.args)
+        a: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
+        b: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         self.assertTrue(a == b)
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
         dummy_args = ['x', datetime(2024, 1, 1), None, {}, '']
-        agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.args)
+        agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         for count, x in enumerate(dummy_args):
-            args: list = list(MaximalValid.args)  # copy object
+            args: list = list(MaximalValid.get_args())  # copy object
             args[count] = x
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
@@ -42,18 +43,18 @@ class TestOrgAgendaItem(TestCase):
         ----
             self ():
         """
-        agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.args[:2])
-        self.assertEqual(MaximalValid.args[0], agenda_item.heading)
-        self.assertEqual(MaximalValid.args[1], agenda_item.time_stamps)
+        agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args()[:2])
+        self.assertEqual(MaximalValid.get_args()[0], agenda_item.heading)
+        self.assertEqual(MaximalValid.get_args()[1], agenda_item.time_stamps)
 
     def test_from_org_node_valid(self):
         """An agenda item generated from "Valid" or 'valid.org' must be the
         same.
         """
         org_file_vs_args: tuple = (
-            ('maximal_valid.org', MaximalValid.args),
-            ('minimal_valid.org', MinimalValid.args),
-            ('multiple_timestamps.org', MultipleTimstampsValid.args),
+            ('maximal_valid.org', MaximalValid.get_args()),
+            ('minimal_valid.org', MinimalValid.get_args()),
+            ('multiple_timestamps.org', MultipleTimstampsValid.get_args()),
         )
 
         for org_file, args in org_file_vs_args:
@@ -79,7 +80,7 @@ class TestOrgAgendaItem(TestCase):
         message: str = (
             f'\nFor org file: {org_file} an error is found:'
             f'\n\nActual is:\n{actual.__dict__}'
-            f'\n\nExpexted is:\n{expected.__dict__}')
+            f'\n\nExpected is:\n{expected.__dict__}')
         return actual == expected, message
 
     def read_org(self, org_file: str) -> OrgNode:
@@ -100,14 +101,9 @@ class TestOrgAgendaItem(TestCase):
         with open(path) as org:
             return loads(org.read())
 
-    # def test_from_org_node_invalid(self):
-    #     """An agenda item generated from "Valid" or 'valid.org' must be the
-    #     same.
-    #     """
-    #     org_file_vs_args: tuple = (
-    #         ('', MaximalValid.args),
-    #     )
-
-    #     for org_file, args in org_file_vs_args:
-    #         is_equal, message = self._org_is_equal(org_file, args)
-    #         self.assertTrue(is_equal, message)
+    def test_from_org_node_invalid(self):
+        """An agenda item generated from "Valid" or 'valid.org' must be the
+        same.
+        """
+        with self.assertRaises(OrgAgendaItemError):
+            self._org_is_equal('no_heading.org', NoHeading.get_args())

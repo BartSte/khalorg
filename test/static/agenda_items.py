@@ -2,49 +2,65 @@ from datetime import datetime
 
 from orgparse.date import OrgDate
 
+_DESCRIPTION: str = (
+    "  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
+)
+
 
 class OrgArguments:
     """TODO."""
 
     heading: str
     time_stamps: list
-    scheduled: OrgDate
-    deadline: OrgDate
-    properties: dict
-    body: str
-    args: list
+    properties: dict = {}
+    deadline: OrgDate = OrgDate(None)
+    scheduled: OrgDate = OrgDate(None)
+
+    _description: str = ''
+
+    @classmethod
+    def get_args(cls) -> list:
+        """
+
+        Returns
+        -------
+
+        """
+        return [
+            cls.heading,
+            cls.time_stamps,
+            cls.scheduled,
+            cls.deadline,
+            cls.properties,
+            cls.get_body()]
+
+    @classmethod
+    def get_body(cls) -> str:
+        date_in_body: list = [f'  {str(x)}\n' for x in cls.time_stamps]
+        return ''.join(date_in_body) + cls._description
 
 
 class MaximalValid(OrgArguments):
     """Used to validate agenda item: maximal_valid.org."""
 
     heading: str = 'Meeting'
-
-    time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
-                                 datetime(2023, 1, 1, 2, 0))]
-    scheduled: OrgDate = OrgDate(None)
-    deadline: OrgDate = OrgDate(None)
     properties: dict = {'ID': '123',
                         'CALENDAR': 'outlook',
                         "LOCATION": 'Somewhere',
                         "ORGANIZER": 'Someone (someone@outlook.com)',
                         "URL": 'www.test.com'}
-    body: str = "  <2023-01-01 Sun 01:00-02:00>\n\n  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
-    args: list = [heading, time_stamps, scheduled, deadline, properties, body]
+    time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
+                                 datetime(2023, 1, 1, 2, 0))]
+
+    _description: str = _DESCRIPTION
 
 
 class MinimalValid(OrgArguments):
     """Used to validate agenda item: minimal_valid.org."""
 
     heading: str = 'Meeting'
-
     time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
                                  datetime(2023, 1, 1, 2, 0))]
-    scheduled: OrgDate = OrgDate(None)
-    deadline: OrgDate = OrgDate(None)
-    properties: dict = {}
-    body: str = "  <2023-01-01 Sun 01:00-02:00>"
-    args: list = [heading, time_stamps, scheduled, deadline, properties, body]
 
 
 class MultipleTimstampsValid(MaximalValid):
@@ -52,14 +68,10 @@ class MultipleTimstampsValid(MaximalValid):
 
     time_stamps: list = [
         OrgDate(datetime(2023, 1, 1, 1, 0), datetime(2023, 1, 1, 2, 0)),
-        OrgDate(datetime(2023, 1, 1, 3, 0), datetime(2023, 1, 1, 4, 0)),
-        OrgDate(datetime(2023, 1, 1, 5, 0), datetime(2023, 1, 1, 6, 0))
+        OrgDate(datetime(2023, 1, 2, 3, 0), datetime(2023, 1, 2, 4, 0)),
+        OrgDate(datetime(2023, 1, 3, 5, 0), datetime(2023, 1, 3, 6, 0))
     ]
-    body: str = "  <2023-01-01 Sun 01:00-02:00>\n  <2023-01-01 Mon 03:00-04:00>\n  <2023-01-01 Tue 05:00-06:00>\n\n  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone\n"
-    args: list = [
-        MaximalValid.heading,
-        time_stamps,
-        MaximalValid.scheduled,
-        MaximalValid.deadline,
-        MaximalValid.properties,
-        body]
+
+class NoHeading(MaximalValid):
+    heading = ''
+
