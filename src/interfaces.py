@@ -3,7 +3,7 @@ from khal.cli import main_khal
 from src.helpers import TempSysArgv
 
 
-class Commands:
+class Khal:
     def __init__(self, calendar=''):
         self.calendar: str = calendar
 
