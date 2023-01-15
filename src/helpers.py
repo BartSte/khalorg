@@ -1,5 +1,6 @@
 import logging
 import sys
+from argparse import ArgumentParser
 from inspect import getfile
 from os.path import dirname
 from types import ModuleType
@@ -67,3 +68,15 @@ class TempSysArgv:
         """
         sys.argv = self.old
         logging.debug(f'Sys argv is reset to: {sys.argv}')
+
+
+class CustomParser(ArgumentParser):
+    
+    def __init__(self):
+        super().__init__(
+            prog='khal-orgmode',
+            description='Interface between Khal and Orgmode.'
+        )
+        self.add_argument('calendar', type=str)
+        self.add_argument('--logging', required=False, default='WARNING')
+
