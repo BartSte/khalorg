@@ -75,3 +75,5 @@ class MultipleTimstampsValid(MaximalValid):
 class NoHeading(MaximalValid):
     heading = ''
 
+class NoTimestamp(MaximalValid):
+    time_stamps = []

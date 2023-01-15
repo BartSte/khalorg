@@ -1,23 +1,14 @@
 import logging
-import sys
 
-import orgparse
 from khal.cli import main_khal
 from orgparse.node import OrgNode
 
-from src.tools import OrgAgendaItem, TempSysArgv
+from src.helpers import TempSysArgv
+from src.org_items import OrgAgendaItem
 
 
 def main():
-    """
-
-    Args:
-    ----
-        content (str):
-    """
-
-    node: OrgNode = orgparse.loads(sys.stdin.read())
-    agenda_item: OrgAgendaItem = OrgAgendaItem.from_org_node(node)
+    agenda_item: OrgAgendaItem = OrgAgendaItem.from_stdin()
     command: list = get_khal_command(agenda_item)
     with TempSysArgv(command) as argv:
         main_khal()
