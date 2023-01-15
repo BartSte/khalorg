@@ -72,8 +72,12 @@ class MultipleTimstampsValid(MaximalValid):
         OrgDate(datetime(2023, 1, 3, 5, 0), datetime(2023, 1, 3, 6, 0))
     ]
 
+
 class NoHeading(MaximalValid):
+    """ Used to validate agenda item: no_heading.org """
     heading = ''
 
+
 class NoTimestamp(MaximalValid):
+    """ Used to validate agenda item: no_timestamp.org """
     time_stamps = []

@@ -8,7 +8,8 @@ from src.org_items import OrgAgendaItem
 
 
 def main():
-    agenda_item: OrgAgendaItem = OrgAgendaItem.from_stdin()
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item = agenda_item.load_from_stdin()
     command: list = get_khal_command(agenda_item)
     with TempSysArgv(command) as argv:
         main_khal()

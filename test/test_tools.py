@@ -1,4 +1,7 @@
+import sys
 from os.path import join
+from typing import Any
+from unittest.mock import patch
 from test import static
 from test.static.agenda_items import (
     MaximalValid,
@@ -63,7 +66,7 @@ class TestOrgAgendaItem(TestCase):
         -------
 
         """
-        node: OrgNode = self.read_org(org_file)
+        node: OrgNode = loads(self.read_org_test_file(org_file))
         actual: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
         expected: OrgAgendaItem = OrgAgendaItem(*expected_args)
 
@@ -73,7 +76,7 @@ class TestOrgAgendaItem(TestCase):
             f'\n\nExpected is:\n{expected.__dict__}')
         return actual == expected, message
 
-    def read_org(self, org_file: str) -> OrgNode:
+    def read_org_test_file(self, org_file: str) -> str:
         """
         Reads an `org_file` and converts it into an `OrgNode` object.
 
@@ -84,18 +87,35 @@ class TestOrgAgendaItem(TestCase):
 
         Returns
         -------
-            OrgNode: org file is converted to a string.
+            str: org file is converted to a string.
 
         """
         path: str = join(get_module_path(static), 'agenda_items', org_file)
         with open(path) as org:
-            return loads(org.read())
+            return org.read()
 
     def test_from_org_node_no_heading(self):
         """An agenda item generated from 'no_heading.org' must raise an error as
         the OrgNode does not have a child node.
         """
         with self.assertRaises(OrgAgendaItemError):
-            node: OrgNode = self.read_org('no_heading.org')
+            node: OrgNode = loads(self.read_org_test_file('no_heading.org'))
             OrgAgendaItem().load_from_org_node(node)
             self._org_is_equal('no_time_stamp.org', NoHeading.get_args())
+
+    @patch.object(sys.stdin, 'read')
+    def test_load_from_stdin(self, patch_stdin: Any):
+        """Reading an org file from stdn or from an OrgNode must give the same
+        result.
+
+        Args:
+            patch_stdin: stdin's read function is patched
+        """
+        org_file: str = self.read_org_test_file('maximal_valid.org')
+        patch_stdin.return_value = org_file
+        node: OrgNode = loads(org_file)
+
+        actual: OrgAgendaItem = OrgAgendaItem().load_from_stdin()
+        expected: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
+
+        self.assertTrue(actual == expected)
