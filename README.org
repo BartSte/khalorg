@@ -3,6 +3,7 @@
 #+DATE:      2023-01-11
 
 * Introduction
+Work in progress!
 ** Motivation
    - Why vdirsyncer <--> org
    - Davmail + outlook workflow.
