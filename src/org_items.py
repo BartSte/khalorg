@@ -9,7 +9,7 @@ from orgparse.node import OrgNode
 class OrgAgendaItemError(Exception):
     """
     Todo.:
-    ----.
+    ----
     """
 
 
@@ -25,6 +25,7 @@ class NvimOrgDate(OrgDate):
     <2021-09-03 Fri 16:01--17:30>? Otherwise the string represenation would be
     <2021-09-03 Fri 16:01>--<2021-09-03 Fri 17:30>
     ```
+
     However, the notation <2021-09-03 Fri 16:01--17:30> is not recognized by
     neovim's plugin nvim-orgmode. As a workaround, the following notation of a
     time interval is used in this specific case: <2021-09-03 Fri 16:01-17:30>.
@@ -33,7 +34,7 @@ class NvimOrgDate(OrgDate):
     day: str = '[A-Z]{1}[a-z]{2}'
     time: str = '[0-9]{2}:[0-9]{2}'
     date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    regex: str = ''.join(['(<', date, ' ', day, ' ', time, ')--(', time, '>)'])
+    regex: str = f'(<{date} {day} {time})--({time}>)'
 
     def __str__(self) -> str:
         date: str = super().__str__()
