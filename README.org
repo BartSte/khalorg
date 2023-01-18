@@ -40,6 +40,8 @@
  | item in vdirsyncer from   | exported so that the vdirsyncer items are     |
  | org.                      | updated instead of duplicated.                |
  |---------------------------+-----------------------------------------------|
+ | Recurring items           | Not supported (yet).                          |
+ |---------------------------+-----------------------------------------------|
  | Import/Export ~SCHEDULED~ | Not supported (yet).                          |
  | timestamps                |                                               |
  |---------------------------+-----------------------------------------------|

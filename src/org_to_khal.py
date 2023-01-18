@@ -1,13 +1,13 @@
 import logging
 
-from src.interfaces import Khal
+from src.khal_interface import Calendar
 from src.org_items import OrgAgendaItem
 
 
-def org_to_khal(calendar: str):
-    logging.debug(f'Calendar is: {calendar}')
-    khal: Khal = Khal(calendar)
+def org_to_khal(calendar_name: str):
+    logging.debug(f'Calendar is: {calendar_name}')
+    calendar: Calendar = Calendar(calendar_name)
     agenda_item: OrgAgendaItem = OrgAgendaItem()
 
     agenda_item.load_from_stdin()
-    khal.new()
+    calendar.new_item(agenda_item)
