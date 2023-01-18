@@ -16,14 +16,14 @@ from orgparse import loads
 from orgparse.node import OrgNode
 
 from src.helpers import get_module_path
-from src.org_items import OrgAgendaItem, OrgAgendaItemError, OrgDateVim
+from src.org_items import NvimOrgDate, OrgAgendaItem, OrgAgendaItemError
 
 
-class TestOrgDateVim(TestCase):
+class TestNvimOrgDate(TestCase):
 
     def test(self):
-        actual: str = str(OrgDateVim((2023, 1, 1, 1, 0, 0),
-                                     (2023, 1, 1, 2, 0, 0)))
+        actual: str = str(NvimOrgDate((2023, 1, 1, 1, 0, 0),
+                                      (2023, 1, 1, 2, 0, 0)))
         expected: str = '<2023-01-01 Sun 01:00-02:00>'
         self.assertEqual(actual, expected)
 
@@ -39,7 +39,7 @@ class TestOrgAgendaItem(TestCase):
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
-        dummy_args = ['x', [OrgDateVim(1)], OrgDateVim(1), None, {}, '']
+        dummy_args = ['x', [NvimOrgDate(1)], NvimOrgDate(1), None, {}, '']
         agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         for count, x in enumerate(dummy_args):
             args: list = list(MaximalValid.get_args())  # copy object

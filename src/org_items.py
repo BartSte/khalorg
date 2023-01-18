@@ -13,7 +13,7 @@ class OrgAgendaItemError(Exception):
     """
 
 
-class OrgDateVim(OrgDate):
+class NvimOrgDate(OrgDate):
     """
     OrgDate with a modified __str__ method.
 
@@ -30,13 +30,10 @@ class OrgDateVim(OrgDate):
     time interval is used in this specific case: <2021-09-03 Fri 16:01-17:30>.
     """
 
-    head: str = '(<'
-    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    space: str = ' '
     day: str = '[A-Z]{1}[a-z]{2}'
-    time: str = '[0-9]{2}:[0-9]{2})--([0-9]{2}:[0-9]{2}'
-    tail: str = '>)'
-    regex: str = head + date + space + day + space + time + tail
+    time: str = '[0-9]{2}:[0-9]{2}'
+    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+    regex: str = ''.join(['(<', date, ' ', day, ' ', time, ')--(', time, '>)'])
 
     def __str__(self) -> str:
         date: str = super().__str__()
@@ -49,16 +46,16 @@ class OrgAgendaItem:
 
     def __init__(self,
                  heading: str = '',
-                 time_stamps: list[OrgDateVim] = [],
-                 scheduled: OrgDateVim = OrgDateVim(None),
-                 deadline: OrgDateVim = OrgDateVim(None),
+                 time_stamps: list[NvimOrgDate] = [],
+                 scheduled: NvimOrgDate = NvimOrgDate(None),
+                 deadline: NvimOrgDate = NvimOrgDate(None),
                  properties: dict = {},
                  body: str = ''):
 
         self.heading: str = heading
-        self.time_stamps: list[OrgDateVim] = list(time_stamps)
-        self.scheduled: OrgDateVim = scheduled
-        self.deadline: OrgDateVim = deadline
+        self.time_stamps: list[NvimOrgDate] = list(time_stamps)
+        self.scheduled: NvimOrgDate = scheduled
+        self.deadline: NvimOrgDate = deadline
         self.properties: dict = properties
         self.body: str = body
 
@@ -73,10 +70,10 @@ class OrgAgendaItem:
 
         self.body = child.body
         self.heading = child.heading
-        self.deadline = OrgDateVim(child.deadline.start, child.deadline.end)
-        self.scheduled = OrgDateVim(child.scheduled.start, child.scheduled.end)
+        self.deadline = NvimOrgDate(child.deadline.start, child.deadline.end)
+        self.scheduled = NvimOrgDate(child.scheduled.start, child.scheduled.end)
         self.properties = child.properties
-        self.time_stamps = [OrgDateVim.list_from_str(str(x))[0]
+        self.time_stamps = [NvimOrgDate.list_from_str(str(x))[0]
                             for x in time_stamps]
 
         return self
