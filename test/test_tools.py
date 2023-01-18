@@ -1,7 +1,5 @@
 import sys
 from os.path import join
-from typing import Any
-from unittest.mock import patch
 from test import static
 from test.static.agenda_items import (
     MaximalValid,
@@ -10,14 +8,24 @@ from test.static.agenda_items import (
     NoHeading,
     NoTimestamp,
 )
+from typing import Any
 from unittest import TestCase
+from unittest.mock import patch
 
 from orgparse import loads
-from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.helpers import get_module_path
-from src.org_items import OrgAgendaItem, OrgAgendaItemError
+from src.org_items import OrgAgendaItem, OrgAgendaItemError, OrgDateVim
+
+
+class TestOrgDateVim(TestCase):
+
+    def test(self):
+        actual: str = str(OrgDateVim((2023, 1, 1, 1, 0, 0),
+                                     (2023, 1, 1, 2, 0, 0)))
+        expected: str = '<2023-01-01 Sun 01:00-02:00>'
+        self.assertEqual(actual, expected)
 
 
 class TestOrgAgendaItem(TestCase):
@@ -31,7 +39,7 @@ class TestOrgAgendaItem(TestCase):
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
-        dummy_args = ['x', [OrgDate(1)], OrgDate(1), None, {}, '']
+        dummy_args = ['x', [OrgDateVim(1)], OrgDateVim(1), None, {}, '']
         agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         for count, x in enumerate(dummy_args):
             args: list = list(MaximalValid.get_args())  # copy object
@@ -109,6 +117,7 @@ class TestOrgAgendaItem(TestCase):
         result.
 
         Args:
+        ----
             patch_stdin: stdin's read function is patched
         """
         org_file: str = self.read_org_test_file('maximal_valid.org')

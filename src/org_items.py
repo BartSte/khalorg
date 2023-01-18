@@ -1,3 +1,4 @@
+import re
 import sys
 
 import orgparse
@@ -12,22 +13,52 @@ class OrgAgendaItemError(Exception):
     """
 
 
+class OrgDateVim(OrgDate):
+    """
+    OrgDate with a modified __str__ method.
+
+    The class description of OrgDate contains the following:
+
+    ````
+    When formatting the date to string via __str__, and there is an end date on
+    the same day as the start date, allow formatting in the short syntax
+    <2021-09-03 Fri 16:01--17:30>? Otherwise the string represenation would be
+    <2021-09-03 Fri 16:01>--<2021-09-03 Fri 17:30>
+    ```
+    However, the notation <2021-09-03 Fri 16:01--17:30> is not recognized by
+    neovim's plugin nvim-orgmode. As a workaround, the following notation of a
+    time interval is used in this specific case: <2021-09-03 Fri 16:01-17:30>.
+    """
+
+    head: str = '(<'
+    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+    space: str = ' '
+    day: str = '[A-Z]{1}[a-z]{2}'
+    time: str = '[0-9]{2}:[0-9]{2})--([0-9]{2}:[0-9]{2}'
+    tail: str = '>)'
+    regex: str = head + date + space + day + space + time + tail
+
+    def __str__(self) -> str:
+        date: str = super().__str__()
+        return re.sub(self.regex, '\\1-\\2', date)
+
+
 class OrgAgendaItem:
 
     MESSAGE_INVALID_NODE: str = 'Invalid org node. No child node exists.'
 
     def __init__(self,
                  heading: str = '',
-                 time_stamps: list = [],
-                 scheduled: OrgDate = OrgDate(None),
-                 deadline: OrgDate = OrgDate(None),
+                 time_stamps: list[OrgDateVim] = [],
+                 scheduled: OrgDateVim = OrgDateVim(None),
+                 deadline: OrgDateVim = OrgDateVim(None),
                  properties: dict = {},
                  body: str = ''):
 
         self.heading: str = heading
-        self.time_stamps: list = list(time_stamps)
-        self.scheduled: OrgDate = scheduled
-        self.deadline: OrgDate = deadline
+        self.time_stamps: list[OrgDateVim] = list(time_stamps)
+        self.scheduled: OrgDateVim = scheduled
+        self.deadline: OrgDateVim = deadline
         self.properties: dict = properties
         self.body: str = body
 
@@ -37,15 +68,16 @@ class OrgAgendaItem:
 
     def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
         child: OrgNode = self.get_child_node(node)
-        time_stamps: list = child.get_timestamps(active=True, inactive=False,
-                                                 range=True, point=True)
+        kwargs: dict = dict(active=True, inactive=False, range=True, point=True)  # noqa
+        time_stamps: list[OrgDate] = child.get_timestamps(**kwargs)
 
         self.body = child.body
         self.heading = child.heading
-        self.deadline = OrgDate(child.deadline.start, child.deadline.end)
-        self.scheduled = OrgDate(child.scheduled.start, child.scheduled.end)
+        self.deadline = OrgDateVim(child.deadline.start, child.deadline.end)
+        self.scheduled = OrgDateVim(child.scheduled.start, child.scheduled.end)
         self.properties = child.properties
-        self.time_stamps = time_stamps
+        self.time_stamps = [OrgDateVim.list_from_str(str(x))[0]
+                            for x in time_stamps]
 
         return self
 
@@ -71,6 +103,6 @@ class OrgAgendaItem:
             message: str = 'Try using a object of type OrgAgendaItem.'
             raise AttributeError(message) from error
 
-    @staticmethod
+    @ staticmethod
     def compare(a, b) -> bool:
         return all([getattr(a, x) == getattr(b, x) for x in vars(a)])
