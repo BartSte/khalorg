@@ -70,7 +70,7 @@ class TempSysArgv:
         logging.debug(f'Sys argv is reset to: {sys.argv}')
 
 
-class CustomParser(ArgumentParser):
+class OrgToKhalParser(ArgumentParser):
     
     def __init__(self):
         super().__init__(
