@@ -59,7 +59,7 @@ class MinimalValid(OrgArguments):
 
     heading: str = 'Meeting'
     time_stamps: list = [NvimOrgDate(datetime(2023, 1, 1, 1, 0),
-                                    datetime(2023, 1, 1, 2, 0))]
+                                     datetime(2023, 1, 1, 2, 0))]
 
 
 class MultipleTimstampsValid(MaximalValid):
@@ -82,3 +82,20 @@ class NoTimestamp(MaximalValid):
     """Used to validate agenda item: no_timestamp.org."""
 
     time_stamps = []
+
+
+class NotFirstLevel(MaximalValid):
+    """Used to validate item: not_first_level.org."""
+
+    pass
+
+
+class BodyFirst(MaximalValid):
+    """Used to validate item: not_first_level.org."""
+
+    @classmethod
+    def get_body(cls) -> str:
+        date_in_body: list = [f'  {str(x)}' for x in cls.time_stamps]
+        return cls._description + '\n' + ''.join(date_in_body)
+
+
