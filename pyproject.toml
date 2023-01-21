@@ -29,9 +29,9 @@ select = [
     "D",  # pydocstyle
 ]
 
-ignore = ["D212"]
+ignore = ["D212", "D205"]
 
 [tool.autopep8]
-max_line_length = 80
+max_line_length = 79
 aggressive = 3
 experimental = true
