@@ -7,10 +7,7 @@ from orgparse.node import OrgNode
 
 
 class OrgAgendaItemError(Exception):
-    """
-    Todo.:
-    ----
-    """
+    """Raised for an error in OrgAgendaItem."""
 
 
 class NvimOrgDate(OrgDate):
@@ -42,6 +39,17 @@ class NvimOrgDate(OrgDate):
 
 
 class OrgAgendaItem:
+    """Represents an org agenda item.
+
+    Attributes
+    ----------
+        heading: heading of the item.
+        time_stamps: time stamp in org format.
+        scheduled: time stamp that belongs to :SCHEDULED:
+        deadline: time stamp that belongs to :DEADLINE:
+        properties: a dict containing the :PROPERTIES:
+        body: all text that is not part of PROPERTIES, DEADLINE, or SCHEDULED.
+    """
 
     MESSAGE_INVALID_NODE: str = 'Invalid org node. No child node exists.'
 
@@ -52,19 +60,46 @@ class OrgAgendaItem:
                  deadline: NvimOrgDate = NvimOrgDate(None),
                  properties: dict = {},
                  body: str = ''):
+        """Init.
 
+        Args:
+        ----
+            heading: heading of the item.
+            time_stamps: time stamp in org format.
+            scheduled: time stamp that belongs to :SCHEDULED:
+            deadline: time stamp that belongs to :DEADLINE:
+            properties: a dict containing the :PROPERTIES:
+            body: all text that is not part of PROPERTIES, DEADLINE,
+            or SCHEDULED.
+        """
         self.heading: str = heading
-        self.time_stamps: list[NvimOrgDate] = list(time_stamps)
+        self.time_stamps: list[OrgDate] = list(time_stamps)
         self.scheduled: NvimOrgDate = scheduled
         self.deadline: NvimOrgDate = deadline
         self.properties: dict = properties
         self.body: str = body
 
     def load_from_stdin(self) -> 'OrgAgendaItem':
+        """Load an agenda item from stdin.
+
+        Returns
+        -------
+            OrgAgendaItem: returns itself.
+        """
         node: OrgNode = orgparse.loads(sys.stdin.read())
         return self.load_from_org_node(node)
 
     def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
+        """Load an agenda item from an `OrgNode`.
+
+        Args:
+            node: an org file that is parsed as `OrgNode`
+
+        Returns
+        -------
+            OrgAgendaItem: returns itself.
+
+        """
         child: OrgNode = self.get_child_node(node)
         kwargs: dict = dict(active=True, inactive=False, range=True, point=True)  # noqa
         time_stamps: list[OrgDate] = child.get_timestamps(**kwargs)
@@ -72,21 +107,23 @@ class OrgAgendaItem:
         self.body = child.body
         self.heading = child.heading
         self.deadline = NvimOrgDate(child.deadline.start, child.deadline.end)
-        self.scheduled = NvimOrgDate(child.scheduled.start, child.scheduled.end)
+        self.scheduled = NvimOrgDate(
+            child.scheduled.start, child.scheduled.end)
         self.properties = child.properties
-        self.time_stamps = [NvimOrgDate.list_from_str(str(x))[0]
+        self.time_stamps = [NvimOrgDate.list_from_str(str(x)).pop()
                             for x in time_stamps]
 
         return self
 
     def get_child_node(self, node: OrgNode) -> OrgNode:
-        """TODO.
+        """The first child of the `node` is expected to be the agenda item.
 
         Args:
-            node:
+            node: the agenda item as `OrgNode`
 
         Returns
         -------
+            OrgNode: the agenda item.
 
         """
         try:
@@ -101,6 +138,16 @@ class OrgAgendaItem:
             message: str = 'Try using a object of type OrgAgendaItem.'
             raise AttributeError(message) from error
 
-    @ staticmethod
-    def compare(a, b) -> bool:
+    @staticmethod
+    def compare(a: 'OrgAgendaItem', b:  'OrgAgendaItem') -> bool:
+        """The equality of the `vars` of a and b should all be True.
+
+        Args:
+            a: agenda item 
+            b: agenda item
+
+        Returns:
+            bool: True if the items are equal.
+            
+        """
         return all([getattr(a, x) == getattr(b, x) for x in vars(a)])
