@@ -1,24 +1,24 @@
-from typing import Callable
-from khal.cli import main_khal
+import subprocess
+from typing import Callable, Union
 
-from src.helpers import TempSysArgv
-from src.org_items import OrgAgendaItem
+from khal.settings.settings import find_configuration_file, get_config
 
 
 class Calendar:
 
     def __init__(self, name):
+        path_config: Union[str, None] = find_configuration_file()
+        self.config: dict = get_config(path_config)
         self.name: str = name
 
+        new_item_program: str = 'khal new'
         new_item_args: tuple = (
             'start',
             'end',
             'delta',
             'timezone',
             'summary',
-            'description'
-        )
-
+            'description')
         new_item_options: tuple = (
             '--calendar',
             '--location',
@@ -29,10 +29,14 @@ class Calendar:
             '--alarms',
             '--url')
 
-        self.new_item: Callable = Command(
-            program='khal new',
-            args=new_item_args,
-            options=new_item_options)
+        self.dateformat: Callable = Command('khal printformats')
+        self.new_item: Callable = Command(new_item_program,
+                                          new_item_args,
+                                          new_item_options)
+
+    @property
+    def long_datetime_format(self) -> str:
+        return self.config['locale']['longdatetimeformat']
 
 
 class Command:
@@ -41,18 +45,20 @@ class Command:
             self,
             program: str,
             args: tuple = tuple(),
-            options: tuple = tuple()):
+            options: tuple = tuple()) -> None:
 
         self.program: str = program
         self.args: tuple = args
         self.options: tuple = options
 
-    def __call__(self, args: tuple, optional: dict = {}):
-        """
-        Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
-        [:: DESCRIPTION]].
-        """
-        pass
+    def __call__(self, args: tuple) -> str:
+        stdout: bytes = subprocess.check_output([self.program, *args])
+        return stdout.decode()
+
+        # """
+        # Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
+        # [:: DESCRIPTION]].
+        # """
         # options: tuple[tuple[str, str], ...] = (
         #     ('--calendar', self.name),
         #     ('--location', item.properties['location']),
@@ -70,7 +76,3 @@ class Command:
         # ]
 
         # self._execute(command)
-
-    def _execute(self, command: list):
-        with TempSysArgv(command) as argv:
-            main_khal()

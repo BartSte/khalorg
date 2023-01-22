@@ -10,4 +10,4 @@ def org_to_khal(calendar_name: str):
     agenda_item: OrgAgendaItem = OrgAgendaItem()
 
     agenda_item.load_from_stdin()
-    calendar.new_item(agenda_item)
+    stdout: str = calendar.new_item.from_org_agenda_item(agenda_item)
