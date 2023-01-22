@@ -11,49 +11,40 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.name: str = name
 
-        new_item_program: str = 'khal new'
-        new_item_args: tuple = (
-            'start',
-            'end',
-            'delta',
-            'timezone',
-            'summary',
-            'description')
-        new_item_options: tuple = (
-            '--calendar',
-            '--location',
-            '--categories',
-            '--repeat',
-            '--until',
-            '--format',
-            '--alarms',
-            '--url')
-
-        self.dateformat: Callable = Command('khal printformats')
-        self.new_item: Callable = Command(new_item_program,
-                                          new_item_args,
-                                          new_item_options)
+        self.new_item: Callable = NewItem()
 
     @property
     def long_datetime_format(self) -> str:
+        """TODO.
+
+        Returns
+        -------
+
+        """
         return self.config['locale']['longdatetimeformat']
 
 
 class Command:
 
-    def __init__(
-            self,
-            program: str,
-            args: tuple = tuple(),
-            options: tuple = tuple()) -> None:
-
+    def __init__(self, program: str) -> None:
         self.program: str = program
-        self.args: tuple = args
-        self.options: tuple = options
 
     def __call__(self, args: tuple) -> str:
         stdout: bytes = subprocess.check_output([self.program, *args])
         return stdout.decode()
+
+
+class NewItem(Command):
+    """The idea is that __call__ just wraps around subprocess.check_output. For
+    each command a `from_org_org_argenda_item is created that does the parsing
+    for each khal command.
+    """
+
+    def __init__(self) -> None:
+        super().__init__('khal_new')
+
+    def from_org_org_argenda_item(self) -> str:
+        pass
 
         # """
         # Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
@@ -76,3 +67,21 @@ class Command:
         # ]
 
         # self._execute(command)
+
+        # new_item_program: str = 'khal new'
+        # new_item_args: tuple = (
+        #     'start',
+        #     'end',
+        #     'delta',
+        #     'timezone',
+        #     'summary',
+        #     'description')
+        # new_item_options: tuple = (
+        #     '--calendar',
+        #     '--location',
+        #     '--categories',
+        #     '--repeat',
+        #     '--until',
+        #     '--format',
+        #     '--alarms',
+        #     '--url')
