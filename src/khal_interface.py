@@ -1,7 +1,7 @@
-from subprocess import check_output
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
+from src.helpers import SubProcessWithParser
 
 from src.org_items import OrgAgendaItem
 
@@ -13,9 +13,9 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.name: str = name
 
-        self.new_item: Callable = Command('new', from_org)
-        self.edit_item: Callable = Command('edit', from_org)
-        self.get_item: Callable = Command('format', from_org)
+        self.new_item: Callable = SubProcessWithParser('khal new', org_to_khal_new)
+        self.edit_item: Callable = SubProcessWithParser('khal edit', from_org)
+        self.get_item: Callable = SubProcessWithParser('khal format', from_org)
 
     @property
     def long_datetime_format(self) -> str:
@@ -28,23 +28,8 @@ class Calendar:
         return self.config['locale']['longdatetimeformat']
 
 
-class Command:
 
-    BIN: str = 'khal'
-
-    def __init__(
-            self,
-            first_arg: str,
-            from_org: Callable = lambda: []) -> None:
-        self.first_arg: str = first_arg
-        self.from_org: Callable = from_org
-
-    def __call__(self, args: tuple) -> str:
-        stdout: bytes = check_output([self.BIN, self.first_arg, *args])
-        return stdout.decode()
-
-
-def from_org(agenda_item: OrgAgendaItem) -> list:
+def org_to_khal_new(agenda_item: OrgAgendaItem) -> list:
     return []
 
     # """
