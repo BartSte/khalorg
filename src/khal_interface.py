@@ -1,7 +1,7 @@
+from subprocess import check_output
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
-from src.helpers import SubProcessWithParser
 
 from src.org_items import OrgAgendaItem
 
@@ -13,9 +13,11 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.name: str = name
 
-        self.new_item: Callable = SubProcessWithParser('khal new', org_to_khal_new)
-        self.edit_item: Callable = SubProcessWithParser('khal edit', from_org)
-        self.get_item: Callable = SubProcessWithParser('khal format', from_org)
+        self.new_item: Callable = SubProcessWithParser(
+            cmd='khal new',
+            parser=new_item_parser,
+            args=[f'--calendar {self.name}']
+        )
 
     @property
     def long_datetime_format(self) -> str:
@@ -28,9 +30,28 @@ class Calendar:
         return self.config['locale']['longdatetimeformat']
 
 
+class SubProcess:
 
-def org_to_khal_new(agenda_item: OrgAgendaItem) -> list:
-    return []
+    def __call__(self, args: list) -> str:
+        stdout: bytes = check_output(args)
+        return stdout.decode()
+
+
+class NewItem(SubProcess):
+
+    def __init__(self, )
+
+    def from_org_agenda_item(self, item: OrgAgendaItem) -> str:
+        positional: tuple = (item.time_stamps.pop(), '')
+        optional: tuple = (
+            ('--location', item.properties['location']),
+            ('--until', ''),
+            ('--format', ''),
+            ('--alarms', ''),
+            ('--url' item.properties['URL']))
+
+        args: list = []
+        return super().__call__(args)
 
     # """
     # Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
