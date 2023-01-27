@@ -97,5 +97,3 @@ class BodyFirst(MaximalValid):
     def get_body(cls) -> str:
         date_in_body: list = [f'  {str(x)}' for x in cls.time_stamps]
         return cls._description + '\n' + ''.join(date_in_body)
-
-

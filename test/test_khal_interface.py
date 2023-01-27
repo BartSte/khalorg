@@ -9,17 +9,17 @@ from unittest.mock import patch
 
 from click import command
 
-from src.khal_interface import Command, Calendar
+from src.khal_interface import Calendar, CalendarCommand
 
 
-class TestCommand(TestCase):
+class TestCalendarCommand(TestCase):
 
     def setUp(self) -> None:
         logging.basicConfig(level=logging.DEBUG)
         return super().setUp()
 
     def test_command(self):
-        khal: Callable = Command('khal', options=('--help',))
+        khal: Callable = CalendarCommand('khal', options=('--help',))
         try:
             khal(('--help',))
         except CalledProcessError as error:
@@ -33,9 +33,4 @@ class TestCommand(TestCase):
         with patch.object(subprocess, 'check_output') as mock:
             new_item(args)
             mock.assert_called_with(expected)
-
-class TestCalendar(TestCase):
-    def test_longdateformat(self):
-        calendar: Calendar = Calendar('outlook')
-        print(calendar.long_datetime_format)
 

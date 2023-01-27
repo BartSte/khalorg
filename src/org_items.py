@@ -55,7 +55,7 @@ class OrgAgendaItem:
 
     def __init__(self,
                  heading: str = '',
-                 time_stamps: list[NvimOrgDate] = [],
+                 time_stamps: list[NvimOrgDate] = [NvimOrgDate(None)],
                  scheduled: NvimOrgDate = NvimOrgDate(None),
                  deadline: NvimOrgDate = NvimOrgDate(None),
                  properties: dict = {},
@@ -73,7 +73,7 @@ class OrgAgendaItem:
             or SCHEDULED.
         """
         self.heading: str = heading
-        self.time_stamps: list[OrgDate] = list(time_stamps)
+        self.time_stamps: list[NvimOrgDate] = list(time_stamps)
         self.scheduled: NvimOrgDate = scheduled
         self.deadline: NvimOrgDate = deadline
         self.properties: dict = properties
@@ -139,15 +139,16 @@ class OrgAgendaItem:
             raise AttributeError(message) from error
 
     @staticmethod
-    def compare(a: 'OrgAgendaItem', b:  'OrgAgendaItem') -> bool:
+    def compare(a: 'OrgAgendaItem', b: 'OrgAgendaItem') -> bool:
         """The equality of the `vars` of a and b should all be True.
 
         Args:
-            a: agenda item 
+            a: agenda item
             b: agenda item
 
-        Returns:
+        Returns
+        -------
             bool: True if the items are equal.
-            
+
         """
         return all([getattr(a, x) == getattr(b, x) for x in vars(a)])

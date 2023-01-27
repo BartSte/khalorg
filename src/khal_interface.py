@@ -1,9 +1,10 @@
+from itertools import chain
 from subprocess import check_output
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
 
-from src.org_items import OrgAgendaItem
+from src.org_items import NvimOrgDate, OrgAgendaItem
 
 
 class Calendar:
@@ -13,15 +14,13 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.name: str = name
 
-        self.new_item: Callable = SubProcessWithParser(
-            cmd='khal new',
-            parser=new_item_parser,
-            args=[f'--calendar {self.name}']
-        )
+        self.new_item: Callable = CalendarCommand('khal new',
+                                                  name,
+                                                  self.timestamp_format)
 
     @property
-    def long_datetime_format(self) -> str:
-        """TODO.
+    def timestamp_format(self) -> str:
+        """longdatetimeformat.
 
         Returns
         -------
@@ -30,28 +29,53 @@ class Calendar:
         return self.config['locale']['longdatetimeformat']
 
 
-class SubProcess:
+class CalendarCommand:
+
+    def __init__(
+            self,
+            bin: str,
+            calendar_name: str,
+            timestamp_format: str = '%Y-%m-%d %a %H:%M') -> None:
+
+        self.bin: str = bin
+        self.calendar_name: str = calendar_name
+        self.timestamp_format: str = timestamp_format
 
     def __call__(self, args: list) -> str:
         stdout: bytes = check_output(args)
         return stdout.decode()
 
-
-class NewItem(SubProcess):
-
-    def __init__(self, )
-
     def from_org_agenda_item(self, item: OrgAgendaItem) -> str:
-        positional: tuple = (item.time_stamps.pop(), '')
-        optional: tuple = (
-            ('--location', item.properties['location']),
-            ('--until', ''),
-            ('--format', ''),
-            ('--alarms', ''),
-            ('--url' item.properties['URL']))
+        positional: tuple = self.parse_positional(item)
+        optional: tuple = self.parse_optional(item)
+        args: list = [f'{x} {y}' for x, y in chain(optional, positional)]
+        return self(args)
 
-        args: list = []
-        return super().__call__(args)
+    def parse_positional(self, item: OrgAgendaItem) -> tuple:
+        # For now, only 1 timestamp is supported
+        time_stamp: NvimOrgDate = item.time_stamps[0]
+        start: str = time_stamp.start.strftime(self.timestamp_format)
+
+        if time_stamp.has_end:
+            end: str = time_stamp.end.strftime(self.timestamp_format)
+        else:
+            end = ""
+
+        summary: str = item.heading
+        description: str = item.body
+
+        return start, end, summary, '::', description
+
+    def parse_optional(self, item: OrgAgendaItem) -> tuple:
+        return (
+            ('--calendar', self.calendar_name),
+            ('--location', item.properties['location']),
+            ('--url', item.properties['URL']),
+            ('--format', self.timestamp_format),
+            ('--alarms', ''),
+            ('--repeat', ''),
+            ('--until', '')
+        )
 
     # """
     # Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
