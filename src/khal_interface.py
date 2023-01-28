@@ -1,6 +1,5 @@
-from itertools import chain
 from subprocess import check_output
-from typing import Callable, Union
+from typing import Union
 
 from khal.settings.settings import find_configuration_file, get_config
 
@@ -13,10 +12,8 @@ class Calendar:
         path_config: Union[str, None] = find_configuration_file()
         self.config: dict = get_config(path_config)
         self.name: str = name
-
-        self.new_item: Callable = CalendarCommand('khal new',
-                                                  name,
-                                                  self.timestamp_format)
+        self.new_item: NewItem = NewItem(calendar=name,
+                                         timestamp_format=self.timestamp_format)  # noqa
 
     @property
     def timestamp_format(self) -> str:
@@ -31,27 +28,41 @@ class Calendar:
 
 class CalendarCommand:
 
+    FORMAT: str = '%Y-%m-%d %a %H:%M'
+
     def __init__(
             self,
-            bin: str,
-            calendar_name: str,
-            timestamp_format: str = '%Y-%m-%d %a %H:%M') -> None:
+            bin: str = '',
+            calendar: str = '',
+            timestamp_format: str = FORMAT) -> None:
 
         self.bin: str = bin
-        self.calendar_name: str = calendar_name
+        self.calendar: str = calendar
         self.timestamp_format: str = timestamp_format
 
-    def __call__(self, args: list) -> str:
-        stdout: bytes = check_output(args)
-        return stdout.decode()
+    def from_org(self, item: OrgAgendaItem) -> str:
+        """TODO
 
-    def from_org_agenda_item(self, item: OrgAgendaItem) -> str:
-        positional: tuple = self.parse_positional(item)
-        optional: tuple = self.parse_optional(item)
-        args: list = [f'{x} {y}' for x, y in chain(optional, positional)]
+        Args:
+            item: 
+
+        Returns:
+            
+        """
+        positional: dict = self.parse_positional(item)
+        optional: dict = self.parse_optional(item)
+        args: list = self.get_args(positional, optional)
         return self(args)
 
-    def parse_positional(self, item: OrgAgendaItem) -> tuple:
+    def parse_positional(self, item: OrgAgendaItem) -> dict:
+        """TODO
+
+        Args:
+            item: 
+
+        Returns:
+            
+        """
         # For now, only 1 timestamp is supported
         time_stamp: NvimOrgDate = item.time_stamps[0]
         start: str = time_stamp.start.strftime(self.timestamp_format)
@@ -64,55 +75,85 @@ class CalendarCommand:
         summary: str = item.heading
         description: str = item.body
 
-        return start, end, summary, '::', description
+        return {'start': start,
+                'end': end,
+                'timezone': '',
+                'summary': summary,
+                'description': f':: {description}'}
 
-    def parse_optional(self, item: OrgAgendaItem) -> tuple:
-        return (
-            ('--calendar', self.calendar_name),
-            ('--location', item.properties['location']),
-            ('--url', item.properties['URL']),
-            ('--format', self.timestamp_format),
-            ('--alarms', ''),
-            ('--repeat', ''),
-            ('--until', '')
-        )
+    def parse_optional(self, item: OrgAgendaItem) -> dict:
+        """TODO
 
-    # """
-    # Usage: khal new [OPTIONS] [START [END | DELTA] [TIMEZONE] [SUMMARY]
-    # [:: DESCRIPTION]].
-    # """
-    # options: tuple[tuple[str, str], ...] = (
-    #     ('--calendar', self.name),
-    #     ('--location', item.properties['location']),
-    #     ('--categories', ''),
-    #     ('--repeat', ''),
-    #     ('--until', ''),
-    #     ('--format', ),
-    #     ('--alarms', ),
-    #     ('--url' item.properties['URL'])
-    # )
-    # command: list = ['khal new']
-    # optional: list = [f'{x} {y}' for x, y in options if y]
-    # positional: list = [
-    #     ''
-    # ]
+        Args:
+            item: 
 
-    # self._execute(command)
+        Returns:
+            
+        """
+        return {'-a': self.calendar,
+                '--calendar': self.calendar,
+                '--location': item.properties['LOCATION'],
+                '--url': item.properties['URL'],
+                '--format': self.timestamp_format,
+                '--alarms': '',
+                '--repeat': '',
+                '--until': ''}
 
-    # new_item_program: str = 'khal new'
-    # new_item_args: tuple = (
-    #     'start',
-    #     'end',
-    #     'delta',
-    #     'timezone',
-    #     'summary',
-    #     'description')
-    # new_item_options: tuple = (
-    #     '--calendar',
-    #     '--location',
-    #     '--categories',
-    #     '--repeat',
-    #     '--until',
-    #     '--format',
-    #     '--alarms',
-    #     '--url')
+    @staticmethod
+    def get_args(positional: dict, optional: dict) -> list:
+        """TODO
+
+        Args:
+            positional: 
+            optional: 
+
+        Returns:
+            
+        """
+        # TODO indicate that this method needs to be overridden.
+        return ['--help']
+
+    def __call__(self, args: list) -> str:
+        """TODO
+
+        Args:
+            args: 
+
+        Returns:
+            
+        """
+        stdout: bytes = check_output([self.bin, *args])
+        return stdout.decode()
+
+
+class NewItem(CalendarCommand):
+
+    def __init__(
+            self,
+            calendar: str = '',
+            timestamp_format: str = CalendarCommand.FORMAT) -> None:
+        """TODO
+
+        Args:
+            calendar: 
+            timestamp_format: 
+        """
+        super().__init__('khal new', calendar, timestamp_format)
+
+    @staticmethod
+    def get_args(positional: dict, optional: dict) -> list:
+        """TODO
+
+        Args:
+            positional: 
+            optional: 
+
+        Returns:
+            
+        """
+        keys_optional: list = '-a --location --url'.split(' ')
+        keys_positional: list = 'start end timezone summary description'.split(' ')  # noqa
+
+        args: list = [f'{x} {optional[x]}' for x in keys_optional]
+        args += [positional[x] for x in keys_positional]
+        return args

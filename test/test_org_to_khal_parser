@@ -6,9 +6,9 @@ from os.path import dirname
 if __name__ == "__main__":
     sys.path.append(dirname(dirname(__file__)))
 
-    from src.helpers import OrgToKhalParser
+    from src.helpers import OrgToKhalArgumentParser
 
-    parser: OrgToKhalParser = OrgToKhalParser()
+    parser: OrgToKhalArgumentParser = OrgToKhalArgumentParser()
     args: Namespace = parser.parse_args()
     print(args.calendar)
     print(args.logging)
