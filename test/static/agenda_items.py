@@ -53,22 +53,21 @@ class MaximalValid(OrgArguments):
 
     _description = _DESCRIPTION
 
-    khal_positional_args = {
+    command_line_args = {
         'start': '2023-01-01 Sun 01:00',
         'end': '2023-01-01 Sun 02:00',
         'timezone': '',
         'summary': 'Meeting',
-        'description': (f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}')
-    }
-
-    khal_optional_args = {'--alarms': '',
-                          '--calendar': '',
-                          '--format': '%Y-%m-%d %a %H:%M',
-                          '--location': 'Somewhere',
-                          '--repeat': '',
-                          '--until': '',
-                          '--url': 'www.test.com',
-                          '-a': ''}
+        'description': (f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}'),
+        '-a': '',
+        '--calendar': '',
+        '--alarms': '',
+        '--format': '',
+        '--location': 'Somewhere',
+        '--repeat': '',
+        '--until': '',
+        '--url': 'www.test.com',
+        }
 
     khal_new_args = ['-a Some_calendar',
                      '--location Somewhere',

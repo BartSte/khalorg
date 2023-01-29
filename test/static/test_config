@@ -1,0 +1,34 @@
+# vim:filetype=dosini
+[calendars]
+
+[[test_calendar_local]]
+path = ~/.local/share/calendar/test_calendar/
+type = calendar
+color = light green
+
+[locale]
+timeformat = %H:%M
+dateformat = %Y-%m-%d %a
+longdateformat = %Y-%m-%d %a
+datetimeformat = %Y-%m-%d %a %H:%M
+longdatetimeformat = %Y-%m-%d %a %H:%M
+weeknumbers = right
+
+[default]
+default_calendar = test_calendar_local
+highlight_event_days = True
+show_all_days = False
+
+[highlight_days]
+color = light red
+default_color = white
+multiple = light blue
+multiple_on_overflow = True
+
+[view]
+blank_line_before_day = True
+frame = color
+theme = dark
+bold_for_light_color = False
+event_view_weighting = 1
+agenda_event_format = {calendar-color}{cancelled}{start-end-time-style} {title}{repeat-symbol}{alarm-symbol}{reset}
