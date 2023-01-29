@@ -1,14 +1,11 @@
 import logging
 from datetime import datetime
-from subprocess import CalledProcessError
 from test.helpers import get_test_config
 from test.static.agenda_items import MaximalValid
-from typing import Callable
 from unittest import TestCase
 from unittest.mock import patch
 
-from src import khal_interface
-from src.khal_interface import Calendar, Command, CommandLineArgs
+from src.khal_items import Args, Calendar
 from src.org_items import OrgAgendaItem
 
 
@@ -27,41 +24,40 @@ class Mixin:
 
 class TestCalendar(Mixin, TestCase):
 
-    @patch('src.khal_interface.find_configuration_file',
+    @patch('src.khal_items.find_configuration_file',
            return_value=get_test_config())
     def test_timestamp_format(self, _):
         """The `timestamp_format` must coincide. """
         self.assertEqual(self.calendar.timestamp_format, '%Y-%m-%d %a %H:%M')
 
 
-class TestCalendarCommand(Mixin, TestCase):
+class TestArgs(Mixin, TestCase):
 
-    @patch.object(khal_interface, 'check_output', patch_check_output)
-    def test_call(self):
-        """ The __call__ method should run the `khal --help` command as a
-        subprocess.
-        """
-        cmd: Callable = Command('foo')
-        actual: str = cmd(['bar', '--help'])
-        expected: str = 'foo bar --help'
-        self.assertEqual(actual, expected)
-
-    @patch.object(khal_interface, 'check_output', patch_check_output)
-    def test_from_dict(self):
-        cmd: Command = Command('khal new')
-        kwargs: dict = CommandLineArgs()
-        kwargs['start'] = str(datetime(2023, 1, 1))
-        kwargs['--url'] = 'www.test.com'
-
-        expected: str = 'khal new --url www.test.com 2023-01-01 00:00:00'
-        actual: str = cmd.from_dict(kwargs)
-        self.assertEqual(actual, expected)
-
-
-class TestCommandLineArgs(Mixin, TestCase):
-
-    def test(self):
-        actual: CommandLineArgs = CommandLineArgs()
+    def test_load_from_org(self):
+        actual: Args = Args()
         actual.load_from_org(self.agenda_item)
         expected: dict = MaximalValid.command_line_args
+        self.assertEqual(actual, expected)
+
+    def test_optional(self):
+        key = '--url'
+        value: str = 'www.test.com'
+        args: Args = Args()
+        args[key] = value
+        self.assertEqual(value, args.optional[key])
+
+    def test_positional(self):
+        key = 'foo'
+        value: str = 'bar'
+        args: Args = Args()
+        args[key] = value
+        self.assertEqual(value, args.positional[key])
+
+    def test_as_list(self):
+        args: Args = Args()
+        args['--url'] = 'www.test.com'
+        args['start'] = str(datetime(2023, 1, 1))
+
+        expected: list = ['--url www.test.com', '2023-01-01 00:00:00']
+        actual: list = args.as_list()
         self.assertEqual(actual, expected)

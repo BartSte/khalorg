@@ -1,9 +1,9 @@
 import logging
 from argparse import ArgumentParser
 
-from src.khal_interface import (
+from src.khal_items import (
+    Args,
     Calendar,
-    CommandLineArgs,
 )
 from src.org_items import OrgAgendaItem
 
@@ -25,17 +25,20 @@ def main(calendar_name: str) -> str:
     """TODO.
 
     Args:
-        calendar_name: 
+        calendar_name:
 
-    Returns:
-        
+    Returns
+    -------
+
     """
     logging.debug(f'Calendar is: {calendar_name}')
     calendar: Calendar = Calendar(calendar_name)
     org_item: OrgAgendaItem = OrgAgendaItem()
-    khal_args: CommandLineArgs = CommandLineArgs()
+    args: Args = Args()
 
     org_item.load_from_stdin()
-    khal_args.load_from_org(org_item)
-    stdout: str = calendar.new_item.from_dict(khal_args)
+    args.load_from_org(org_item, calendar.timestamp_format)
+    logging.debug(f'Command line args are: {args}')
+
+    stdout: str = calendar.new_item(args.as_list())
     return stdout

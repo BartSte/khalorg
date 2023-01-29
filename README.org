@@ -21,14 +21,14 @@ Work in progress!
 
 ** Requirements
 *** Functional
-    - [-] Import vdirsyncer calendar into org. 
+    - [-] Import vdirsyncer calendar into org.   
       It is possible to import calendar items from vdirsyncer into org. It must
       be imported as a plain time stamp.
-    - [-] Export a new org agenda item to vdirsyncer.
+    - [-] Export a new org agenda item to vdirsyncer.  
       Org's export functionality is used to export a single org item to a
       vdirsyncer calendar. A heading and a plain timestamp are required for
       this export.
-    - [ ] Edit an existing calendar item in vdirsyncer from org.                      
+    - [ ] Edit an existing calendar item in vdirsyncer from org.  
       Imported org agenda items can be edited and exported so that the
       vdirsyncer items are updated instead of duplicated.              
     - [ ] Recurring items           

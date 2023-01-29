@@ -56,16 +56,9 @@ class MaximalValid(OrgArguments):
     command_line_args = {
         'start': '2023-01-01 Sun 01:00',
         'end': '2023-01-01 Sun 02:00',
-        'timezone': '',
         'summary': 'Meeting',
         'description': (f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}'),
-        '-a': '',
-        '--calendar': '',
-        '--alarms': '',
-        '--format': '',
         '--location': 'Somewhere',
-        '--repeat': '',
-        '--until': '',
         '--url': 'www.test.com',
         }
 
