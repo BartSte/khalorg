@@ -37,7 +37,10 @@ def main(calendar_name: str) -> str:
     args: Args = Args()
 
     org_item.load_from_stdin()
-    args.load_from_org(org_item, calendar.timestamp_format)
+
+    args['-a'] = calendar_name
+    args.load_from_org(org_item)
+
     logging.debug(f'Command line args are: {args}')
 
     stdout: str = calendar.new_item(args.as_list())

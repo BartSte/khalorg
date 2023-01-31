@@ -2,6 +2,7 @@ import logging
 import test
 from os.path import join
 from subprocess import PIPE, CalledProcessError, Popen, check_output
+from test.static.agenda_items import MaximalValid
 from unittest import TestCase
 
 from src.helpers import get_module_path
@@ -11,13 +12,14 @@ class TestCLI(TestCase):
 
     def setUp(self) -> None:
         logging.basicConfig(level=logging.DEBUG)
+        self.test_dir: str = get_module_path(test)
         return super().setUp()
 
     def test_with_args(self):
         """ Expected that the org2khal_CLI_tester executable return the
         calendar and the log level.
         """
-        cli_tester: str = join(get_module_path(test), 'org2khal_CLI_tester')
+        cli_tester: str = join(self.test_dir, 'org2khal_CLI_tester')
         args: list = [cli_tester, 'calendar', '--logging', 'CRITICAL']
         try:
             stdout: bytes = check_output(args)
@@ -28,21 +30,23 @@ class TestCLI(TestCase):
             self.assertEqual(stdout, b'calendar\nCRITICAL\n')
 
     def test_new(self):
-        """ Expected that the org2khal_CLI_tester executable return the
-        calendar and the log level.
+        """ When feeding the org file maximal_valid.org into org2khal_tester
+        through stdin, it expected to get the command line arguments from
+        stdout as is described by MaximalValid.khal_new_args.
         """
-        #TODO add assertion
-        cli_tester: str = join(get_module_path(test), 'org2khal_tester')
-        org_file: str = join(get_module_path(test), 'static', 'agenda_items',
-                             'maximal_valid.org')
+        expected: str = 'khal new ' + ' '.join(MaximalValid.khal_new_args)
+        org_file: str = join(self.test_dir, 'static', 'agenda_items', 'maximal_valid.org')
+        cli_tester: str = join(self.test_dir, 'org2khal_tester')
+
         cat_args: tuple = ('cat', org_file)
-        args: tuple = (cli_tester, '--logging', 'CRITICAL', 'calendar')
+        cli_tester_args: tuple = (cli_tester, 'Some_calendar')
         try:
             with Popen(cat_args, stdout=PIPE) as cat:
-                stdout: bytes = check_output(args, stdin=cat.stdout)
+                stdout: bytes = check_output(cli_tester_args, stdin=cat.stdout)
                 cat.wait()
         except CalledProcessError as error:
             logging.critical(error.output)
             self.fail(error.output)
         else:
-            logging.info(stdout.decode())
+            message: str = f'\n\n{stdout}\n\n{expected.encode()}'
+            self.assertEqual(stdout, expected.encode(), msg=message)

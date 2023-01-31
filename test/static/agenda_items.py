@@ -67,9 +67,8 @@ class MaximalValid(OrgArguments):
                      '--url www.test.com',
                      '2023-01-01 Sun 01:00',
                      '2023-01-01 Sun 02:00',
-                     '',
                      'Meeting',
-                     f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}']
+                     f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}\n']
 
 
 class MinimalValid(OrgArguments):
