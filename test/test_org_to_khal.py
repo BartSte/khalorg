@@ -31,6 +31,7 @@ class TestCLI(TestCase):
         """ Expected that the org2khal_CLI_tester executable return the
         calendar and the log level.
         """
+        #TODO add assertion
         cli_tester: str = join(get_module_path(test), 'org2khal_tester')
         org_file: str = join(get_module_path(test), 'static', 'agenda_items',
                              'maximal_valid.org')
@@ -42,8 +43,6 @@ class TestCLI(TestCase):
                 cat.wait()
         except CalledProcessError as error:
             logging.critical(error.output)
-            logging.critical(error.stderr)
-            logging.critical(error.stderr)
             self.fail(error.output)
         else:
             print(stdout)
