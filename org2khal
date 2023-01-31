@@ -2,10 +2,10 @@
 import logging
 from argparse import Namespace
 
-from src.org_to_khal import main, CommandLineInterface
+from src.org_to_khal import main, CLI
 
 if __name__ == '__main__':
-    parser = CommandLineInterface()
+    parser = CLI()
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.logging)
     stdout: str = main(args.calendar)

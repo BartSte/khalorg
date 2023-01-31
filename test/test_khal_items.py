@@ -9,10 +9,6 @@ from src.khal_items import Args, Calendar
 from src.org_items import OrgAgendaItem
 
 
-def patch_check_output(args: list) -> bytes:
-    return ' '.join(args).encode()
-
-
 class Mixin:
 
     def setUp(self) -> None:
