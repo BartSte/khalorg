@@ -3,25 +3,22 @@ import logging
 import sys
 from argparse import Namespace
 from os.path import dirname
+from unittest.mock import patch
 
 
-def callback(cmd):
-    def patch_check_output(args: list) -> bytes:
-        return ' '.join(args).encode()
-    return patch_check_output
+def echo(cmd):
+    return ' '.join(cmd).encode()
 
 
 if __name__ == '__main__':
     root: str = dirname(dirname(__file__))
     sys.path.append(root)
 
-    from src import khal_items
     from src.org_to_khal import CLI, main
-
-    khal_items.subprocess_callback = callback
 
     parser = CLI()
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.logging)
-    stdout: str = main(args.calendar)
-    print(stdout)
+    with patch('src.helpers.check_output', echo):
+        stdout: str = main(args.calendar)
+        print(stdout)

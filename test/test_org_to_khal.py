@@ -45,4 +45,4 @@ class TestCLI(TestCase):
             logging.critical(error.output)
             self.fail(error.output)
         else:
-            print(stdout)
+            logging.info(stdout.decode())
