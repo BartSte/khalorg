@@ -1,14 +1,16 @@
 #!/usr/bin/env python
+import logging
 import sys
 from argparse import Namespace
 from os.path import dirname
 
 if __name__ == "__main__":
-    sys.path.append(dirname(dirname(__file__)))
+    root: str = dirname(dirname(__file__))
+    sys.path.append(root)
 
-    from src.org_to_khal import CommandLineInterface
+    from src.org_to_khal import CLI
 
-    parser: CommandLineInterface = CommandLineInterface()
+    parser: CLI = CLI()
     args: Namespace = parser.parse_args()
     print(args.calendar)
     print(args.logging)

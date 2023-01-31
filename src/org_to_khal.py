@@ -8,7 +8,7 @@ from src.khal_items import (
 from src.org_items import OrgAgendaItem
 
 
-class CommandLineInterface(ArgumentParser):
+class CLI(ArgumentParser):
     """ TODO. """
 
     def __init__(self):
