@@ -29,7 +29,7 @@ select = [
     "D",  # pydocstyle
 ]
 
-ignore = ["D212", "D205", "D210"]
+ignore = ["D212", "D205", "D210", "D203"]
 
 [tool.autopep8]
 max_line_length = 79

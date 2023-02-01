@@ -72,16 +72,18 @@ class TestOrgAgendaItem(TestCase):
     def _agenda_item_file_vs_object(
             self,
             org_file: str,
-            expected: OrgAgendaItem) -> tuple:
+            expected: OrgAgendaItem) -> tuple[bool, str]:
         """
-        TODO.
+        Comapre an *.org file with a OrgAgendaItem.
 
         Args:
-            org_file:
-            expected_args:
+            org_file: situated in ./test/static/agenda_item/
+            expected: the expected OrgAgendaItem.
 
         Returns
         -------
+           bool represents the comparison, and an optional error message is
+           provided as str. 
 
         """
         node: OrgNode = loads(self.read_org_test_file(org_file))

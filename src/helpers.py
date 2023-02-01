@@ -20,13 +20,15 @@ def get_module_path(module: ModuleType) -> str:
 
 
 def subprocess_callback(cmd: list) -> Callable:
-    """TODO.
+    """Returns a subprocess.check_output callback where the `cmd` is defined
+    beforehand.
 
     Args:
-        cmd ():
+        cmd: the base command. For example: ['khal', 'new']
 
     Returns
     -------
+        callback function
 
     """
     def callback(args: list) -> str:

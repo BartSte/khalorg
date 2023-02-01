@@ -20,5 +20,5 @@ if __name__ == '__main__':
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.logging)
     with patch('src.helpers.check_output', echo):
-        stdout: str = main(args.calendar)
+        stdout: str = main(args.command, args.calendar)
         print(stdout)

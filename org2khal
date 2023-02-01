@@ -1,14 +1,15 @@
 #!/usr/bin/env python
+
+""" Export an org agenda item to a khal calendar. """
+
 import logging
 from argparse import Namespace
 
-from src.org_to_khal import main, CLI
+from src.org_to_khal import CLI, main
 
 if __name__ == '__main__':
-    #TODO do a full test with khal
-
     parser = CLI()
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.logging)
-    stdout: str = main(args.calendar)
+    stdout: str = main(args.command, args.calendar)
     print(stdout)

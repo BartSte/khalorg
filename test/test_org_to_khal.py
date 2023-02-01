@@ -20,7 +20,7 @@ class TestCLI(TestCase):
         calendar and the log level.
         """
         cli_tester: str = join(self.test_dir, 'org2khal_CLI_tester')
-        args: list = [cli_tester, 'calendar', '--logging', 'CRITICAL']
+        args: list = [cli_tester, 'new', 'calendar', '--logging', 'CRITICAL']
         try:
             stdout: bytes = check_output(args)
         except CalledProcessError as error:
@@ -39,7 +39,7 @@ class TestCLI(TestCase):
         cli_tester: str = join(self.test_dir, 'org2khal_tester')
 
         cat_args: tuple = ('cat', org_file)
-        cli_tester_args: tuple = (cli_tester, 'Some_calendar')
+        cli_tester_args: tuple = (cli_tester,'new', 'Some_calendar')
         try:
             stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:

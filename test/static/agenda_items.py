@@ -8,7 +8,8 @@ _DESCRIPTION: str = (
 
 
 class OrgArguments:
-    """TODO."""
+    """ Baseclass for representing the *.org files in the
+    ./test/static/agenda_items/ directory, as python objects."""
 
     heading: str
     time_stamps: list[NvimOrgDate]
