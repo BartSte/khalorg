@@ -19,8 +19,7 @@ class Calendar:
 
         self.config: dict = get_config(path_config)
         self.name: str = name
-        self.new_item: Callable = subprocess_callback('khal new')
-        self.list: Callable = subprocess_callback('khal list')
+        self.new_item: Callable = subprocess_callback(['khal', 'new'])
 
     @property
     def timestamp_format(self) -> str:
@@ -46,6 +45,7 @@ class Args(dict):
         end: str = self._get_end(time_stamp, timestamp_format)
         body: str = f':: {item.body}'
 
+        # TODO what if some items if OrgAgendaItem dont exist?
         key_vs_value: tuple = (
             ('start', time_stamp.start.strftime(timestamp_format)),
             ('end', end),
@@ -71,8 +71,9 @@ class Args(dict):
     def as_list(self) -> list:
         optional: list = [f'{x} {self[x]}' for x in self.optional if self[x]]
         positional: list = [self[x] for x in self.positional if self[x]]
-        return optional + positional
-
+        as_str: str = ' '.join(optional + positional)
+        return as_str.split(' ')
+        
     @property
     def optional(self) -> dict:
         return self._filter(self._is_option)

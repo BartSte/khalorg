@@ -5,6 +5,8 @@ from argparse import Namespace
 from src.org_to_khal import main, CLI
 
 if __name__ == '__main__':
+    #TODO do a full test with khal
+
     parser = CLI()
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.logging)

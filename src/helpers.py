@@ -19,7 +19,7 @@ def get_module_path(module: ModuleType) -> str:
     return dirname(getfile(module))
 
 
-def subprocess_callback(cmd) -> Callable:
+def subprocess_callback(cmd: list) -> Callable:
     """TODO.
 
     Args:
@@ -30,6 +30,6 @@ def subprocess_callback(cmd) -> Callable:
 
     """
     def callback(args: list) -> str:
-        return check_output([cmd, *args]).decode()
+        return check_output([*cmd, *args]).decode()
 
     return callback

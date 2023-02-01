@@ -41,12 +41,16 @@ class TestCLI(TestCase):
         cat_args: tuple = ('cat', org_file)
         cli_tester_args: tuple = (cli_tester, 'Some_calendar')
         try:
-            with Popen(cat_args, stdout=PIPE) as cat:
-                stdout: bytes = check_output(cli_tester_args, stdin=cat.stdout)
-                cat.wait()
+            stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:
             logging.critical(error.output)
             self.fail(error.output)
         else:
             message: str = f'\n\n{stdout}\n\n{expected.encode()}'
             self.assertEqual(stdout, expected.encode(), msg=message)
+
+    def _pipe_subproccesses(self, first: tuple, second: tuple) -> bytes:
+        with Popen(first, stdout=PIPE) as cat:
+            stdout: bytes = check_output(second, stdin=cat.stdout)
+            cat.wait()
+            return stdout
