@@ -31,8 +31,8 @@ class CLI(ArgumentParser):
         logging: dict = dict(
             required=False,
             default='WARNING',
-            help=('Set the logging level to: CRITICAL, WARNING (default), '
-                  'INFO, DEBUG')
+            help=('Set the logging level to: CRITICAL, ERROR, WARNING '
+                  '(default), INFO, DEBUG')
         )
 
         self.add_argument('command', **command)

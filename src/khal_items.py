@@ -7,6 +7,10 @@ from src.helpers import subprocess_callback
 from src.org_items import NvimOrgDate, OrgAgendaItem
 
 
+class KhalArgsError(Exception):
+    """Raised for an error in Args."""
+
+
 class Calendar:
 
     def __init__(self, name):
@@ -55,16 +59,26 @@ class Args(OrderedDict):
 
         """
         # For now, only 1 timestamp is supported
-        time_stamp: NvimOrgDate = item.time_stamps[0]
+        try:
+            time_stamp: NvimOrgDate = item.time_stamps[0]
+        except IndexError as error:
+            raise KhalArgsError('Timestamp missing in agenda item') from error
+        else:
+            return self._load_from_org(time_stamp, item, timestamp_format)
+
+    def _load_from_org(self,
+                       time_stamp: NvimOrgDate,
+                       item: OrgAgendaItem,
+                       timestamp_format: str) -> 'Args':
 
         key_vs_value: tuple = (
-            ('start', time_stamp.start.strftime(timestamp_format)),
+           ('start', time_stamp.start.strftime(timestamp_format)),
             ('end', self._get_end(time_stamp, timestamp_format)),
             ('summary', item.heading),
             ('description', f':: {item.body}'),
             ('--location', item.properties.get('LOCATION', '')),
             ('--url', item.properties.get('URL', ''))
-        )
+           )
 
         for key, value in key_vs_value:
             self[key] = value

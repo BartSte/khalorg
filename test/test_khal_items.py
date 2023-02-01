@@ -14,7 +14,6 @@ FORMAT = '%Y-%m-%d %a %H:%M'
 class Mixin:
 
     def setUp(self) -> None:
-        logging.basicConfig(level=logging.DEBUG)
         args: list = MaximalValid.get_args()
         self.agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
         self.calendar = Calendar('test_calendar')

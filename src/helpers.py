@@ -1,8 +1,9 @@
 from inspect import getfile
+import logging
 from os.path import dirname
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from types import ModuleType
-from typing import Callable
+from typing import Callable, Iterable
 
 
 def get_module_path(module: ModuleType) -> str:
@@ -32,6 +33,13 @@ def subprocess_callback(cmd: list) -> Callable:
 
     """
     def callback(args: list) -> str:
-        return check_output([*cmd, *args]).decode()
+        return try_check_output([*cmd, *args]).decode()
 
     return callback
+
+def try_check_output(args: list) -> bytes:
+    try:
+        return check_output(args)
+    except CalledProcessError as error:
+        logging.critical(error.output)
+        raise Exception('Fail.') from error

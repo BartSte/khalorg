@@ -11,7 +11,6 @@ from src.helpers import get_module_path
 class TestCLI(TestCase):
 
     def setUp(self) -> None:
-        logging.basicConfig(level=logging.DEBUG)
         self.test_dir: str = get_module_path(test)
         return super().setUp()
 
