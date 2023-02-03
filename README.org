@@ -3,18 +3,36 @@
 #+DATE:      2023-01-11
 
 * Introduction
-Work in progress!
-** Motivation
-   - Why vdirsyncer <--> org
-   - Davmail + outlook workflow.
-
-** Problem
-   - TODO
+  `khal-orgmode` is a commandline tool that converts agenda items of org-mode
+  into khal calendar items.  
 
 ** Definitions
    - org -> org mode [[https://orgmode.org]]
+   - CalDav -> internet standard for client access to calendars [[https://en.wikipedia.org/wiki/CalDAV]]
    - vdirsyncer -> command line tool for synchronizing calendars [[https://github.com/pimutils/vdirsyncer]]
    - khal -> command line calendar app [[https://github.com/pimutils/khal]]
+   - Davmail -> CalDav exchange gateway [[https://davmail.sourceforge.net/e]]
+
+** Motivation
+   I use org to manage my agenda and my notes. However, in a professional
+   setting, you are often required to use proprietary software for your agenda, 
+   like Office 365. Luckly, the CalDav standard exists which allows for
+   synchronization between agendas from different suppliers.
+
+   Personally, I wanted have the following setup: 
+   #+begin_example
+    ┌───┐      
+    │Org│      
+    └┬──┘      
+    ┌▽──┐      
+    │???│      
+    └┬──┘      
+    ┌▽────────┐
+    │Office365│
+    └─────────┘
+   #+end_example
+
+   #TODO -> continue here
 
 ** Installation
    - TODO
