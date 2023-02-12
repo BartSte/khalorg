@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import logging
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
@@ -85,12 +86,13 @@ class Args(OrderedDict):
 
         return self
 
-    def _get_end(
-            self, time_stamp: NvimOrgDate,
-            timestamp_format: str = '%Y-%m-%d %a %H:%M') -> str:
-        if time_stamp.has_end:
+    def _get_end(self, 
+                 time_stamp: NvimOrgDate,
+                 timestamp_format: str = '%Y-%m-%d %a %H:%M') -> str:
+        try:
             return time_stamp.end.strftime(timestamp_format)
-        else:
+        except AttributeError:
+            logging.debug('End timestamp cannot be formatted.')
             return ''
 
     def as_list(self) -> list:
