@@ -1,48 +1,72 @@
-#+TITLE:     Khal orgmode
+#+TITLE:     README - khal-orgmode
 #+AUTHOR:    BartSte
 #+DATE:      2023-01-11
 
 * Introduction
-  `khal-orgmode` is a commandline tool that converts agenda items of org-mode
-  into khal calendar items.  
+  `khal-orgmode` is a command line tool that converts agenda items of org mode
+  into khal calendar items, and vice versa.  
+
+  Warning: this program is still experimental, under development, and open for
+  change. Before use, make sure you make a back-up of your calendar. Check the
+  requirements for the features that are currently finished and under
+  development. 
 
 ** Definitions
-   - org -> org mode [[https://orgmode.org]]
    - CalDav -> internet standard for client access to calendars [[https://en.wikipedia.org/wiki/CalDAV]]
-   - vdirsyncer -> command line tool for synchronizing calendars [[https://github.com/pimutils/vdirsyncer]]
-   - khal -> command line calendar app [[https://github.com/pimutils/khal]]
    - Davmail -> CalDav exchange gateway [[https://davmail.sourceforge.net/e]]
+   - emacs -> text editor [[https://www.gnu.org/software/emacs/]]
+   - khal -> command line calendar app [[https://github.com/pimutils/khal]]
+   - khalel -> interface between emacs and khal [[https://gitlab.com/hperrey/khalel]]
+   - neovim -> text editor [[https://neovim.io/]]
+   - nvim-orgmode -> org mode for neovim [[https://github.com/nvim-orgmode/orgmode]]
+   - org -> plain text system for keeping notes, agendas and more. [[https://orgmode.org]]
+   - vdirsyncer -> a command line tool for synchronizing calendars and 
+     addressbooks between servers and the local file system. [[https://github.com/pimutils/vdirsyncer]]
 
 ** Motivation
-   I use org to manage my agenda and my notes. However, in a professional
-   setting, you are often required to use proprietary software for your agenda, 
-   like Office 365. Luckly, the CalDav standard exists which allows for
-   synchronization between agendas from different suppliers.
+   I use org mode to manage my agenda and my notes. However, in a professional
+   setting, you are often required to use proprietary software for your agenda,
+   like Office 365. Luckily, programs exist that can synchronize agendas from
+   different sources, by implementing the CalDav standard. Personally, I like
+   to use vdirsyncer for synchronization my agendas, and khal to access and
+   manipulate the agena items. To bridge the gap between khal and org mode,
+   only 1 program exists called: khalel. However, this program is designed for
+   emacs. Since there are also org mode users outside of emacs (e.g. neovim),
+   khal-orgmode aims to be a general interface between khal and org mode.
 
-   Personally, I wanted have the following setup: 
+   Based on the above, the following workflow is desired:
+   # CalDav server -> vdirsyncer
+   # vdirsyncer -> khal
+   # khal -> khal-orgmode
+   # khal-orgmode -> org mode
    #+begin_example
-    ┌───┐      
-    │Org│      
-    └┬──┘      
-    ┌▽──┐      
-    │???│      
-    └┬──┘      
-    ┌▽────────┐
-    │Office365│
-    └─────────┘
+┌─────────────┐
+│CalDav server│
+└┬────────────┘
+┌▽─────────┐   
+│vdirsyncer│   
+└┬─────────┘   
+┌▽───┐         
+│khal│         
+└┬───┘         
+┌▽───────────┐ 
+│khal-orgmode│ 
+└┬───────────┘ 
+┌▽───────┐     
+│org mode│     
+└────────┘     
    #+end_example
 
-   #TODO -> continue here
-
 ** Installation
-   - TODO
+   - For now, you need to clone this repository and use the executables
+     `khal2org` and `org2khal` to import and export org agenda items,
+     respectively.
 
 ** Requirements
 *** Functional
     - [-] Import vdirsyncer calendar into org.   
-      It is possible to import calendar items from vdirsyncer into org. It must
-      be imported as a plain time stamp.
-    - [-] Export a new org agenda item to vdirsyncer.  
+      It is possible to import calendar items from vdirsyncer into org. 
+    - [X] Export a new org agenda item to vdirsyncer.  
       Org's export functionality is used to export a single org item to a
       vdirsyncer calendar. A heading and a plain timestamp are required for
       this export.
@@ -52,13 +76,39 @@
     - [ ] Recurring items           
     - [ ] Import/Export ~SCHEDULED~ timestamps                
     - [ ] Import/Export ~DEADLINE~  timestamps                
-    - [ ] Timezones
- 
+    - [ ] Include timezones
+
 *** Non-functional
- 
-    - [ ] TODO
- 
-* Solution
-  #+ATTR_HTML: :alt  :align left :class img
-  [[./src/static/solution.png][org to outlook pipeline]]
-  
+
+    - [X] Can be used by emacs, vim and neovim.
+    - [ ] Is available on PyPI.
+    - [ ] Has a Neovim plugin.
+    - [-] Include an Office 365 workflow.
+
+* Workflow for Office 365
+  # Office 365 -> Davmail
+  # Davmail -> vdirsyncer
+  # vdirsyncer -> khal
+  # khal -> khal-orgmode
+  # khal-orgmode -> org mode
+  #+begin_example
+┌──────────┐  
+│Office 365│  
+└┬─────────┘  
+┌▽──────┐     
+│Davmail│     
+└┬──────┘     
+┌▽─────────┐  
+│vdirsyncer│  
+└┬─────────┘  
+┌▽───┐        
+│khal│        
+└┬───┘        
+┌▽───────────┐
+│khal-orgmode│
+└┬───────────┘
+┌▽───────┐    
+│org mode│    
+└────────┘    
+  #+end_src
+   
