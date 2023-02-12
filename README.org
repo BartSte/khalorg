@@ -3,7 +3,7 @@
 #+DATE:      2023-01-11
 
 * Introduction
-  `khal-orgmode` is a command line tool that converts agenda items of org mode
+  ~khal-orgmode~ is a command line tool that converts agenda items of org mode
   into khal calendar items, and vice versa.  
 
   Warning: this program is still experimental, under development, and open for
@@ -40,26 +40,26 @@
    # khal -> khal-orgmode
    # khal-orgmode -> org mode
    #+begin_example
-┌─────────────┐
-│CalDav server│
-└┬────────────┘
-┌▽─────────┐   
-│vdirsyncer│   
-└┬─────────┘   
-┌▽───┐         
-│khal│         
-└┬───┘         
-┌▽───────────┐ 
-│khal-orgmode│ 
-└┬───────────┘ 
-┌▽───────┐     
-│org mode│     
-└────────┘     
+   ┌─────────────┐
+   │CalDav server│
+   └┬────────────┘
+   ┌▽─────────┐   
+   │vdirsyncer│   
+   └┬─────────┘   
+   ┌▽───┐         
+   │khal│         
+   └┬───┘         
+   ┌▽───────────┐ 
+   │khal-orgmode│ 
+   └┬───────────┘ 
+   ┌▽───────┐     
+   │org mode│     
+   └────────┘     
    #+end_example
 
 ** Installation
    - For now, you need to clone this repository and use the executables
-     `khal2org` and `org2khal` to import and export org agenda items,
+     ~khal2org~ and ~org2khal~ to import and export org agenda items,
      respectively.
 
 ** Requirements
@@ -92,23 +92,22 @@
   # khal -> khal-orgmode
   # khal-orgmode -> org mode
   #+begin_example
-┌──────────┐  
-│Office 365│  
-└┬─────────┘  
-┌▽──────┐     
-│Davmail│     
-└┬──────┘     
-┌▽─────────┐  
-│vdirsyncer│  
-└┬─────────┘  
-┌▽───┐        
-│khal│        
-└┬───┘        
-┌▽───────────┐
-│khal-orgmode│
-└┬───────────┘
-┌▽───────┐    
-│org mode│    
-└────────┘    
+  ┌──────────┐  
+  │Office 365│  
+  └┬─────────┘  
+  ┌▽──────┐     
+  │Davmail│     
+  └┬──────┘     
+  ┌▽─────────┐  
+  │vdirsyncer│  
+  └┬─────────┘  
+  ┌▽───┐        
+  │khal│        
+  └┬───┘        
+  ┌▽───────────┐
+  │khal-orgmode│
+  └┬───────────┘
+  ┌▽───────┐    
+  │org mode│    
+  └────────┘    
   #+end_src
-   
