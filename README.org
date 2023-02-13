@@ -58,9 +58,9 @@
    #+end_example
 
 ** Installation
-   - For now, you need to clone this repository and use the executables
-     ~khal2org~ and ~org2khal~ to import and export org agenda items,
-     respectively.
+   - For now, you need to clone this repository and use the executables 
+     ~khalorg~ to import and export org agenda items, respectively. Checkout
+     section [[sec:usage]].
 
 ** Requirements
 *** Functional
@@ -86,12 +86,37 @@
     - [-] Include an Office 365 workflow.
 
 ** Usage
+   <<sec:usage>>
+** New item
+   An org agenda item can be converted to a new khal agenda item by feeding the
+   org item through stdin to ~khalorg~ and specifying the khal calendar name as
+   a positional argument. For example, the consider the org item below, which
+   is saved as ~meeting.org~.
+   #+begin_example
+   * Meeting                                                            :LABEL:
+   <2023-01-01 Sun 01:00-02:00>
+   :PROPERTIES:
+   :ID: 123
+   :LOCATION: Somewhere
+   :ORGANIZER: Someone (someone@outlook.com)
+   :URL: www.test.com
+   :END:
+   Hello,
 
-*** khal2org
-    - TODO
+   Lets have a meeting.
 
-*** org2khal
-    - TODO
+   Regards,
+
+
+   Someone
+   #+end_example
+   This item can be converted to the khal calendar called "my_calendar" as follows:
+   #+begin_src bash
+   cat meeting.org | khalorg outlook
+   #+end_src
+   It is assumed that the khal calendar called "my_calendar" exists. Make sure
+   "my_calendar" is a calendar that exists on your local file system.
+
 
 * Workflow for Office 365
   # Office 365 -> Davmail
