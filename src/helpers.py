@@ -1,7 +1,7 @@
 from inspect import getfile
 import logging
 from os.path import dirname
-from subprocess import CalledProcessError, check_output
+from subprocess import STDOUT, CalledProcessError, check_output
 from types import ModuleType
 from typing import Callable, Iterable
 
@@ -39,7 +39,11 @@ def subprocess_callback(cmd: list) -> Callable:
 
 def try_check_output(args: list) -> bytes:
     try:
-        return check_output(args)
+        return check_output(args, stderr=STDOUT)
     except CalledProcessError as error:
-        logging.critical(error.output)
-        raise Exception('Fail.') from error
+        error_message: str = (
+            f"The following arguments were sent to khal:\n\n{' '.join(args)}"
+            "\n\nNext, the following error was received from khal:\n\n"
+            f"{error.output.decode()}\n\n")
+        logging.critical(error_message)
+        raise Exception(error_message) from error
