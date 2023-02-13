@@ -26,7 +26,7 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.name: str = name
         #TODO: add import_format to a config file.
-        self.import_items: Callable = subprocess_callback(['khal', 'list', '--format', import_format])
+        # self.import_items: Callable = subprocess_callback(['khal', 'list', '--format', import_format])
         self.new_item: Callable = subprocess_callback(['khal', 'new'])
 
     @property

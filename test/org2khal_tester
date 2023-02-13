@@ -5,7 +5,7 @@ from os.path import dirname
 from unittest.mock import patch
 
 
-def echo(cmd):
+def echo(cmd, **_):
     return ' '.join(cmd).encode()
 
 
