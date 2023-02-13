@@ -25,6 +25,8 @@ class Calendar:
 
         self.config: dict = get_config(path_config)
         self.name: str = name
+        #TODO: add import_format to a config file.
+        self.import_items: Callable = subprocess_callback(['khal', 'list', '--format', import_format])
         self.new_item: Callable = subprocess_callback(['khal', 'new'])
 
     @property
@@ -73,20 +75,20 @@ class Args(OrderedDict):
                        timestamp_format: str) -> 'Args':
 
         key_vs_value: tuple = (
-           ('start', time_stamp.start.strftime(timestamp_format)),
+            ('start', time_stamp.start.strftime(timestamp_format)),
             ('end', self._get_end(time_stamp, timestamp_format)),
             ('summary', item.heading),
             ('description', f':: {item.body}'),
             ('--location', item.properties.get('LOCATION', '')),
             ('--url', item.properties.get('URL', ''))
-           )
+        )
 
         for key, value in key_vs_value:
             self[key] = value
 
         return self
 
-    def _get_end(self, 
+    def _get_end(self,
                  time_stamp: NvimOrgDate,
                  timestamp_format: str = '%Y-%m-%d %a %H:%M') -> str:
         try:
