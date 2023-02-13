@@ -1,6 +1,9 @@
 import logging
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from os.path import join
 
+from src import static
+from src.helpers import get_module_path
 from src.khal_items import (
     Args,
     Calendar,
@@ -12,11 +15,16 @@ class CLI(ArgumentParser):
     """ Parser for org2khal. """
 
     def __init__(self):
+
+        path_epilog: str = join(get_module_path(static), 'epilog.txt')
+        with open(path_epilog) as file_: 
+            epilog: str = file_.read()
+
         super().__init__(
             prog='khal-orgmode',
             description='Interface between Khal and Orgmode.',
             formatter_class=RawDescriptionHelpFormatter,
-            epilog="Commands\n- Import: \n- New:"
+            epilog=epilog
         )
 
         command: dict = dict(
@@ -68,5 +76,3 @@ def main(command: str, calendar_name: str) -> str:
 
     stdout: str = functions[command](args.as_list())
     return stdout
-
-
