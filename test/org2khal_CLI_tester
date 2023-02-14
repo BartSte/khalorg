@@ -8,7 +8,7 @@ if __name__ == "__main__":
     root: str = dirname(dirname(__file__))
     sys.path.append(root)
 
-    from src.org_to_khal import CLI
+    from src.cli import CLI
 
     parser: CLI = CLI()
     args: Namespace = parser.parse_args()

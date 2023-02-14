@@ -1,5 +1,5 @@
 import logging
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from src.khal_items import (
     Args,
@@ -14,13 +14,15 @@ class CLI(ArgumentParser):
     def __init__(self):
         super().__init__(
             prog='khal-orgmode',
-            description='Interface between Khal and Orgmode.'
+            description='Interface between Khal and Orgmode.',
+            formatter_class=RawDescriptionHelpFormatter,
+            epilog="Commands\n- Import: \n- New:"
         )
 
         command: dict = dict(
             type=str,
-            choices=('new',),
-            help=('Choose new if you want to add a new item.')
+            choices=('import', 'new',),
+            help=('Choose one of these commands. More info is provided below')
         )
 
         calendar: dict = dict(

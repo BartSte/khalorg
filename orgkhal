@@ -5,7 +5,7 @@
 import logging
 from argparse import Namespace
 
-from src.org_to_khal import CLI, main
+from src.cli import CLI, main
 
 if __name__ == '__main__':
     parser = CLI()

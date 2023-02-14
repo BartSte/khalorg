@@ -80,10 +80,18 @@
 
 *** Non-functional
 
-    - [X] Can be used by emacs, vim and neovim.
+    - [X] Can be used by org mode for emacs, vim and neovim.
     - [ ] Is available on PyPI.
     - [ ] Has a Neovim plugin.
     - [-] Include an Office 365 workflow.
+
+** Usage
+
+*** khal2org
+    - TODO
+
+*** org2khal
+    - TODO
 
 * Workflow for Office 365
   # Office 365 -> Davmail

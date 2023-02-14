@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import logging
 import sys
 from argparse import Namespace
 from os.path import dirname
@@ -14,7 +13,7 @@ if __name__ == '__main__':
     root: str = dirname(dirname(__file__))
     sys.path.append(root)
 
-    from src.org_to_khal import CLI, main
+    from src.cli import CLI, main
 
     parser = CLI()
     args: Namespace = parser.parse_args()

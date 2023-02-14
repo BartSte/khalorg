@@ -1,5 +1,3 @@
-#!/bin/bash
-
 calendar=$1
 org=$2
 start=today
