@@ -5,7 +5,7 @@ from test.static.agenda_items import MaximalValid
 from unittest import TestCase
 from unittest.mock import patch
 
-from src.khal_items import Args, Calendar
+from src.khal_items import KhalArgs, Calendar
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
@@ -35,7 +35,7 @@ class TestArgs(Mixin, TestCase):
         args must be the same as: MaximalValid.command_line_args
         .
         """
-        actual: Args = Args()
+        actual: KhalArgs = KhalArgs()
         actual.load_from_org(self.agenda_item)
         expected: dict = MaximalValid.command_line_args
         self.assertEqual(actual, expected)
@@ -44,7 +44,7 @@ class TestArgs(Mixin, TestCase):
         """ When adding an option, it can be retrieved using Args.optional. """
         key = '--url'
         value: str = 'www.test.com'
-        args: Args = Args()
+        args: KhalArgs = KhalArgs()
         args[key] = value
         self.assertEqual(value, args.optional[key])
 
@@ -54,7 +54,7 @@ class TestArgs(Mixin, TestCase):
         """
         key = 'foo'
         value: str = 'bar'
-        args: Args = Args()
+        args: KhalArgs = KhalArgs()
         args[key] = value
         self.assertEqual(value, args.positional[key])
 
@@ -64,7 +64,7 @@ class TestArgs(Mixin, TestCase):
         its value is retained (obviously). Later, all arguments are split based
         on a whitespace. Statements surrounded by quotes are not (yet)
         supported."""
-        args: Args = Args()
+        args: KhalArgs = KhalArgs()
         args['--url'] = 'www.test.com'
         args['start'] = datetime(2023, 1, 1).strftime(FORMAT)
 
