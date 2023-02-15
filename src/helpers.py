@@ -52,7 +52,6 @@ def try_check_output(args: list) -> bytes:
         logging.critical(error_message)
         raise Exception(error_message) from error
 
-
 def get_config(sources: list) -> Munch:
     """Reads the config files in `sources` and converts them to a Munch object.
 

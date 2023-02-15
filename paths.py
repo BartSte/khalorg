@@ -1,5 +1,5 @@
-from os.path import dirname, expandvars
-
+from os.path import dirname, join, expanduser
 
 ROOT: str = dirname(__file__)
-CONFIG: str = expandvars('~/.config/khalorg/config.ini')
+CONFIG_DIR: str = expanduser('~/.config/khalorg')
+CONFIG: str = join(CONFIG_DIR, 'config.ini')
