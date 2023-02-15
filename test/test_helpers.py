@@ -1,13 +1,14 @@
 from configparser import ConfigParser
 from os.path import join
-from tempfile import NamedTemporaryFile
+
+from munch import Munch
 from test import static
 from unittest import TestCase
 
-from src.helpers import Config, get_module_path
+from src.helpers import get_config, get_module_path
 
 
-class TestConfigFile(TestCase):
+class TestGetConfig(TestCase):
     """Test the Config class.
 
     Attributes
@@ -24,18 +25,15 @@ class TestConfigFile(TestCase):
         self.combined: str = join(dir_static, 'test_config_combined.ini')
         return super().setUp()
 
-    def test_combine(self):
+    def test_read(self):
         """
         When combining `user` and `default` the resulting dict should be
         the same as TestConfigFile.combined.
         """
-        config: Config = Config()
-        actual: ConfigParser = ConfigParser()
+        configs: list = [self.default, self.user, 'non_existing.ini']
+        actual: Munch = get_config(configs)
         expected: ConfigParser = ConfigParser()
 
-        with NamedTemporaryFile() as f:
-            config.combine(f.name, [self.default, self.user])
-            actual.read(f.name)
-
         expected.read(self.combined)
+
         self.assertEqual(dict(actual), dict(expected))

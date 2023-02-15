@@ -1,11 +1,10 @@
 import logging
 from configparser import ConfigParser
 from inspect import getfile
-from os import makedirs
 from os.path import dirname
 from subprocess import STDOUT, CalledProcessError, check_output
 from types import ModuleType
-from typing import Callable, Union
+from typing import Callable
 
 from munch import Munch
 
@@ -54,36 +53,13 @@ def try_check_output(args: list) -> bytes:
         raise Exception(error_message) from error
 
 
-class Config(ConfigParser):
-    """ Exteds ConfigParser such that is easy to combine multiple config
-    files.
+def get_config(sources: list) -> Munch:
+    """Reads the config files in `sources` and converts them to a Munch object.
+
+    Returns
+    -------
+        ConfigParser object as Munch
     """
-
-    def combine(self, destination: str, sources: Union[list, tuple]):
-        """The `sources` are combined and saved as `destination`.
-
-        Config files is `sources` with a higher index overwrite duplicated
-        values of the others.
-
-        Args:
-        ----
-            destination: the output is saved as a file
-            sources: paths to config files
-        """
-        makedirs(dirname(destination), exist_ok=True)
-        self.read(sources)
-        with open(destination, 'w') as file_:
-            self.write(file_)
-
-    @property
-    def as_munch(self) -> Munch:
-        """Converts the ConfigParser object to Munch.
-
-        Munch is more user friendly.
-
-        Returns
-        -------
-            ConfigParser as Munch
-
-        """
-        return Munch.fromDict(self)  # pyright: ignore
+    config: ConfigParser = ConfigParser()
+    config.read(sources)
+    return Munch.fromDict(config)  # pyright: ignore
