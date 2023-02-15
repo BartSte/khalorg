@@ -55,12 +55,12 @@ class Calendar:
             return file_.read()
 
 
-class Args(OrderedDict):
+class KhalArgs(OrderedDict):
 
     def load_from_org(
             self,
             item: OrgAgendaItem,
-            timestamp_format: str = '%Y-%m-%d %a %H:%M') -> 'Args':
+            timestamp_format: str = '%Y-%m-%d %a %H:%M') -> 'KhalArgs':
         """
         For convenience: directly load Args from OrgAgendaItem.
 
@@ -87,7 +87,7 @@ class Args(OrderedDict):
     def _load_from_org(self,
                        time_stamp: NvimOrgDate,
                        item: OrgAgendaItem,
-                       timestamp_format: str) -> 'Args':
+                       timestamp_format: str) -> 'KhalArgs':
 
         key_vs_value: tuple = (
             ('start', time_stamp.start.strftime(timestamp_format)),

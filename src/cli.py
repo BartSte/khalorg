@@ -4,7 +4,7 @@ from os.path import join
 
 from paths import config_dir, static_dir
 from src.khal_items import (
-    Args,
+    KhalArgs,
     Calendar,
 )
 from src.org_items import OrgAgendaItem
@@ -25,13 +25,12 @@ def main(command: str, calendar_name: str) -> str:
     logging.debug(f'Calendar is: {calendar_name}')
     logging.debug(f'Config directory is: {config_dir}')
 
-    args: Args = Args()
+    args: KhalArgs = KhalArgs()
     calendar: Calendar = Calendar(calendar_name)
     org_item: OrgAgendaItem = OrgAgendaItem()
     functions: dict = dict(new=calendar.new_item, export=calendar.export)
 
     org_item.load_from_stdin()
-
     args['-a'] = calendar_name
     args.load_from_org(org_item)
 
