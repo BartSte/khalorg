@@ -79,11 +79,10 @@
 * Installation
   - For now, you need to clone this repository and use the executables 
     ~khalorg~ to import and export org agenda items, respectively. Checkout
-    section [[sec:usage]].
+    section [[Usage]].
 
 * Usage
-  <sec:usage>
-** Import: from khal to org
+** Export: from khal to org
    TODO
 
 ** New: from org to khal
