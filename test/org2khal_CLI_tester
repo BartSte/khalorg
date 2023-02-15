@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import logging
 import sys
 from argparse import Namespace
 from os.path import dirname
@@ -8,9 +7,9 @@ if __name__ == "__main__":
     root: str = dirname(dirname(__file__))
     sys.path.append(root)
 
-    from src.cli import CLI
+    from src.cli import KhalOrgParser
 
-    parser: CLI = CLI()
+    parser: KhalOrgParser = KhalOrgParser()
     args: Namespace = parser.parse_args()
     print(args.calendar)
     print(args.logging)

@@ -1,7 +1,7 @@
 import logging
 import test
 from os.path import join
-from subprocess import PIPE, CalledProcessError, Popen, check_output
+from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
 from test.static.agenda_items import MaximalValid
 from unittest import TestCase
 
@@ -42,14 +42,14 @@ class TestCLI(TestCase):
         try:
             stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:
-            logging.critical(error.output)
-            self.fail(error.output)
+            logging.critical(error.output.decode())
+            self.fail(error.output.decode())
         else:
             message: str = f'\n\n{stdout}\n\n{expected.encode()}'
             self.assertEqual(stdout, expected.encode(), msg=message)
 
     def _pipe_subproccesses(self, first: tuple, second: tuple) -> bytes:
         with Popen(first, stdout=PIPE) as cat:
-            stdout: bytes = check_output(second, stdin=cat.stdout)
+            stdout: bytes = check_output(second, stdin=cat.stdout, stderr=STDOUT)
             cat.wait()
             return stdout

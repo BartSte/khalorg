@@ -13,9 +13,9 @@ if __name__ == '__main__':
     root: str = dirname(dirname(__file__))
     sys.path.append(root)
 
-    from src.cli import CLI, main
+    from src.cli import KhalOrgParser, main
 
-    parser = CLI()
+    parser = KhalOrgParser()
     args: Namespace = parser.parse_args()
     with patch('src.helpers.check_output', echo):
         stdout: str = main(args.command, args.calendar)

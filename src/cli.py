@@ -11,7 +11,7 @@ from src.khal_items import (
 from src.org_items import OrgAgendaItem
 
 
-class CLI(ArgumentParser):
+class KhalOrgParser(ArgumentParser):
     """ Parser for org2khal. """
 
     def __init__(self):

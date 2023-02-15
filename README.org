@@ -57,37 +57,36 @@
    └────────┘     
    #+end_example
 
-** Installation
-   - For now, you need to clone this repository and use the executables 
-     ~khalorg~ to import and export org agenda items, respectively. Checkout
-     section [[sec:usage]].
+** Features
+   - [-] Import vdirsyncer calendar into org.   
+     It is possible to import calendar items from vdirsyncer into org. 
+   - [X] Export a new org agenda item to vdirsyncer.  
+     Org's export functionality is used to export a single org item to a
+     vdirsyncer calendar. A heading and a plain timestamp are required for
+     this export.
+   - [ ] Edit an existing calendar item in vdirsyncer from org.  
+     Imported org agenda items can be edited and exported so that the
+     vdirsyncer items are updated instead of duplicated.              
+   - [ ] Recurring items           
+   - [ ] Import/Export ~SCHEDULED~ timestamps                
+   - [ ] Import/Export ~DEADLINE~  timestamps                
+   - [ ] Include timezones
+   - [X] Can be used by org mode for emacs, vim and neovim.
+   - [ ] Is available on PyPI.
+   - [ ] Has a Neovim plugin.
+   - [-] Include an Office 365 workflow.
 
-** Requirements
-*** Functional
-    - [-] Import vdirsyncer calendar into org.   
-      It is possible to import calendar items from vdirsyncer into org. 
-    - [X] Export a new org agenda item to vdirsyncer.  
-      Org's export functionality is used to export a single org item to a
-      vdirsyncer calendar. A heading and a plain timestamp are required for
-      this export.
-    - [ ] Edit an existing calendar item in vdirsyncer from org.  
-      Imported org agenda items can be edited and exported so that the
-      vdirsyncer items are updated instead of duplicated.              
-    - [ ] Recurring items           
-    - [ ] Import/Export ~SCHEDULED~ timestamps                
-    - [ ] Import/Export ~DEADLINE~  timestamps                
-    - [ ] Include timezones
+* Installation
+  - For now, you need to clone this repository and use the executables 
+    ~khalorg~ to import and export org agenda items, respectively. Checkout
+    section [[sec:usage]].
 
-*** Non-functional
+* Usage
+  <sec:usage>
+** Import: from khal to org
+   TODO
 
-    - [X] Can be used by org mode for emacs, vim and neovim.
-    - [ ] Is available on PyPI.
-    - [ ] Has a Neovim plugin.
-    - [-] Include an Office 365 workflow.
-
-** Usage
-   <<sec:usage>>
-** New item
+** New: from org to khal
    An org agenda item can be converted to a new khal agenda item by feeding the
    org item through stdin to ~khalorg~ and specifying the khal calendar name as
    a positional argument. For example, the consider the org item below, which
@@ -112,11 +111,10 @@
    #+end_example
    This item can be converted to the khal calendar called "my_calendar" as follows:
    #+begin_src bash
-   cat meeting.org | khalorg outlook
+   cat meeting.org | khalorg my_calendar
    #+end_src
    It is assumed that the khal calendar called "my_calendar" exists. Make sure
    "my_calendar" is a calendar that exists on your local file system.
-
 
 * Workflow for Office 365
   # Office 365 -> Davmail

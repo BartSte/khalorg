@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
@@ -22,11 +22,13 @@ class Calendar:
             name ():
         """
         path_config: Union[str, None] = find_configuration_file()
+        # TODO add export functionality.
+        # export_format: str = self.get_export_format()
+        # export_args: list = ['khal', 'list', '--format', export_format]
 
         self.config: dict = get_config(path_config)
         self.name: str = name
-        #TODO: add import_format to a config file.
-        # self.import_items: Callable = subprocess_callback(['khal', 'list', '--format', import_format])
+        # self.export: Callable = subprocess_callback(export_args)
         self.new_item: Callable = subprocess_callback(['khal', 'new'])
 
     @property
@@ -38,6 +40,11 @@ class Calendar:
 
         """
         return self.config['locale']['longdatetimeformat']
+
+    # def get_export_format(self):
+    #     path: str = self.config
+    #     with open(path) as file_:
+    #         return file_.read()
 
 
 class Args(OrderedDict):
