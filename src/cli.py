@@ -1,11 +1,8 @@
 import logging
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from os import makedirs
 from os.path import join
 
-from paths import CONFIG_DIR
-from src import static
-from src.helpers import get_module_path
+from paths import config_dir, static_dir
 from src.khal_items import (
     Args,
     Calendar,
@@ -26,14 +23,12 @@ def main(command: str, calendar_name: str) -> str:
     """
     logging.debug(f'Command is: {command}')
     logging.debug(f'Calendar is: {calendar_name}')
-    logging.debug(f'Config directory is: {CONFIG_DIR}')
-
-    makedirs(CONFIG_DIR, exist_ok=True)
+    logging.debug(f'Config directory is: {config_dir}')
 
     args: Args = Args()
     calendar: Calendar = Calendar(calendar_name)
     org_item: OrgAgendaItem = OrgAgendaItem()
-    functions: dict = dict(new=calendar.new_item)
+    functions: dict = dict(new=calendar.new_item, export=calendar.export)
 
     org_item.load_from_stdin()
 
@@ -50,7 +45,7 @@ class KhalOrgParser(ArgumentParser):
 
     def __init__(self):
 
-        path_epilog: str = join(get_module_path(static), 'epilog.txt')
+        path_epilog: str = join(static_dir, 'epilog.txt')
         with open(path_epilog) as file_:
             epilog: str = file_.read()
 
@@ -63,7 +58,7 @@ class KhalOrgParser(ArgumentParser):
 
         command: dict = dict(
             type=str,
-            choices=('import', 'new',),
+            choices=('export', 'new',),
             help=('Choose one of these commands. More info is provided below')
         )
 

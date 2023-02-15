@@ -1,10 +1,12 @@
 import logging
+from os.path import join, exists
+from paths import org_format, static_dir
 from collections import OrderedDict
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
 
-from src.helpers import subprocess_callback
+from src.helpers import get_module_path, subprocess_callback
 from src.org_items import NvimOrgDate, OrgAgendaItem
 
 
@@ -22,13 +24,12 @@ class Calendar:
             name ():
         """
         path_config: Union[str, None] = find_configuration_file()
-        # TODO add export functionality.
-        # export_format: str = self.get_export_format()
-        # export_args: list = ['khal', 'list', '--format', export_format]
+        export_format: str = self.get_export_format()
+        export_args: list = ['khal', 'list', '--format', export_format]
 
         self.config: dict = get_config(path_config)
         self.name: str = name
-        # self.export: Callable = subprocess_callback(export_args)
+        self.export: Callable = subprocess_callback(export_args)
         self.new_item: Callable = subprocess_callback(['khal', 'new'])
 
     @property
@@ -41,10 +42,17 @@ class Calendar:
         """
         return self.config['locale']['longdatetimeformat']
 
-    # def get_export_format(self):
-    #     path: str = self.config
-    #     with open(path) as file_:
-    #         return file_.read()
+    def get_export_format(self) -> str:
+        """TODO
+
+        Returns:
+            
+            
+        """
+        default_org_format: str = join(static_dir, 'org_format.txt')
+        path: str = org_format if exists(org_format) else default_org_format
+        with open(path) as file_:
+            return file_.read()
 
 
 class Args(OrderedDict):

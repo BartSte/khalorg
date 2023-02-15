@@ -21,10 +21,10 @@ class TestCLI(TestCase):
         cli_tester: str = join(self.test_dir, 'org2khal_CLI_tester')
         args: list = [cli_tester, 'new', 'calendar', '--logging', 'CRITICAL']
         try:
-            stdout: bytes = check_output(args)
+            stdout: bytes = check_output(args, stderr=STDOUT)
         except CalledProcessError as error:
-            logging.critical(error.output)
-            self.fail(error.output)
+            logging.critical(error.output.decode())
+            self.fail(error.output.decode())
         else:
             self.assertEqual(stdout, b'calendar\nCRITICAL\n')
 

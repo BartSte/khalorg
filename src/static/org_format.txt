@@ -1,0 +1,10 @@
+* {title} {cancelled} 
+  <{start-date} {start-time}-{end-time}>
+  :PROPERTIES:
+  :ID: {uid}
+  :CALENDAR: {calendar}
+  :LOCATION: {location}
+  :Organizer: {organizer}
+  :URL: {url}
+  :END:
+  {description}

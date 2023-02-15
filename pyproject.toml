@@ -1,5 +1,5 @@
 [tool.pyright]
-include = ["src", "test"]
+include = ["main.py", "paths.py", "src", "test"]
 exclude = [
     "**/__pycache__",
     "src/typestubs"
