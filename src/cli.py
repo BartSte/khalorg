@@ -4,8 +4,8 @@ from os.path import join
 
 from paths import config_dir, static_dir
 from src.khal_items import (
-    KhalArgs,
     Calendar,
+    KhalArgs,
 )
 from src.org_items import OrgAgendaItem
 
@@ -24,23 +24,54 @@ def main(command: str, calendar_name: str) -> str:
     logging.debug(f'Command is: {command}')
     logging.debug(f'Calendar is: {calendar_name}')
     logging.debug(f'Config directory is: {config_dir}')
+    functions: dict = dict(new=new, export=export)
+    return functions[command](calendar_name)
 
+
+def new(calendar_name: str) -> str:
+    """Creates a new calendar item in a Khal calendar.
+
+    It does this, by parsing an org agenda item, that is supplied through
+    stdin, into a list of command line arguments. These arguments are used to
+    invoke the `khal new` command by calling Calendar.new_item.
+
+    Args:
+        calendar_name: name of the khal calendar.
+
+    Returns
+    -------
+        stdout
+
+    """
     args: KhalArgs = KhalArgs()
     calendar: Calendar = Calendar(calendar_name)
     org_item: OrgAgendaItem = OrgAgendaItem()
-    functions: dict = dict(new=calendar.new_item, export=calendar.export)
 
     org_item.load_from_stdin()
     args['-a'] = calendar_name
     args.load_from_org(org_item)
 
     logging.debug(f'Command line args are: {args}')
-    stdout: str = functions[command](args.as_list())
-    return stdout
+    return calendar.new_item(args.as_list())
+
+
+def export(calendar_name: str) -> str:
+    """TODO
+
+    Args:
+        calendar_name: 
+
+    Returns:
+        
+    """
+    args: KhalArgs = KhalArgs()
+    calendar: Calendar = Calendar(calendar_name)
+    args['-a'] = calendar_name
+    return calendar.export(args.as_list())
 
 
 class KhalOrgParser(ArgumentParser):
-    """ Parser for org2khal. """
+    """ Parser for khalorg. """
 
     def __init__(self):
 

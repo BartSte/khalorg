@@ -15,10 +15,10 @@ class TestCLI(TestCase):
         return super().setUp()
 
     def test_with_args(self):
-        """ Expected that the org2khal_CLI_tester executable return the
+        """ Expected that the khalorg_cli_tester executable return the
         calendar and the log level.
         """
-        cli_tester: str = join(self.test_dir, 'org2khal_CLI_tester')
+        cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
         args: list = [cli_tester, 'new', 'calendar', '--logging', 'CRITICAL']
         try:
             stdout: bytes = check_output(args, stderr=STDOUT)
@@ -29,13 +29,13 @@ class TestCLI(TestCase):
             self.assertEqual(stdout, b'calendar\nCRITICAL\n')
 
     def test_new(self):
-        """ When feeding the org file maximal_valid.org into org2khal_tester
+        """ When feeding the org file maximal_valid.org into khalorg_tester
         through stdin, it expected to get the command line arguments from
         stdout as is described by MaximalValid.khal_new_args.
         """
         expected: str = 'khal new ' + ' '.join(MaximalValid.khal_new_args)
         org_file: str = join(self.test_dir, 'static', 'agenda_items', 'maximal_valid.org')
-        cli_tester: str = join(self.test_dir, 'org2khal_tester')
+        cli_tester: str = join(self.test_dir, 'khalorg_tester')
 
         cat_args: tuple = ('cat', org_file)
         cli_tester_args: tuple = (cli_tester,'new', 'Some_calendar')
@@ -53,3 +53,4 @@ class TestCLI(TestCase):
             stdout: bytes = check_output(second, stdin=cat.stdout, stderr=STDOUT)
             cat.wait()
             return stdout
+
