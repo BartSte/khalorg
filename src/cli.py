@@ -10,22 +10,32 @@ from src.khal_items import (
 from src.org_items import OrgAgendaItem
 
 
-def main(command: str, calendar_name: str) -> str:
+def main(command: str,
+         calendar: str,
+         loglevel: str = 'WARNING',
+         export_start: str = '',
+         export_stop: str = '') -> str:
     """ Export an org agenda item to the khal calendar called `calendar_name`.
 
     Args:
-        calendar_name: name of the khal calendar.
+        command: command as a string: new or export.
+        calendar: name of the khal calendar.
 
     Returns
     -------
         stdout of khal.
 
     """
+    logging.basicConfig(level=loglevel)
     logging.debug(f'Command is: {command}')
-    logging.debug(f'Calendar is: {calendar_name}')
+    logging.debug(f'Calendar is: {calendar}')
     logging.debug(f'Config directory is: {config_dir}')
     functions: dict = dict(new=new, export=export)
-    return functions[command](calendar_name)
+    args: dict = dict(
+        new=calendar,
+        export=(calendar, export_start, export_stop)
+    )
+    return functions[command](*args[command])
 
 
 def new(calendar_name: str) -> str:
@@ -55,19 +65,19 @@ def new(calendar_name: str) -> str:
     return calendar.new_item(args.as_list())
 
 
-def export(calendar_name: str) -> str:
+def export(calendar_name: str, start: str, stop: str) -> str:
     """TODO
 
     Args:
         calendar_name: 
+        start: 
+        stop: 
 
     Returns:
         
     """
-    args: KhalArgs = KhalArgs()
     calendar: Calendar = Calendar(calendar_name)
-    args['-a'] = calendar_name
-    return calendar.export(args.as_list())
+    return calendar.export(['-a', calendar_name, start, stop])
 
 
 class KhalOrgParser(ArgumentParser):
@@ -97,6 +107,16 @@ class KhalOrgParser(ArgumentParser):
             help=('Set the name of the khal calendar.')
         )
 
+        start_date: dict = dict(
+            type=str,
+            help=()
+        )
+
+        stop_date_or_range: dict = dict(
+            type=str,
+            help=()
+        )
+
         logging: dict = dict(
             required=False,
             default='WARNING',
@@ -106,4 +126,4 @@ class KhalOrgParser(ArgumentParser):
 
         self.add_argument('command', **command)
         self.add_argument('calendar', **calendar)
-        self.add_argument('--logging', **logging)
+        self.add_argument('--loglevel', **logging)

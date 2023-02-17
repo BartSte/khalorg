@@ -2,7 +2,6 @@
 
 """ Export an org agenda item to a khal calendar. """
 
-import logging
 from argparse import Namespace
 
 from src.cli import KhalOrgParser, main
@@ -10,6 +9,5 @@ from src.cli import KhalOrgParser, main
 if __name__ == '__main__':
     parser = KhalOrgParser()
     args: Namespace = parser.parse_args()
-    logging.basicConfig(level=args.logging)
-    stdout: str = main(args.command, args.calendar)
+    stdout: str = main(**vars(args))
     print(stdout)

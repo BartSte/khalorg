@@ -17,20 +17,17 @@ class KhalArgsError(Exception):
 class Calendar:
 
     def __init__(self, name):
-        """
-
-        Args:
-        ----
-            name ():
-        """
+        """TODO"""
         path_config: Union[str, None] = find_configuration_file()
         export_format: str = self.get_export_format()
+
+        new_item_args: list = ['khal', 'new']
         export_args: list = ['khal', 'list', '--format', export_format]
 
-        self.config: dict = get_config(path_config)
         self.name: str = name
+        self.config: dict = get_config(path_config)
         self.export: Callable = subprocess_callback(export_args)
-        self.new_item: Callable = subprocess_callback(['khal', 'new'])
+        self.new_item: Callable = subprocess_callback(new_item_args)
 
     @property
     def timestamp_format(self) -> str:
