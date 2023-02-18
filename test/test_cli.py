@@ -1,13 +1,10 @@
 import logging
 import test
-from argparse import ArgumentParser, Namespace
 from os.path import join
 from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
 from test.static.agenda_items import MaximalValid
 from unittest import TestCase
-from unittest.mock import patch
 
-from src.cli import ExportParser, ParentParser, get_parser
 from src.helpers import get_module_path
 
 
@@ -31,7 +28,8 @@ class TestMain(TestCase):
         cli_tester: str = join(self.test_dir, 'khalorg_tester')
 
         cat_args: tuple = ('cat', org_file)
-        cli_tester_args: tuple = (cli_tester, 'new', 'Some_calendar')
+        cli_tester_args: tuple = (
+            cli_tester, 'new', '--calendar', 'Some_calendar')
         try:
             stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:
@@ -60,14 +58,22 @@ class TestParentParser(TestCase):
         calendar and the log level.
         """
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
-        args: list = [cli_tester, 'new', 'calendar', '--loglevel', 'CRITICAL']
+        args: list = [
+            cli_tester,
+            'new',
+            '--calendar',
+            'calendar',
+            '--loglevel',
+            'CRITICAL']
         try:
-            stdout: bytes = check_output(args, stderr=STDOUT)
+            stdout: bytes = check_output(args)
         except CalledProcessError as error:
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(stdout, b"Namespace(command='new', calendar='calendar', loglevel='CRITICAL')\n")
+            self.assertEqual(
+                stdout,
+                b"Namespace(command='new', calendar='calendar', loglevel='CRITICAL')\n")
 
 
 class TestExportParser(TestCase):
@@ -86,34 +92,17 @@ class TestExportParser(TestCase):
             cli_tester,
             '--loglevel',
             'CRITICAL',
-            'export',
+            '--calendar',
             'calendar',
+            'export',
             'today',
             '2d']
         try:
-            stdout: bytes = check_output(args, stderr=STDOUT)
+            stdout: bytes = check_output(args)
         except CalledProcessError as error:
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(stdout, b"Namespace(command='export', calendar='calendar', loglevel='CRITICAL', start='today', stop='2d')\n")
-
-
-class TestGetParser(TestCase):
-    """ The get_parser function should return the appropriate ArgumentParser
-    parser class.
-    """
-
-    @patch.object(ArgumentParser, 'parse_known_args')
-    def test_default(self, patched):
-        """Should return the default ParentParser. """
-        patched.return_value = Namespace(command='xxx'), []
-        parser: ArgumentParser = get_parser()
-        self.assertIsInstance(parser, ParentParser)
-
-    @patch.object(ArgumentParser, 'parse_known_args')
-    def test_export(self, patched):
-        """Should return the ExportParser."""
-        patched.return_value = Namespace(command='export'), []
-        parser: ArgumentParser = get_parser()
-        self.assertIsInstance(parser, ExportParser)
+            self.assertEqual(
+                stdout,
+                b"Namespace(command='export', calendar='calendar', loglevel='CRITICAL', start='today', stop='2d')\n")

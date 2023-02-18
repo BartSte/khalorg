@@ -1,9 +1,6 @@
 import logging
-from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from collections import defaultdict
-from os.path import join
+from argparse import ArgumentParser
 
-from paths import config_dir, static_dir
 from src.khal_items import (
     Calendar,
     KhalArgs,
@@ -11,32 +8,62 @@ from src.khal_items import (
 from src.org_items import OrgAgendaItem
 
 
-def main(command: str,
-         calendar: str,
-         loglevel: str = 'WARNING',
-         **kwargs) -> str:
-    """ Export an org agenda item to the khal calendar called `calendar_name`.
-
-    Args:
-        command: command as a string: new or export.
-        calendar: name of the khal calendar.
+def get_parser() -> ArgumentParser:
+    """TODO.
 
     Returns
     -------
-        stdout of khal.
 
     """
-    logging.basicConfig(level=loglevel)
-    logging.debug(f'Command is: {command}')
-    logging.debug(f'Calendar is: {calendar}')
-    logging.debug(f'Config directory is: {config_dir}')
-    logging.debug(f'kwargs are: {kwargs}')
+    
+    parser: ArgumentParser = ArgumentParser(
+        prog='khalorg',
+        description='Interface between Khal and Orgmode.')
 
-    functions: dict = dict(new=new, export=export)
-    return functions[command](calendar, **kwargs)
+    calendar: dict = dict(
+        type=str,
+        help=('Set the name of the khal calendar.')
+    )
+
+    loglevel: dict = dict(
+        required=False,
+        default='WARNING',
+        help=('Set the logging level to: CRITICAL, ERROR, WARNING '
+              '(default), INFO, DEBUG')
+    )
+
+    start: dict = dict(
+        type=str,
+        default='today',
+        nargs='?',
+        help=('Start date (default: today)'))
+
+    stop: dict = dict(
+        type=str,
+        default='1d',
+        nargs='?',
+        help=('End date (default: 1d)'))
+
+    parser.add_argument('--calendar', **calendar)
+    parser.add_argument('--loglevel', **loglevel)
+    subparsers = parser.add_subparsers()
+
+    parser_new: ArgumentParser = subparsers.add_parser(
+        'new', prog='khalorg new',
+        description='Create a new khal item from an org item.')
+    parser_new.set_defaults(func=new)
+
+    parser_export: ArgumentParser = subparsers.add_parser(
+        'export', prog='khalorg export',
+        description='Export khal items to org items')
+    parser_export.add_argument('start', **start)
+    parser_export.add_argument('stop', **stop)
+    parser_export.set_defaults(func=export)
+
+    return parser
 
 
-def new(calendar_name: str) -> str:
+def new(calendar: str, **_) -> str:
     """Creates a new calendar item in a Khal calendar.
 
     It does this, by parsing an org agenda item, that is supplied through
@@ -52,18 +79,18 @@ def new(calendar_name: str) -> str:
 
     """
     args: KhalArgs = KhalArgs()
-    calendar: Calendar = Calendar(calendar_name)
+    khal_calendar: Calendar = Calendar(calendar)
     org_item: OrgAgendaItem = OrgAgendaItem()
 
     org_item.load_from_stdin()
-    args['-a'] = calendar_name
+    args['-a'] = calendar
     args.load_from_org(org_item)
 
-    logging.debug(f'Command line args are: {args}')
-    return calendar.new_item(args.as_list())
+    logging.debug(f'Khal args are: {args}')
+    return khal_calendar.new_item(args.as_list())
 
 
-def export(calendar_name: str, start: str = 'today', stop: str = '2d') -> str:
+def export(calendar: str, start: str = 'today', stop: str = '1d', **_) -> str:
     """TODO.
 
     Args:
@@ -75,90 +102,7 @@ def export(calendar_name: str, start: str = 'today', stop: str = '2d') -> str:
     -------
 
     """
-    calendar: Calendar = Calendar(calendar_name)
-    return calendar.export(['-a', calendar_name, start, stop])
-
-
-def get_parser() -> ArgumentParser:
-    """TODO.
-
-    Returns
-    -------
-
-    """
-
-    parent_parser: ParentParser = ParentParser(add_help=False)
-    parent_parser_with_help: ParentParser = ParentParser(add_help=True)
-    parsers: defaultdict = defaultdict(lambda: parent_parser_with_help)
-    parsers['export'] = ExportParser(parents=[parent_parser])
-
-    args, _ = parent_parser_with_help.parse_known_args()
-    return parsers[args.command]
-
-
-class ParentParser(ArgumentParser):
-    """ Parser for khalorg. """
-
-    def __init__(self, **kwargs):
-        """ TODO. """
-        path_epilog: str = join(static_dir, 'epilog.txt')
-        with open(path_epilog) as file_:
-            epilog: str = file_.read()
-
-        super().__init__(
-            prog='khal-orgmode',
-            description='Interface between Khal and Orgmode.',
-            formatter_class=RawDescriptionHelpFormatter,
-            epilog=epilog,
-            **kwargs
-        )
-
-        command: dict = dict(
-            type=str,
-            choices=('export', 'new',),
-            help=('Choose one of these commands. More info is provided below')
-        )
-
-        calendar: dict = dict(
-            type=str,
-            help=('Set the name of the khal calendar.')
-        )
-
-        loglevel: dict = dict(
-            required=False,
-            default='WARNING',
-            help=('Set the logging level to: CRITICAL, ERROR, WARNING '
-                  '(default), INFO, DEBUG')
-        )
-
-        arguments: tuple = ('command', 'calendar', '--loglevel')
-        settings: tuple = (command, calendar, loglevel)
-        for argument, kwargs in zip(arguments, settings):
-            self.add_argument(argument, **kwargs)
-
-
-class ExportParser(ArgumentParser):
-
-    def __init__(self, parents: list) -> None:
-        """TODO.
-
-        Args:
-        ----
-            parents:
-        """
-        super().__init__(parents=parents)
-
-        start: dict = dict(
-            type=str,
-            default='today',
-            nargs='?',
-            help=('TODO'))
-
-        stop: dict = dict(
-            type=str,
-            default='2d',
-            nargs='?',
-            help=('TODO'))
-
-        self.add_argument('start', **start)
-        self.add_argument('stop', **stop)
+    khal_calendar: Calendar = Calendar(calendar)
+    args: list = ['-a', calendar, start, stop]
+    logging.debug(f'Khal args are: {args}')
+    return khal_calendar.export(args)
