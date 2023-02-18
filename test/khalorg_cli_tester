@@ -13,5 +13,4 @@ if __name__ == "__main__":
     logging.basicConfig(level='DEBUG')
     parser: ArgumentParser = get_parser()
     args: Namespace = parser.parse_args()
-    print(args.calendar)
-    print(args.loglevel)
+    print(args)

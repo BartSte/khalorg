@@ -67,7 +67,7 @@ class TestParentParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(stdout, b'calendar\nCRITICAL\n')
+            self.assertEqual(stdout, b"Namespace(command='new', calendar='calendar', loglevel='CRITICAL')\n")
 
 
 class TestExportParser(TestCase):
@@ -89,14 +89,14 @@ class TestExportParser(TestCase):
             'export',
             'calendar',
             'today',
-            '90d']
+            '2d']
         try:
             stdout: bytes = check_output(args, stderr=STDOUT)
         except CalledProcessError as error:
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(stdout, b'calendar\nCRITICAL\ntoday\n90d')
+            self.assertEqual(stdout, b"Namespace(command='export', calendar='calendar', loglevel='CRITICAL', start='today', stop='2d')\n")
 
 
 class TestGetParser(TestCase):
@@ -104,16 +104,16 @@ class TestGetParser(TestCase):
     parser class.
     """
 
-    @patch.object(ArgumentParser, 'parse_args')
+    @patch.object(ArgumentParser, 'parse_known_args')
     def test_default(self, patched):
         """Should return the default ParentParser. """
-        patched.return_value = Namespace(command='xxx')
+        patched.return_value = Namespace(command='xxx'), []
         parser: ArgumentParser = get_parser()
         self.assertIsInstance(parser, ParentParser)
 
-    @patch.object(ArgumentParser, 'parse_args')
+    @patch.object(ArgumentParser, 'parse_known_args')
     def test_export(self, patched):
         """Should return the ExportParser."""
-        patched.return_value = Namespace(command='export')
+        patched.return_value = Namespace(command='export'), []
         parser: ArgumentParser = get_parser()
         self.assertIsInstance(parser, ExportParser)

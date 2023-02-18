@@ -86,13 +86,13 @@ def get_parser() -> ArgumentParser:
     -------
 
     """
-    parent_parser: ParentParser = ParentParser(add_help=False)
-    parent_parser_with_help: ParentParser = ParentParser()
 
+    parent_parser: ParentParser = ParentParser(add_help=False)
+    parent_parser_with_help: ParentParser = ParentParser(add_help=True)
     parsers: defaultdict = defaultdict(lambda: parent_parser_with_help)
     parsers['export'] = ExportParser(parents=[parent_parser])
 
-    args: Namespace = parent_parser_with_help.parse_args()
+    args, _ = parent_parser_with_help.parse_known_args()
     return parsers[args.command]
 
 
