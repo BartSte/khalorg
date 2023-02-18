@@ -4,10 +4,10 @@
 
 from argparse import Namespace
 
-from src.cli import KhalOrgParser, main
+from src.cli import get_parser, main
 
 if __name__ == '__main__':
-    parser = KhalOrgParser()
+    parser = get_parser()
     args: Namespace = parser.parse_args()
     stdout: str = main(**vars(args))
     print(stdout)

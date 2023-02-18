@@ -1,5 +1,6 @@
 import logging
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
+from collections import defaultdict
 from os.path import join
 
 from paths import config_dir, static_dir
@@ -13,8 +14,7 @@ from src.org_items import OrgAgendaItem
 def main(command: str,
          calendar: str,
          loglevel: str = 'WARNING',
-         export_start: str = '',
-         export_stop: str = '') -> str:
+         **kwargs) -> str:
     """ Export an org agenda item to the khal calendar called `calendar_name`.
 
     Args:
@@ -30,12 +30,10 @@ def main(command: str,
     logging.debug(f'Command is: {command}')
     logging.debug(f'Calendar is: {calendar}')
     logging.debug(f'Config directory is: {config_dir}')
+    logging.debug(f'kwargs are: {kwargs}')
+
     functions: dict = dict(new=new, export=export)
-    args: dict = dict(
-        new=calendar,
-        export=(calendar, export_start, export_stop)
-    )
-    return functions[command](*args[command])
+    return functions[command](calendar, **kwargs)
 
 
 def new(calendar_name: str) -> str:
@@ -65,26 +63,44 @@ def new(calendar_name: str) -> str:
     return calendar.new_item(args.as_list())
 
 
-def export(calendar_name: str, start: str, stop: str) -> str:
-    """TODO
+def export(calendar_name: str, start: str = 'today', stop: str = '2d') -> str:
+    """TODO.
 
     Args:
-        calendar_name: 
-        start: 
-        stop: 
+        calendar_name:
+        start:
+        stop:
 
-    Returns:
-        
+    Returns
+    -------
+
     """
     calendar: Calendar = Calendar(calendar_name)
     return calendar.export(['-a', calendar_name, start, stop])
 
 
-class KhalOrgParser(ArgumentParser):
+def get_parser() -> ArgumentParser:
+    """TODO.
+
+    Returns
+    -------
+
+    """
+    parent_parser: ParentParser = ParentParser(add_help=False)
+    parent_parser_with_help: ParentParser = ParentParser()
+
+    parsers: defaultdict = defaultdict(lambda: parent_parser_with_help)
+    parsers['export'] = ExportParser(parents=[parent_parser])
+
+    args: Namespace = parent_parser_with_help.parse_args()
+    return parsers[args.command]
+
+
+class ParentParser(ArgumentParser):
     """ Parser for khalorg. """
 
-    def __init__(self):
-
+    def __init__(self, **kwargs):
+        """ TODO. """
         path_epilog: str = join(static_dir, 'epilog.txt')
         with open(path_epilog) as file_:
             epilog: str = file_.read()
@@ -93,7 +109,8 @@ class KhalOrgParser(ArgumentParser):
             prog='khal-orgmode',
             description='Interface between Khal and Orgmode.',
             formatter_class=RawDescriptionHelpFormatter,
-            epilog=epilog
+            epilog=epilog,
+            **kwargs
         )
 
         command: dict = dict(
@@ -107,23 +124,41 @@ class KhalOrgParser(ArgumentParser):
             help=('Set the name of the khal calendar.')
         )
 
-        start_date: dict = dict(
-            type=str,
-            help=()
-        )
-
-        stop_date_or_range: dict = dict(
-            type=str,
-            help=()
-        )
-
-        logging: dict = dict(
+        loglevel: dict = dict(
             required=False,
             default='WARNING',
             help=('Set the logging level to: CRITICAL, ERROR, WARNING '
                   '(default), INFO, DEBUG')
         )
 
-        self.add_argument('command', **command)
-        self.add_argument('calendar', **calendar)
-        self.add_argument('--loglevel', **logging)
+        arguments: tuple = ('command', 'calendar', '--loglevel')
+        settings: tuple = (command, calendar, loglevel)
+        for argument, kwargs in zip(arguments, settings):
+            self.add_argument(argument, **kwargs)
+
+
+class ExportParser(ArgumentParser):
+
+    def __init__(self, parents: list) -> None:
+        """TODO.
+
+        Args:
+        ----
+            parents:
+        """
+        super().__init__(parents=parents)
+
+        start: dict = dict(
+            type=str,
+            default='today',
+            nargs='?',
+            help=('TODO'))
+
+        stop: dict = dict(
+            type=str,
+            default='2d',
+            nargs='?',
+            help=('TODO'))
+
+        self.add_argument('start', **start)
+        self.add_argument('stop', **stop)
