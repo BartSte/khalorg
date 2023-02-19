@@ -29,7 +29,7 @@ class TestMain(TestCase):
 
         cat_args: tuple = ('cat', org_file)
         cli_tester_args: tuple = (
-            cli_tester, 'new', '--calendar', 'Some_calendar')
+            cli_tester, 'new', 'Some_calendar')
         try:
             stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:
@@ -60,20 +60,18 @@ class TestParentParser(TestCase):
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
         args: list = [
             cli_tester,
-            'new',
-            '--calendar',
-            'calendar',
             '--loglevel',
-            'CRITICAL']
+            'CRITICAL',
+            'new',
+            'calendar']
         try:
             stdout: bytes = check_output(args)
         except CalledProcessError as error:
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(
-                stdout,
-                b"Namespace(command='new', calendar='calendar', loglevel='CRITICAL')\n")
+            expected: bytes = b"loglevel='CRITICAL', calendar='calendar'"
+            self.assertTrue(expected in stdout)
 
 
 class TestExportParser(TestCase):
@@ -92,9 +90,8 @@ class TestExportParser(TestCase):
             cli_tester,
             '--loglevel',
             'CRITICAL',
-            '--calendar',
-            'calendar',
             'export',
+            'calendar',
             'today',
             '2d']
         try:
@@ -103,6 +100,6 @@ class TestExportParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            self.assertEqual(
-                stdout,
-                b"Namespace(command='export', calendar='calendar', loglevel='CRITICAL', start='today', stop='2d')\n")
+            expected: bytes = (b"loglevel='CRITICAL', calendar='calendar', "
+                               b"start='today', stop='2d'")
+            self.assertTrue(expected in stdout)

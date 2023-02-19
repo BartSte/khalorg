@@ -16,8 +16,20 @@ class KhalArgsError(Exception):
 
 class Calendar:
 
-    def __init__(self, name):
-        """TODO"""
+    """Represents a Khal calendar.
+
+    Attributes: 
+        name: calendar name
+        config: Khal config
+        export: export command (khal list)
+        new_item: new command (khal new)
+    """
+    def __init__(self, name: str):
+        """Init.
+
+        Args:
+            name: name of the khal calendar
+        """
         path_config: Union[str, None] = find_configuration_file()
         export_format: str = self.get_export_format()
 
@@ -40,10 +52,14 @@ class Calendar:
         return self.config['locale']['longdatetimeformat']
 
     def get_export_format(self) -> str:
-        """TODO
+        """The format of the org item is returned.
+
+        It is defined in *.txt file that exists in the config directory of the
+        user as `org_format`. If it does nog exist, the `default_org_format` is
+        used.
 
         Returns:
-            
+            org format that is feeded to the `khal list --format` command.
             
         """
         default_org_format: str = join(static_dir, 'org_format.txt')

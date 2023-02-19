@@ -1,4 +1,4 @@
-#+TITLE:     README - khal-orgmode
+#+TITLE:     README - khalorg
 #+AUTHOR:    BartSte
 #+DATE:      2023-01-11
 
@@ -58,7 +58,7 @@
    #+end_example
 
 ** Features
-   - [-] Import vdirsyncer calendar into org.   
+   - [X] Import vdirsyncer calendar into org.   
      It is possible to import calendar items from vdirsyncer into org. 
    - [X] Export a new org agenda item to vdirsyncer.  
      Org's export functionality is used to export a single org item to a
@@ -77,9 +77,12 @@
    - [-] Include an Office 365 workflow.
 
 * Installation
-  - For now, you need to clone this repository and use the executables 
-    ~khalorg~ to import and export org agenda items, respectively. Checkout
-    section [[Usage]].
+  - For now, you need to clone this repository and run:
+    #+begin_src bash
+    pip install -r requirements.txt
+    #+end_src
+    Next, you can use the executable ~khalorg~ to import and export org agenda
+    items. Checkout section [[Usage]] for more info.
 
 * Usage
 ** Export: from khal to org

@@ -8,7 +8,6 @@ from argparse import ArgumentParser, Namespace
 from src.cli import get_parser
 
 if __name__ == '__main__':
-    #TODO: fix unittests
     parser: ArgumentParser = get_parser()
     args: Namespace = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
