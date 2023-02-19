@@ -3,7 +3,7 @@
 #+DATE:      2023-01-11
 
 * Introduction
-  ~khal-orgmode~ is a command line tool that converts agenda items of org mode
+  ~khalorg~ is a command line tool that converts agenda items of org mode
   into khal calendar items, and vice versa.  
 
   Warning: this program is still experimental, under development, and open for
@@ -32,7 +32,7 @@
    manipulate the agena items. To bridge the gap between khal and org mode,
    only 1 program exists called: khalel. However, this program is designed for
    emacs. Since there are also org mode users outside of emacs (e.g. neovim),
-   khal-orgmode aims to be a general interface between khal and org mode.
+   khalorg aims to be a general interface between khal and org mode.
 
    Based on the above, the following workflow is desired:
    # CalDav server -> vdirsyncer
@@ -50,7 +50,7 @@
    │khal│         
    └┬───┘         
    ┌▽───────────┐ 
-   │khal-orgmode│ 
+   │khalorg│ 
    └┬───────────┘ 
    ┌▽───────┐     
    │org mode│     
@@ -125,7 +125,7 @@
    #+end_example
    This item can be converted to the khal calendar called "my_calendar" as follows:
    #+begin_src bash
-   cat meeting.org | khalorg my_calendar
+   cat meeting.org | khalorg new my_calendar
    #+end_src
    It is assumed that the khal calendar called "my_calendar" exists. Make sure
    "my_calendar" is a calendar that exists on your local file system.
@@ -157,7 +157,7 @@
   │khal│        
   └┬───┘        
   ┌▽───────────┐
-  │khal-orgmode│
+  │khalorg│
   └┬───────────┘
   ┌▽───────┐    
   │org mode│    
