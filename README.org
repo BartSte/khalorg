@@ -130,6 +130,13 @@
    It is assumed that the khal calendar called "my_calendar" exists. Make sure
    "my_calendar" is a calendar that exists on your local file system.
 
+** Neovim plugin
+   Check my dotfiles at: 
+   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khal-export.lua]]
+   for capturing org agenda items from Neovim and feeding them to khalorg.
+   Next, you can connect these functions to ~nvim-orgmode~ by checking out:
+   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/conf-orgmode.lua]]
+
 * Workflow for Office 365
   # Office 365 -> Davmail
   # Davmail -> vdirsyncer
