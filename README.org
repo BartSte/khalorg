@@ -73,8 +73,9 @@
    - [ ] Include timezones
    - [X] Can be used by org mode for emacs, vim and neovim.
    - [ ] Is available on PyPI.
-   - [ ] Has a Neovim plugin.
+   - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
+   - [-] Systemd unit files for synchronizing Office 365 with org mode.
 
 * Installation
   - For now, you need to clone this repository and run:
@@ -86,7 +87,18 @@
 
 * Usage
 ** Export: from khal to org
-   TODO
+   Agenda items from khal can be converted to org items using the 
+   ~khalorg export~ command. For examples:
+   #+begin_src bash
+   khalorg export my_calendar today 90d > my_calendar.org 
+   #+end_src
+   here, the khal agenda item of the calendar ~my_calendar~ are coverted to org
+   mode format and written to a file called ~my_calendar.org~. The range is
+   specified from ~today~ till ~90d~ (90 days) in the future. For more
+   information about the allowed date formats, check the ~khal list~ command,
+   which is used for this functionality. It is assumed that the khal calendar
+   called "my_calendar" exists. Make sure "my_calendar" is a calendar that
+   exists on your local file system.
 
 ** New: from org to khal
    An org agenda item can be converted to a new khal agenda item by feeding the
@@ -143,4 +155,4 @@
   ┌▽───────┐    
   │org mode│    
   └────────┘    
-  #+end_src
+  #+end_example
