@@ -165,7 +165,6 @@
   #+end_example
 
 * Bugs:
-  - [ ] Timestamp visible in body after ~khalorg new~ command results in duplication in org agenda.
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
         
 * Improvements:

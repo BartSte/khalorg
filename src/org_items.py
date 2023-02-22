@@ -34,8 +34,8 @@ class NvimOrgDate(OrgDate):
     regex: str = f'(<{date} {day} {time})--({time}>)'
 
     def __str__(self) -> str:
-        date: str = super().__str__()
-        return re.sub(self.regex, '\\1-\\2', date)
+        time_stamp: str = super().__str__()
+        return re.sub(self.regex, '\\1-\\2', time_stamp)
 
 
 class OrgAgendaItem:
@@ -104,14 +104,12 @@ class OrgAgendaItem:
         kwargs: dict = dict(active=True, inactive=False, range=True, point=True)  # noqa
         time_stamps: list[OrgDate] = child.get_timestamps(**kwargs)
 
-        self.body = child.body
         self.heading = child.heading
         self.deadline = NvimOrgDate(child.deadline.start, child.deadline.end)
-        self.scheduled = NvimOrgDate(
-            child.scheduled.start, child.scheduled.end)
+        self.scheduled = NvimOrgDate(child.scheduled.start, child.scheduled.end)  # noqa
         self.properties = child.properties
-        self.time_stamps = [NvimOrgDate.list_from_str(str(x)).pop()
-                            for x in time_stamps]
+        self.time_stamps = self.format_timestamps(time_stamps)
+        self.body = self.remove_timestamps(child.body, self.time_stamps)
 
         return self
 
@@ -130,6 +128,48 @@ class OrgAgendaItem:
             return node.root.children[0]
         except IndexError as error:
             raise OrgAgendaItemError(self.MESSAGE_INVALID_NODE) from error
+
+    @staticmethod
+    def format_timestamps(time_stamps: list[OrgDate]) -> list[NvimOrgDate]:
+        """
+        The notation <2021-09-03 Fri 16:01--17:30> is replaced by
+        <2021-09-03 Fri 16:01-17:30>. Check the documentation NvimOrgDate for
+        more info.
+
+        Args:
+            time_stamps: OrgDate time_stamps
+
+        Returns
+        -------
+            NvimOrgDate time_stamps
+
+        """
+        return [NvimOrgDate.list_from_str(str(x)).pop()
+                for x in time_stamps]  # type: ignore
+
+    @staticmethod
+    def remove_timestamps(text: str, time_stamps: list[NvimOrgDate]) -> str:
+        """OrgNode.body contains the time_stamps that should be removed because
+        the time stamps are already parsed in OrgAgendaItem.time_stamps and
+        will otherwise be duplicated.
+
+        If a line only contains a time stamp and spaces, the whole line is
+        deleted. If it is surrounded by characters, it is only removed.
+
+        Args:
+            text: str containing time stamps
+            time_stamps: list of NvimOrgDate objects
+
+        Returns
+        -------
+
+        """
+        for time_stamp in time_stamps:
+            x: str = str(time_stamp)
+            regex: str = f'(^[ ]*{x}[ ]*[\n]*)|({x})'
+            text: str = re.sub(regex, '', text, re.M)
+
+        return text
 
     def __eq__(self, other) -> bool:
         try:

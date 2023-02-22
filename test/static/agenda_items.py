@@ -17,7 +17,7 @@ class OrgArguments:
     deadline: NvimOrgDate = NvimOrgDate(None)
     scheduled: NvimOrgDate = NvimOrgDate(None)
 
-    _description: str = ''
+    description: str = ''
 
     @classmethod
     def get_args(cls) -> list:
@@ -33,13 +33,7 @@ class OrgArguments:
             cls.scheduled,
             cls.deadline,
             cls.properties,
-            cls.get_body()]
-
-    @classmethod
-    def get_body(cls) -> str:
-        date_in_body: list = [f'  {str(x)}\n' for x in cls.time_stamps]
-        return ''.join(date_in_body) + cls._description
-
+            cls.description]
 
 class MaximalValid(OrgArguments):
     """Used to validate agenda item: maximal_valid.org."""
@@ -52,13 +46,13 @@ class MaximalValid(OrgArguments):
                         "URL": 'www.test.com'}
     time_stamps = [NvimOrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
 
-    _description = _DESCRIPTION
+    description = _DESCRIPTION
 
     command_line_args = {
         'start': '2023-01-01 Sun 01:00',
         'end': '2023-01-01 Sun 02:00',
         'summary': 'Meeting',
-        'description': (f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}'),
+        'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
         }
@@ -69,7 +63,7 @@ class MaximalValid(OrgArguments):
                      '2023-01-01 Sun 01:00',
                      '2023-01-01 Sun 02:00',
                      'Meeting',
-                     f'::   <2023-01-01 Sun 01:00-02:00>\n{_DESCRIPTION}\n']
+                     f':: {_DESCRIPTION}\n']
 
 
 class MinimalValid(OrgArguments):
@@ -110,8 +104,4 @@ class NotFirstLevel(MaximalValid):
 
 class BodyFirst(MaximalValid):
     """Used to validate item: not_first_level.org."""
-
-    @classmethod
-    def get_body(cls) -> str:
-        date_in_body: list = [f'  {str(x)}' for x in cls.time_stamps]
-        return cls._description + '\n' + ''.join(date_in_body)
+    description = _DESCRIPTION + '\n  '

@@ -1,5 +1,7 @@
 import sys
 from os.path import join
+
+from orgparse.date import OrgDate
 from test import static
 from test.static.agenda_items import (
     MaximalValid,
@@ -49,6 +51,19 @@ class TestOrgAgendaItem(TestCase):
             args[count] = x
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
+
+    def test_remove_timestamps(self):
+        """ `time_stamp` should be removed from `text`. """
+        text: str = (
+            "<2023-01-01 Sun 01:00-02:00>\nSome text\n<2023-01-01 Sun 01:00>"
+        )
+        time_stamp: list[NvimOrgDate] = [ 
+            NvimOrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0)),
+            NvimOrgDate((2023, 1, 1, 1, 0, 0))
+        ]
+        expected: str = "Some text\n"
+        actual: str = OrgAgendaItem.remove_timestamps(text, time_stamp)
+        self.assertEqual(actual, expected)
 
     def test_load_from_org_node_valid(self):
         """An agenda item generated from "Valid" or 'valid.org' must be the
