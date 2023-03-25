@@ -1,0 +1,86 @@
+#!/bin/bash
+
+usage="Usage: $(basename "$0") [-h | --help] <davmail-config> <org file> <khalorg export arg> 
+
+Sychronize all \`vdirsyncer\` calendars and export them to org with \`khalorg\`. 
+Davmail is used as the CalDav server. If it is not already running, it will be 
+activated temporarly.
+
+where:
+    options
+    -h --help   shows this help messages
+
+    positional
+    <davmail-config>        your davmailconfig
+    <org file>              the output file
+    <khalorg export arg>    see \`khalorg export -h\`
+    "
+
+options=$(getopt -o h --long help -- "$@")
+
+[ $? -eq 0 ] || { echo "Incorrect options provided"; exit 1; }
+
+eval set -- "$options"
+while true; do
+    case "$1" in
+    -h | --help)
+        echo "$usage"
+        exit
+        ;;
+    --)
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
+[ $# -eq 0 ] && { echo "$usage"; exit ;}
+[ $# -lt 5 ] && { echo "Missing positional arguments"; exit ;}
+
+davmailconfig=$1
+orgfile=$2
+shift 2
+khalorg=$@
+
+main(){
+    is_logged_in || { echo "$USER not logged in; sync will not run."; exit ;}
+    has_internet || { echo "No internet connection detected."; exit ;}
+    start_davmail
+    vdirsyncer -v CRITICAL sync || { echo "vdirsyncer failed"; kill_davmail; exit ; }
+    khalorg_export || { echo "khalorg failed"; kill_davmail; exit; }
+    kill_davmail
+    echo 'Calendar sync done.'
+}
+
+is_logged_in() {
+    pgrep -u "${USER:=$LOGNAME}" >/dev/null
+}
+
+has_internet() {
+    ping -q -c 1 1.1.1.1 > /dev/null
+}
+
+start_davmail() {
+    pgrep -f davmail\.jar >/dev/null && return
+    davmail $davmailconfig &
+    pid_davmail=$!
+    sleep 0.5
+}
+
+kill_davmail() {
+    [[ $pid_davmail ]] && kill $pid_davmail
+}
+
+khalorg_export() {
+    khalorg export $khalorg > $orgfile
+}
+
+start_message='Calendar sync started'
+if [[ $TMUX ]]; then
+    tmux display -d 1000 "$start_message"
+    tmux display -d 2000 "$(main)"
+else
+    echo "$start_message"
+    main 
+fi

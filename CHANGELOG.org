@@ -1,1 +1,6 @@
-Work in progress
+* 0.0.0
+  - Added [[./extras/calsync]] which is is bash script to synchronize all
+    ~vdirsyncer~ calendars and export them to org with ~khalorg~. Davmail is
+    used as the CalDav server. If it is not already running, it will
+    be activated temporarly.
+
