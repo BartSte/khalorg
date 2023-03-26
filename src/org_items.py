@@ -1,3 +1,4 @@
+from collections import Counter
 import re
 import sys
 
@@ -28,14 +29,15 @@ class NvimOrgDate(OrgDate):
     time interval is used in this specific case: <2021-09-03 Fri 16:01-17:30>.
     """
 
-    day: str = '[A-Z]{1}[a-z]{2}'
-    time: str = '[0-9]{2}:[0-9]{2}'
-    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    regex: str = f'(<{date} {day} {time})--({time}>)'
-
     def __str__(self) -> str:
+        day: str = '[A-Z]{1}[a-z]{2}'
+        time: str = '[0-9]{2}:[0-9]{2}'
+        date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+        repeater: str = ' [-+]{1,2}[0-9]+[a-z]+'
+        regex: str = f'(<{date} {day} {time})--({time}({repeater})?>)'
+
         time_stamp: str = super().__str__()
-        return re.sub(self.regex, '\\1-\\2', time_stamp)
+        return re.sub(regex, '\\1-\\2', time_stamp)
 
 
 class OrgAgendaItem:
@@ -148,7 +150,7 @@ class OrgAgendaItem:
                 for x in time_stamps]  # type: ignore
 
     @staticmethod
-    def remove_timestamps(text: str, time_stamps: list[NvimOrgDate]) -> str:
+    def remove_timestamps(body: str, time_stamps: list[NvimOrgDate]) -> str:
         """OrgNode.body contains the time_stamps that should be removed because
         the time stamps are already parsed in OrgAgendaItem.time_stamps and
         will otherwise be duplicated.
@@ -157,19 +159,20 @@ class OrgAgendaItem:
         deleted. If it is surrounded by characters, it is only removed.
 
         Args:
-            text: str containing time stamps
+            body: str containing time stamps
             time_stamps: list of NvimOrgDate objects
 
         Returns
         -------
 
         """
+        result: str = body
         for time_stamp in time_stamps:
-            x: str = str(time_stamp)
+            x: str = re.escape(str(time_stamp))
             regex: str = f'(^[ ]*{x}[ ]*[\n]*)|({x})'
-            text: str = re.sub(regex, '', text, re.M)
+            result: str = re.sub(regex, '', result, re.M)
 
-        return text
+        return result
 
     def __eq__(self, other) -> bool:
         try:
@@ -191,4 +194,6 @@ class OrgAgendaItem:
             bool: True if the items are equal.
 
         """
-        return all([getattr(a, x) == getattr(b, x) for x in vars(a)])
+        attribute_equal: bool = all([getattr(a, x) == getattr(b, x) for x in vars(a).keys()])
+        time_stamps_equal: bool = str(a.time_stamps) == str(b.time_stamps)
+        return attribute_equal and time_stamps_equal

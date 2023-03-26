@@ -8,8 +8,10 @@ _DESCRIPTION: str = (
 
 
 class OrgArguments:
-    """ Baseclass for representing the *.org files in the
-    ./test/static/agenda_items/ directory, as python objects."""
+    """
+    Baseclass for representing the *.org files in the
+    ./test/static/agenda_items/ directory, as python objects.
+    """
 
     heading: str
     time_stamps: list[NvimOrgDate]
@@ -35,6 +37,7 @@ class OrgArguments:
             cls.properties,
             cls.description]
 
+
 class MaximalValid(OrgArguments):
     """Used to validate agenda item: maximal_valid.org."""
 
@@ -55,7 +58,7 @@ class MaximalValid(OrgArguments):
         'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
-        }
+    }
 
     khal_new_args = ['-a Some_calendar',
                      '--location Somewhere',
@@ -104,4 +107,25 @@ class NotFirstLevel(MaximalValid):
 
 class BodyFirst(MaximalValid):
     """Used to validate item: not_first_level.org."""
+
     description = _DESCRIPTION + '\n  '
+
+
+class Recurring(MaximalValid):
+    time_stamps = [
+        NvimOrgDate(
+            start=(2023, 1, 1, 1, 0, 0),
+            end=(2023, 1, 1, 2, 0, 0),
+            repeater=('+', 1, 'w'))
+    ]
+
+    command_line_args = {
+        'start': '2023-01-01 Sun 01:00',
+        'end': '2023-01-01 Sun 02:00',
+        'summary': 'Meeting',
+        'description': (f':: {_DESCRIPTION}'),
+        '--location': 'Somewhere',
+        '--url': 'www.test.com',
+        '--repeat': 'weekly'
+    }
+

@@ -64,10 +64,11 @@
      Org's export functionality is used to export a single org item to a
      vdirsyncer calendar. A heading and a plain timestamp are required for
      this export.
+   - [-] Delete calendar items.
    - [ ] Edit an existing calendar item in vdirsyncer from org.  
      Imported org agenda items can be edited and exported so that the
      vdirsyncer items are updated instead of duplicated.              
-   - [ ] Recurring items           
+   - [-] Recurring items           
    - [ ] Import/Export ~SCHEDULED~ timestamps                
    - [ ] Import/Export ~DEADLINE~  timestamps                
    - [ ] Include timezones
@@ -75,7 +76,6 @@
    - [ ] Is available on PyPI.
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
-   - [-] Systemd unit files for synchronizing Office 365 with org mode.
 
 * Installation
   - For now, you need to clone this repository and run:
@@ -107,7 +107,7 @@
    is saved as ~meeting.org~.
    #+begin_example
    * Meeting                                                            :LABEL:
-   <2023-01-01 Sun 01:00-02:00>
+   <2023-01-01 Sun 01:00-02:00 +1w>
    :PROPERTIES:
    :ID: 123
    :LOCATION: Somewhere
@@ -130,6 +130,13 @@
    It is assumed that the khal calendar called "my_calendar" exists. Make sure
    "my_calendar" is a calendar that exists on your local file system.
 
+   Note that this meeting is repeated every week (~+1w~). Currently, the
+   following repeats are supported: daily, weekly, monthly or yearly.
+   Bi-weekly (~+2w~) or other derivatives are not supported yet. These
+   events repeat forever, i.e., ~khal new --untill~ is not (yet) supported.
+
+** Delete: 
+   - In progress
 ** Neovim plugin
    Check my dotfiles at: 
    - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khal-export.lua]]
@@ -166,6 +173,9 @@
 
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
+  - [ ] Recurring Khal agenda items are imported as separate org item while is
+    would be better if they were imported with a repeater (e.g., ~+1w~) in the
+    timestamp.
         
 * Improvements:
   - [ ] Running Khal commands directly from a script in not straightforward.

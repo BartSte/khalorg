@@ -1,12 +1,12 @@
 import logging
-from os.path import join, exists
-from paths import org_format, static_dir
 from collections import OrderedDict
+from os.path import exists, join
 from typing import Callable, Union
 
 from khal.settings.settings import find_configuration_file, get_config
 
-from src.helpers import get_module_path, subprocess_callback
+from paths import org_format, static_dir
+from src.helpers import subprocess_callback
 from src.org_items import NvimOrgDate, OrgAgendaItem
 
 
@@ -15,19 +15,23 @@ class KhalArgsError(Exception):
 
 
 class Calendar:
+    """
+    Represents a Khal calendar.
 
-    """Represents a Khal calendar.
-
-    Attributes: 
+    Attributes
+    ----------
         name: calendar name
         config: Khal config
         export: export command (khal list)
         new_item: new command (khal new)
     """
+
     def __init__(self, name: str):
-        """Init.
+        """
+        Init.
 
         Args:
+        ----
             name: name of the khal calendar
         """
         path_config: Union[str, None] = find_configuration_file()
@@ -43,7 +47,8 @@ class Calendar:
 
     @property
     def timestamp_format(self) -> str:
-        """longdatetimeformat.
+        """
+        longdatetimeformat.
 
         Returns
         -------
@@ -52,15 +57,17 @@ class Calendar:
         return self.config['locale']['longdatetimeformat']
 
     def get_export_format(self) -> str:
-        """The format of the org item is returned.
+        """
+        The format of the org item is returned.
 
         It is defined in *.txt file that exists in the config directory of the
         user as `org_format`. If it does nog exist, the `default_org_format` is
         used.
 
-        Returns:
+        Returns
+        -------
             org format that is feeded to the `khal list --format` command.
-            
+
         """
         default_org_format: str = join(static_dir, 'org_format.txt')
         path: str = org_format if exists(org_format) else default_org_format
@@ -69,6 +76,13 @@ class Calendar:
 
 
 class KhalArgs(OrderedDict):
+
+    REPEAT_ORG_TO_KHAL: dict = {
+        '+1d': 'daily',
+        '+1w': 'weekly',
+        '+1m': 'monthly',
+        '+1y': 'yearly'
+    }
 
     def load_from_org(
             self,
@@ -108,11 +122,13 @@ class KhalArgs(OrderedDict):
             ('summary', item.heading),
             ('description', f':: {item.body}'),
             ('--location', item.properties.get('LOCATION', '')),
-            ('--url', item.properties.get('URL', ''))
+            ('--url', item.properties.get('URL', '')),
+            ('--repeat', self._get_repeat(time_stamp))
         )
 
         for key, value in key_vs_value:
-            self[key] = value
+            if value:
+                self[key] = value
 
         return self
 
@@ -123,6 +139,16 @@ class KhalArgs(OrderedDict):
             return time_stamp.end.strftime(timestamp_format)
         except AttributeError:
             logging.debug('End timestamp cannot be formatted.')
+            return ''
+
+    def _get_repeat(self, time_stamp: NvimOrgDate) -> str:
+        try:
+            key: str = ''.join([str(x) for x in time_stamp._repeater])
+            return self.REPEAT_ORG_TO_KHAL[key]
+        except KeyError as error:
+            message: str = f'The repeat value of: {key} is not supported.'
+            raise KhalArgsError(message) from error
+        except TypeError:  # no repeater found
             return ''
 
     def as_list(self) -> list:
@@ -144,7 +170,8 @@ class KhalArgs(OrderedDict):
 
     @property
     def optional(self) -> dict:
-        """Return only the optional args of Args.
+        """
+        Return only the optional args of Args.
 
         Returns
         -------
@@ -165,7 +192,8 @@ class KhalArgs(OrderedDict):
 
     @property
     def positional(self) -> dict:
-        """Returns only the positional args of Args.
+        """
+        Returns only the positional args of Args.
 
         Returns
         -------

@@ -3,4 +3,6 @@
     ~vdirsyncer~ calendars and export them to org with ~khalorg~. Davmail is
     used as the CalDav server. If it is not already running, it will
     be activated temporarly.
+  - Recurring items are now supported for the ~khal new~ command. Only ~+1d~,
+    ~+1w~,  ~+1m~, and  ~+1y~ are supported for now.
 

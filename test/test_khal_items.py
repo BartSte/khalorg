@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from test.helpers import get_test_config
-from test.static.agenda_items import MaximalValid
+from test.static.agenda_items import MaximalValid, Recurring
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -38,6 +38,18 @@ class TestArgs(Mixin, TestCase):
         actual: KhalArgs = KhalArgs()
         actual.load_from_org(self.agenda_item)
         expected: dict = MaximalValid.command_line_args
+        message:str = (
+            f'\nActual: {actual}\n Expected: {expected}'
+        )
+        self.assertEqual(actual, expected, msg=message)
+
+    def test_load_from_org_recurring(self):
+        """ Same as test_load_from_org but then with a recurring time stamp."""
+        args: list = Recurring.get_args()
+        agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
+        actual: KhalArgs = KhalArgs()
+        actual.load_from_org(agenda_item)
+        expected: dict = Recurring.command_line_args
         self.assertEqual(actual, expected)
 
     def test_optional(self):

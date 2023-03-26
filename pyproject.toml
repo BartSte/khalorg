@@ -35,3 +35,9 @@ ignore = ["D212", "D205", "D210", "D203"]
 max_line_length = 79
 aggressive = 3
 experimental = true
+
+[tool.pytest.ini_options]
+addopts = "-rA"
+testpaths = [
+    "test"
+]
