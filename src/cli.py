@@ -9,7 +9,8 @@ from src.org_items import OrgAgendaItem
 
 
 def get_parser() -> ArgumentParser:
-    """Returns an ArgumentParser object for khalorg.
+    """
+    Returns an ArgumentParser object for khalorg.
 
     Returns
     -------
@@ -78,7 +79,8 @@ class Args:
 
 
 def export(calendar: str, start: str = 'today', stop: str = '1d', **_) -> str:
-    """Exports khal agenda items to org format.
+    """
+    Exports khal agenda items to org format.
 
     Args:
         calendar: name of the khal calendar
@@ -97,7 +99,8 @@ def export(calendar: str, start: str = 'today', stop: str = '1d', **_) -> str:
 
 
 def new(calendar: str, **_) -> str:
-    """Creates a new calendar item in a Khal calendar.
+    """
+    Creates a new calendar item in a Khal calendar.
 
     It does this, by parsing an org agenda item, that is supplied through
     stdin, into a list of command line arguments. These arguments are used to

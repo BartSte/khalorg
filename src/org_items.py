@@ -1,4 +1,3 @@
-from collections import Counter
 import re
 import sys
 
@@ -41,7 +40,8 @@ class NvimOrgDate(OrgDate):
 
 
 class OrgAgendaItem:
-    """Represents an org agenda item.
+    """
+    Represents an org agenda item.
 
     Attributes
     ----------
@@ -62,7 +62,8 @@ class OrgAgendaItem:
                  deadline: NvimOrgDate = NvimOrgDate(None),
                  properties: dict = {},
                  body: str = ''):
-        """Init.
+        """
+        Init.
 
         Args:
         ----
@@ -82,7 +83,8 @@ class OrgAgendaItem:
         self.body: str = body
 
     def load_from_stdin(self) -> 'OrgAgendaItem':
-        """Load an agenda item from stdin.
+        """
+        Load an agenda item from stdin.
 
         Returns
         -------
@@ -92,7 +94,8 @@ class OrgAgendaItem:
         return self.load_from_org_node(node)
 
     def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
-        """Load an agenda item from an `OrgNode`.
+        """
+        Load an agenda item from an `OrgNode`.
 
         Args:
             node: an org file that is parsed as `OrgNode`
@@ -116,7 +119,8 @@ class OrgAgendaItem:
         return self
 
     def get_child_node(self, node: OrgNode) -> OrgNode:
-        """The first child of the `node` is expected to be the agenda item.
+        """
+        The first child of the `node` is expected to be the agenda item.
 
         Args:
             node: the agenda item as `OrgNode`
@@ -151,7 +155,8 @@ class OrgAgendaItem:
 
     @staticmethod
     def remove_timestamps(body: str, time_stamps: list[NvimOrgDate]) -> str:
-        """OrgNode.body contains the time_stamps that should be removed because
+        """
+        OrgNode.body contains the time_stamps that should be removed because
         the time stamps are already parsed in OrgAgendaItem.time_stamps and
         will otherwise be duplicated.
 
@@ -183,7 +188,8 @@ class OrgAgendaItem:
 
     @staticmethod
     def compare(a: 'OrgAgendaItem', b: 'OrgAgendaItem') -> bool:
-        """The equality of the `vars` of a and b should all be True.
+        """
+        The equality of the `vars` of a and b should all be True.
 
         Args:
             a: agenda item
@@ -194,6 +200,28 @@ class OrgAgendaItem:
             bool: True if the items are equal.
 
         """
-        attribute_equal: bool = all([getattr(a, x) == getattr(b, x) for x in vars(a).keys()])
+        attribute_equal: bool = all(
+            [getattr(a, x) == getattr(b, x) for x in vars(a).keys()])
         time_stamps_equal: bool = str(a.time_stamps) == str(b.time_stamps)
         return attribute_equal and time_stamps_equal
+
+
+def remove_duplicates(org_items: str) -> str:
+    # TODO: continue here. This function works but it should not remove
+    # repeated items, only those that are caused by non-repeatable items
+    # (multi-day items)
+    items: OrgNode = orgparse.loads(org_items)
+
+    unique: str = ''
+    existing: list = []
+    for item in items:
+        try:
+            new: str = str(item.properties['ID'])
+        except KeyError:
+            pass
+        else:
+            if new not in existing:
+                unique = unique + '\n' + str(item)
+                existing.append(new)
+    
+    return unique

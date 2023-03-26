@@ -1,4 +1,5 @@
 import sys
+from test.helpers import read_org_test_file
 from os.path import join
 from src.khal_items import KhalArgsError
 from test import static
@@ -71,12 +72,12 @@ class TestOrgAgendaItem(TestCase):
         same.
         """
         org_file_vs_obj: tuple = (
-            # ("body_first.org", BodyFirst),
-            # ("maximal_valid.org", MaximalValid),
-            # ("minimal_valid.org", MinimalValid),
-            # ("multiple_timestamps.org", MultipleTimstampsValid),
-            # ("no_time_stamp.org", NoTimestamp),
-            # ("not_first_level.org", NotFirstLevel),
+            ("body_first.org", BodyFirst),
+            ("maximal_valid.org", MaximalValid),
+            ("minimal_valid.org", MinimalValid),
+            ("multiple_timestamps.org", MultipleTimstampsValid),
+            ("no_time_stamp.org", NoTimestamp),
+            ("not_first_level.org", NotFirstLevel),
             ("recurring.org", Recurring),
         )
 
@@ -103,7 +104,7 @@ class TestOrgAgendaItem(TestCase):
            provided as str.
 
         """
-        node: OrgNode = loads(self.read_org_test_file(org_file))
+        node: OrgNode = loads(read_org_test_file(org_file))
         actual: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
 
         message: str = (
@@ -113,22 +114,6 @@ class TestOrgAgendaItem(TestCase):
         )
         return actual == expected, message
 
-    def read_org_test_file(self, org_file: str) -> str:
-        """
-        Reads an `org_file` and converts it into an `OrgNode` object. The
-        directory is fixed and set to: /test/static/agenda_items.
-
-        Args:
-            org_file (str): path to an org file.
-
-        Returns
-        -------
-            str: org file is converted to a string.
-
-        """
-        path: str = join(get_module_path(static), "agenda_items", org_file)
-        with open(path) as org:
-            return org.read()
 
     def test_from_org_node_no_heading(self):
         """
@@ -136,7 +121,7 @@ class TestOrgAgendaItem(TestCase):
         the OrgNode does not have a child node.
         """
         with self.assertRaises(OrgAgendaItemError):
-            node: OrgNode = loads(self.read_org_test_file("no_heading.org"))
+            node: OrgNode = loads(read_org_test_file("no_heading.org"))
             OrgAgendaItem().load_from_org_node(node)
 
     def test_not_first_child_or_heading(self):
@@ -146,7 +131,7 @@ class TestOrgAgendaItem(TestCase):
         """
         org_files: tuple = ('not_first_child.org', 'not_first_heading.org')
         for file_ in org_files:
-            node: OrgNode = loads(self.read_org_test_file(file_))
+            node: OrgNode = loads(read_org_test_file(file_))
             item: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
             self.assertEqual(item.heading, "Heading")
             self.assertFalse(item.time_stamps)
@@ -161,7 +146,7 @@ class TestOrgAgendaItem(TestCase):
         ----
             patch_stdin: stdin's read function is patched
         """
-        org_file: str = self.read_org_test_file("maximal_valid.org")
+        org_file: str = read_org_test_file("maximal_valid.org")
         patch_stdin.return_value = org_file
         node: OrgNode = loads(org_file)
 

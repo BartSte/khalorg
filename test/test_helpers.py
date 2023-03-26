@@ -2,10 +2,12 @@ from configparser import ConfigParser
 from os.path import join
 
 from munch import Munch
+from src.org_items import remove_duplicates
 from test import static
 from unittest import TestCase
 
 from src.helpers import get_config, get_module_path
+from test.helpers import read_org_test_file
 
 
 class TestGetConfig(TestCase):
@@ -37,3 +39,13 @@ class TestGetConfig(TestCase):
         expected.read(self.combined)
 
         self.assertEqual(dict(actual), dict(expected))
+
+class TestRemoveDuplicates(TestCase):
+
+    def test(self):
+        items: str = read_org_test_file("duplicate.org")
+        remove_duplicates(items)
+        # TODO: continue here. This function works but it should not remove
+        # repeated items, only those that are caused by non-repeatable items
+        # (multi-day items)
+        
