@@ -5,4 +5,6 @@
     be activated temporarly.
   - Recurring items are now supported for the ~khal new~ command. Only ~+1d~,
     ~+1w~,  ~+1m~, and  ~+1y~ are supported for now.
+  - Added ExportPostProcessor to eliminate duplicated item that originate from
+    ~khal --format~.
 
