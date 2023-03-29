@@ -129,3 +129,6 @@ class Recurring(MaximalValid):
         '--repeat': 'weekly'
     }
 
+class Duplicate(MaximalValid):
+    """Validates duplicates.org"""
+    pass

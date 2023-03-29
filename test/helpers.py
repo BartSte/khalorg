@@ -25,3 +25,15 @@ def read_org_test_file(org_file: str) -> str:
     path: str = join(get_module_path(static), "agenda_items", org_file)
     with open(path) as org:
         return org.read()
+
+
+def compare_without_white_space(a, b) -> bool:
+    return compare_with_exclude(a, b, ('', '\n', '\t'))
+
+
+def compare_with_exclude(a: str, b: str, excludes: tuple = tuple()) -> bool:
+    return _filter(a, excludes) == _filter(b, excludes)
+
+
+def _filter(text: str, excludes: tuple) -> list:
+    return [x for x in text.splitlines() if x not in excludes]

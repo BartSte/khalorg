@@ -1,11 +1,13 @@
 import logging
 from argparse import ArgumentParser
 
+import orgparse
+
 from src.khal_items import (
     Calendar,
     KhalArgs,
 )
-from src.org_items import OrgAgendaItem
+from src.org_items import OrgAgendaItem, ExportPostProcessor
 
 
 def get_parser() -> ArgumentParser:
@@ -89,13 +91,17 @@ def export(calendar: str, start: str = 'today', stop: str = '1d', **_) -> str:
 
     Returns
     -------
-        stdout of the `khal list` command
+        stdout of the `khal list` command after post processing
 
     """
+    post_processor: ExportPostProcessor
     khal_calendar: Calendar = Calendar(calendar)
+
     args: list = ['-a', calendar, start, stop]
-    logging.debug(f'Khal args are: {args}')
-    return khal_calendar.export(args)
+    org_items: str = khal_calendar.export(args)
+
+    post_processor = ExportPostProcessor.from_str(org_items)
+    return post_processor.remove_duplicates()
 
 
 def new(calendar: str, **_) -> str:

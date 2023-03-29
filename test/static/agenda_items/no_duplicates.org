@@ -16,7 +16,7 @@
 
   Someone
 * Meeting                                                                :LABEL:
-  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+  <2023-01-02 Mon 01:00>--<2023-01-02 Mon 02:00>
   :PROPERTIES:
   :ID: 123
   :CALENDAR: outlook
@@ -32,3 +32,4 @@
 
 
   Someone
+

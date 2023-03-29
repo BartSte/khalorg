@@ -1,9 +1,21 @@
 import re
 import sys
+from dataclasses import dataclass
 
 import orgparse
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
+
+
+@dataclass
+class OrgRegex:
+    day: str = '[A-Z]{1}[a-z]{2}'
+    time: str = '[0-9]{2}:[0-9]{2}'
+    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+    repeater: str = ' [-+]{1,2}[0-9]+[a-z]+'
+    timestamp: str = f'<{date} {day} {time}({repeater})?>'
+    timestamp_short: str = f'(<{date} {day} {time})--({time}({repeater})?>)'
+    timestamp_long: str = f'{timestamp}--{timestamp}'
 
 
 class OrgAgendaItemError(Exception):
@@ -29,14 +41,27 @@ class NvimOrgDate(OrgDate):
     """
 
     def __str__(self) -> str:
-        day: str = '[A-Z]{1}[a-z]{2}'
-        time: str = '[0-9]{2}:[0-9]{2}'
-        date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-        repeater: str = ' [-+]{1,2}[0-9]+[a-z]+'
-        regex: str = f'(<{date} {day} {time})--({time}({repeater})?>)'
-
         time_stamp: str = super().__str__()
-        return re.sub(regex, '\\1-\\2', time_stamp)
+        return re.sub(OrgRegex.timestamp_short, '\\1-\\2', time_stamp)
+
+
+@staticmethod
+def format_timestamps(time_stamps: list[OrgDate]) -> list[NvimOrgDate]:
+    """
+    The notation <2021-09-03 Fri 16:01--17:30> is replaced by
+    <2021-09-03 Fri 16:01-17:30>. Check the documentation NvimOrgDate for
+    more info.
+
+    Args:
+        time_stamps: OrgDate time_stamps
+
+    Returns
+    -------
+        NvimOrgDate time_stamps
+
+    """
+    return [NvimOrgDate.list_from_str(str(x)).pop()
+            for x in time_stamps]  # type: ignore
 
 
 class OrgAgendaItem:
@@ -113,7 +138,7 @@ class OrgAgendaItem:
         self.deadline = NvimOrgDate(child.deadline.start, child.deadline.end)
         self.scheduled = NvimOrgDate(child.scheduled.start, child.scheduled.end)  # noqa
         self.properties = child.properties
-        self.time_stamps = self.format_timestamps(time_stamps)
+        self.time_stamps = format_timestamps(time_stamps)
         self.body = self.remove_timestamps(child.body, self.time_stamps)
 
         return self
@@ -136,24 +161,6 @@ class OrgAgendaItem:
             raise OrgAgendaItemError(self.MESSAGE_INVALID_NODE) from error
 
     @staticmethod
-    def format_timestamps(time_stamps: list[OrgDate]) -> list[NvimOrgDate]:
-        """
-        The notation <2021-09-03 Fri 16:01--17:30> is replaced by
-        <2021-09-03 Fri 16:01-17:30>. Check the documentation NvimOrgDate for
-        more info.
-
-        Args:
-            time_stamps: OrgDate time_stamps
-
-        Returns
-        -------
-            NvimOrgDate time_stamps
-
-        """
-        return [NvimOrgDate.list_from_str(str(x)).pop()
-                for x in time_stamps]  # type: ignore
-
-    @staticmethod
     def remove_timestamps(body: str, time_stamps: list[NvimOrgDate]) -> str:
         """
         OrgNode.body contains the time_stamps that should be removed because
@@ -172,10 +179,14 @@ class OrgAgendaItem:
 
         """
         result: str = body
+        re_general: str = f'(^[ ]*{OrgRegex.timestamp_long}[ ]*[\n]*)|({OrgRegex.timestamp_long})'  # noqa
+
         for time_stamp in time_stamps:
-            x: str = re.escape(str(time_stamp))
-            regex: str = f'(^[ ]*{x}[ ]*[\n]*)|({x})'
-            result: str = re.sub(regex, '', result, re.M)
+            exact: str = re.escape(str(time_stamp))
+            re_exact: str = f'(^[ ]*{exact}[ ]*[\n]*)|({exact})'
+
+            result: str = re.sub(re_exact, '', result, re.M)
+            result: str = re.sub(re_general, '', result, re.M)
 
         return result
 
@@ -201,27 +212,99 @@ class OrgAgendaItem:
 
         """
         attribute_equal: bool = all(
-            [getattr(a, x) == getattr(b, x) for x in vars(a).keys()])
+            getattr(a, x) == getattr(b, x) for x in vars(a).keys()
+        )
         time_stamps_equal: bool = str(a.time_stamps) == str(b.time_stamps)
         return attribute_equal and time_stamps_equal
 
 
-def remove_duplicates(org_items: str) -> str:
-    # TODO: continue here. This function works but it should not remove
-    # repeated items, only those that are caused by non-repeatable items
-    # (multi-day items)
-    items: OrgNode = orgparse.loads(org_items)
+class ExportPostProcessor:
+    """
+    `khalorg export` relies on the command: `khal --format`. This command
+    duplicates multi-day items. This PostProcessor class aims to remove such
+    duplicates.
 
-    unique: str = ''
-    existing: list = []
-    for item in items:
-        try:
-            new: str = str(item.properties['ID'])
-        except KeyError:
-            pass
-        else:
-            if new not in existing:
-                unique = unique + '\n' + str(item)
-                existing.append(new)
-    
-    return unique
+    Attributes
+    ----------
+        timestamp_kwargs: the timestamp type that is requested. See
+        orgparse.OrgNode.
+    """
+
+    _TIME_STAMPS_KWARGS: dict = dict(
+        active=True,
+        inactive=False,
+        range=True,
+        point=True
+    )
+
+    def __init__(self,
+                 org_nodes: OrgNode,
+                 time_stamps_kwargs: dict = _TIME_STAMPS_KWARGS) -> None:
+        """
+        Init.
+
+        Args:
+        ----
+            org_items: a list of org nodes
+            time_stamps_kwargs: timestamp type. See orgpare.OrgNode
+        """
+        self._ids: list
+        self._timestamps: list
+        self._unique_items: list
+
+        self.nodes: OrgNode = org_nodes
+        self.timestamp_kwargs: dict = time_stamps_kwargs
+
+    def remove_duplicates(self) -> str:
+        """
+        Removes duplicated OrgNode objects.
+
+        The results is also stored internally at PostProcessor.unique_items. An
+        item is unique if the ics UID and the timestamps are unique. Recurring
+        khal items have the same UID but different timestamps.
+
+        Returns
+        -------
+            the unique OrgNode objects
+
+        """
+        self._reset()
+        for item in self.nodes:
+
+            new_id: str = str(item.properties.get('ID'))
+            new_timestamp: list = item.get_timestamps(**self.timestamp_kwargs)
+
+            if not self._exists(new_id, new_timestamp):
+                self._append(item, new_id, new_timestamp)
+
+        return self.unique_items
+
+    def _reset(self):
+        self._ids = []
+        self._timestamps = []
+        self._unique_items = []
+
+    def _append(self, item: OrgNode, id: str, timestamp: list):
+        self._ids.append(id)
+        self._timestamps.append(timestamp)
+        self._unique_items.append(str(item))
+
+    def _exists(self, id: str, timestamp: list) -> bool:
+        return id in self._ids and timestamp in self._timestamps
+
+    @property
+    def unique_items(self) -> str:
+        """
+        Unique PostProcessor.nodes objects as a concatenated string.
+
+        Returns
+        -------
+           a str with unique items
+
+        """
+        return '\n'.join(self._unique_items)
+
+    @classmethod
+    def from_str(cls, org_items: str) -> 'ExportPostProcessor':
+        nodes: OrgNode = orgparse.loads(org_items)
+        return cls(nodes)
