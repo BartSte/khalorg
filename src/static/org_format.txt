@@ -4,7 +4,8 @@
   :ID: {uid}
   :CALENDAR: {calendar}
   :LOCATION: {location}
-  :Organizer: {organizer}
+  :ORGANIZER: {organizer}
+  :EMAIL: {attendees}
   :URL: {url}
   :END:
   {description}
