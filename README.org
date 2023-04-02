@@ -177,5 +177,6 @@
     timestamp.
         
 * Improvements:
+  - [-] Add attendees emails to ~khal new~
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
