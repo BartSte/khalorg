@@ -40,6 +40,8 @@ class TestExport(TestCase):
 
 class TestAttendees(TestCase):
     # TODO: write test for this
+    # TODO: checkout the test_cli.py of khal for inspiration on how to create a
+    # khal db for testing.
 
     def test_init(self):
         pass

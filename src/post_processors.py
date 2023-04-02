@@ -4,6 +4,7 @@ commands.
 """
 from typing import Iterable
 
+import orgparse
 from khal.cli import build_collection
 from khal.khalendar import CalendarCollection
 from khal.khalendar.khalendar import Event
@@ -12,11 +13,11 @@ from orgparse.node import OrgNode
 
 
 class Attendees:
-
     """Update the Attendees field in a Khal Event loading the Khal calendar.
 
     TODO write a test for this.
     """
+
     def __init__(self, calendar_name: str, event_query: str):
         self._query: str = event_query
         self._event: Iterable[Event]
