@@ -2,11 +2,8 @@ import logging
 from argparse import ArgumentParser
 from datetime import datetime
 
-from src.khal_items import (
-    Calendar,
-    KhalArgs,
-    edit_attendees,
-)
+from src.hacks import edit_attendees
+from src.khal_items import Calendar, KhalArgs
 from src.org_items import OrgAgendaItem
 from src.post_processors import Export
 

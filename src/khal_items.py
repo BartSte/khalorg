@@ -1,12 +1,10 @@
 import logging
 from collections import OrderedDict
-from datetime import datetime
 from os.path import exists, join
-from typing import Callable, Iterable, Union
+from typing import Callable, Union
 
 from khal.cli import build_collection
 from khal.khalendar import CalendarCollection
-from khal.khalendar.khalendar import Event
 from khal.settings.settings import (
     ConfigObj,
     find_configuration_file,
@@ -214,32 +212,17 @@ class KhalArgs(OrderedDict):
         return self._filter(condition)
 
 
-def edit_attendees(
-        calendar: str | CalendarCollection,
-        attendees: tuple | list,
-        summary: str,
-        timestamp_start: datetime,
-        timestamp_end: datetime | None = None) -> list:
+def get_calendar_collection(name: str) -> CalendarCollection:
     """
-    TODO.
+    Return the calendar collection for a specific calendar `name`.
 
     Args:
-    ----
-        calendar:
-        query:
+        name: name of the calendar
+
+    Returns
+    -------
+        calendar collection
     """
-    # TODO refactor this one and then release it.
-    if isinstance(calendar, str):
-        config: ConfigObj = get_config(find_configuration_file())
-        calendar = build_collection(config, calendar)
-
-    events: list[Event] = list(calendar.search(summary))
-    for event in events:
-        start: datetime = event.start.replace(microsecond=0, tzinfo=None)
-        end: datetime = event.end.replace(microsecond=0, tzinfo=None)
-        if timestamp_start == start and timestamp_end == end:
-            event.update_attendees(attendees)
-            calendar.update(event)
-            logging.info(f'Event: {event.summary} was updated')
-
-    return events
+    path_config: str | None = find_configuration_file()
+    config: ConfigObj = get_config(path_config)
+    return build_collection(config, name)

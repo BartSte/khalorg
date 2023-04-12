@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from test.helpers import get_test_config, khal_runner
 from test.static.agenda_items import MaximalValid, Recurring
 from typing import Callable
@@ -6,10 +6,9 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
-from click.testing import CliRunner
-from khal.cli import main_khal
+from khal.khalendar import CalendarCollection
 
-from src.khal_items import Calendar, KhalArgs, edit_attendees
+from src.khal_items import Calendar, KhalArgs, get_calendar_collection
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
@@ -117,41 +116,21 @@ def get_cli_runner(tmpdir, monkeypatch) -> Callable:
     return khal_runner(tmpdir, monkeypatch)
 
 
-def test_empty_calendar(get_cli_runner):
-    runner = get_cli_runner()
-    result = runner.invoke(main_khal, ['list'])
-    assert result.output == ''
-    assert not result.exception
+def test_get_calendar(get_cli_runner):
+    """Must be able to find a calendar collection."""
+    get_cli_runner()
+    collection: CalendarCollection = get_calendar_collection('one')
+    assert isinstance(collection, CalendarCollection)
 
 
-def test_add_attendee(get_cli_runner: Callable):
+def test_get_calendar_no_config(get_cli_runner):
     """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
+    Must be able to find a calendar collection. Even if no configuration
+    file can be found.
     """
-    runner: CliRunner = get_cli_runner()
-    format: str = '%d.%m.%Y %H:%M'
-    start: datetime = datetime.now()
-    end: datetime = datetime.now() + timedelta(hours=1)
-    start = start.replace(second=0, microsecond=0)
-    end = end.replace(second=0, microsecond=0)
-    attendees: list = ['test@test.com']
+    from src import khal_items
+    khal_items.find_configuration_file = lambda *_: None
 
-    summary: str = 'Summary'
-    new_cmd: list = [
-        'new',
-        start.strftime(format),
-        end.strftime(format),
-        summary,
-        '::',
-        'Description'
-    ]
-    list_cmd: str = 'list --format {attendees}'
-
-    runner.invoke(main_khal, new_cmd)
-    events: list = edit_attendees('one', attendees, summary, start, end)
-    result = runner.invoke(main_khal, list_cmd.split(' '))
-
-    assert len(events) == 1
-    assert events[0].attendees == attendees[0]
-    assert attendees[0] in result.output
+    get_cli_runner()
+    collection: CalendarCollection = get_calendar_collection('noneexisting')
+    assert isinstance(collection, CalendarCollection)
