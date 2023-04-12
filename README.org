@@ -135,6 +135,11 @@
    Bi-weekly (~+2w~) or other derivatives are not supported yet. These
    events repeat forever, i.e., ~khal new --untill~ is not (yet) supported.
 
+   Optional attendees can be added to the ~ATTENDEES~ property field. The 
+   attendees will be added to the ~Attendees~ field of khal. Once you
+   synchronize khal with a server (e.g., outlook) an invitation will be send to
+   the attendees.
+
 ** Delete: 
    - In progress
 ** Neovim plugin
@@ -173,11 +178,10 @@
 
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
+        
+* Improvements:
   - [ ] Recurring Khal agenda items are imported as separate org item while is
     would be better if they were imported with a repeater (e.g., ~+1w~) in the
     timestamp.
-        
-* Improvements:
-  - [-] Add attendees emails to ~khal new~
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
