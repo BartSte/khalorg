@@ -1,5 +1,6 @@
 __pycache__
 *venv*
-nvim.shada
-.vimspector.json
-
+*.shada
+*.vim
+*.vscode
+davmail.log

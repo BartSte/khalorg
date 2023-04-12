@@ -1,9 +1,17 @@
 import logging
 from collections import OrderedDict
+from datetime import datetime
 from os.path import exists, join
-from typing import Callable, Union
+from typing import Callable, Iterable, Union
 
-from khal.settings.settings import find_configuration_file, get_config
+from khal.cli import build_collection
+from khal.khalendar import CalendarCollection
+from khal.khalendar.khalendar import Event
+from khal.settings.settings import (
+    ConfigObj,
+    find_configuration_file,
+    get_config,
+)
 
 from paths import org_format, static_dir
 from src.helpers import subprocess_callback
@@ -204,3 +212,34 @@ class KhalArgs(OrderedDict):
             return not self._is_option(key)
 
         return self._filter(condition)
+
+
+def edit_attendees(
+        calendar: str | CalendarCollection,
+        attendees: tuple | list,
+        summary: str,
+        timestamp_start: datetime,
+        timestamp_end: datetime | None = None) -> list:
+    """
+    TODO.
+
+    Args:
+    ----
+        calendar:
+        query:
+    """
+    # TODO refactor this one and then release it.
+    if isinstance(calendar, str):
+        config: ConfigObj = get_config(find_configuration_file())
+        calendar = build_collection(config, calendar)
+
+    events: list[Event] = list(calendar.search(summary))
+    for event in events:
+        start: datetime = event.start.replace(microsecond=0, tzinfo=None)
+        end: datetime = event.end.replace(microsecond=0, tzinfo=None)
+        if timestamp_start == start and timestamp_end == end:
+            event.update_attendees(attendees)
+            calendar.update(event)
+            logging.info(f'Event: {event.summary} was updated')
+
+    return events

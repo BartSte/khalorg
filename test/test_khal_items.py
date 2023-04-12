@@ -1,11 +1,15 @@
-import logging
-from datetime import datetime
-from test.helpers import get_test_config
+from datetime import datetime, timedelta
+from test.helpers import get_test_config, khal_runner
 from test.static.agenda_items import MaximalValid, Recurring
+from typing import Callable
 from unittest import TestCase
 from unittest.mock import patch
 
-from src.khal_items import KhalArgs, Calendar
+import pytest
+from click.testing import CliRunner
+from khal.cli import main_khal
+
+from src.khal_items import Calendar, KhalArgs, edit_attendees
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
@@ -31,14 +35,15 @@ class TestCalendar(Mixin, TestCase):
 class TestArgs(Mixin, TestCase):
 
     def test_load_from_org(self):
-        """ When loaded from the org file maximal_valid.org, the resulting cli
+        """
+        When loaded from the org file maximal_valid.org, the resulting cli
         args must be the same as: MaximalValid.command_line_args
         .
         """
         actual: KhalArgs = KhalArgs()
         actual.load_from_org(self.agenda_item)
         expected: dict = MaximalValid.command_line_args
-        message:str = (
+        message: str = (
             f'\nActual: {actual}\n Expected: {expected}'
         )
         self.assertEqual(actual, expected, msg=message)
@@ -61,8 +66,9 @@ class TestArgs(Mixin, TestCase):
         self.assertEqual(value, args.optional[key])
 
     def test_positional(self):
-        """ When adding an positional arg, it can be retrieved using
-        Args.optional. 
+        """
+        When adding an positional arg, it can be retrieved using
+        Args.optional.
         """
         key = 'foo'
         value: str = 'bar'
@@ -71,11 +77,13 @@ class TestArgs(Mixin, TestCase):
         self.assertEqual(value, args.positional[key])
 
     def test_as_list(self):
-        """ Args.as_list contatinates all Args in a list. The dictionary key of
+        """
+        Args.as_list contatinates all Args in a list. The dictionary key of
         an option is prepended before its value. Of the positional args, only
         its value is retained (obviously). Later, all arguments are split based
         on a whitespace. Statements surrounded by quotes are not (yet)
-        supported."""
+        supported.
+        """
         args: KhalArgs = KhalArgs()
         args['--url'] = 'www.test.com'
         args['start'] = datetime(2023, 1, 1).strftime(FORMAT)
@@ -89,3 +97,61 @@ class TestArgs(Mixin, TestCase):
 
         actual: list = args.as_list()
         self.assertEqual(actual, expected)
+
+
+@pytest.fixture
+def get_cli_runner(tmpdir, monkeypatch) -> Callable:
+    """
+    `khal_runner` was borrowd from the `khal` repo at:
+    https://github.com/pimutils/khal/blob/master/tests/cli_test.py.
+
+    Args:
+        tmpdir: build-in pytest fixture for temporary directories
+        monkeypatch: build-in pytest fixture for patching.
+
+    Returns
+    -------
+        a test runner function
+
+    """
+    return khal_runner(tmpdir, monkeypatch)
+
+
+def test_empty_calendar(get_cli_runner):
+    runner = get_cli_runner()
+    result = runner.invoke(main_khal, ['list'])
+    assert result.output == ''
+    assert not result.exception
+
+
+def test_add_attendee(get_cli_runner: Callable):
+    """
+    After adding a new event, its addendees are added. When running khal
+    list, the attendees should be visible.
+    """
+    runner: CliRunner = get_cli_runner()
+    format: str = '%d.%m.%Y %H:%M'
+    start: datetime = datetime.now()
+    end: datetime = datetime.now() + timedelta(hours=1)
+    start = start.replace(second=0, microsecond=0)
+    end = end.replace(second=0, microsecond=0)
+    attendees: list = ['test@test.com']
+
+    summary: str = 'Summary'
+    new_cmd: list = [
+        'new',
+        start.strftime(format),
+        end.strftime(format),
+        summary,
+        '::',
+        'Description'
+    ]
+    list_cmd: str = 'list --format {attendees}'
+
+    runner.invoke(main_khal, new_cmd)
+    events: list = edit_attendees('one', attendees, summary, start, end)
+    result = runner.invoke(main_khal, list_cmd.split(' '))
+
+    assert len(events) == 1
+    assert events[0].attendees == attendees[0]
+    assert attendees[0] in result.output

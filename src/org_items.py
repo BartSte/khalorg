@@ -115,7 +115,21 @@ class OrgAgendaItem:
         -------
             OrgAgendaItem: returns itself.
         """
-        node: OrgNode = orgparse.loads(sys.stdin.read())
+        return self.load_from_str(sys.stdin.read())
+
+    def load_from_str(self, text: str) -> 'OrgAgendaItem':
+        """
+        Loads an agenda item from a str.
+
+        Args:
+            text: org agenda item as a str
+
+        Returns
+        -------
+            the agenda item
+
+        """
+        node: OrgNode = orgparse.loads(text)
         return self.load_from_org_node(node)
 
     def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
@@ -217,3 +231,23 @@ class OrgAgendaItem:
         time_stamps_equal: bool = str(a.time_stamps) == str(b.time_stamps)
         return attribute_equal and time_stamps_equal
 
+    def get_attendees(self, delimiter: str = ', ') -> list:
+        """
+        The attendees are stored as a str that is separated by a
+        `delimiter`. This function splits this string into a list using the
+        `delimiter`.
+
+        Args:
+            delimiter: str that separates attendees
+
+        Returns
+        -------
+            attendees as list
+        """
+        attendees: str
+        try:
+            attendees = self.properties['ATTENDEES']
+        except KeyError:
+            return []
+        else:
+            return attendees.split(delimiter)

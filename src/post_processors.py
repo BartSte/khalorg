@@ -12,31 +12,6 @@ from khal.settings.settings import find_configuration_file, get_config
 from orgparse.node import OrgNode
 
 
-class Attendees:
-    """Update the Attendees field in a Khal Event loading the Khal calendar.
-
-    TODO write a test for this.
-    """
-
-    def __init__(self, calendar_name: str, event_query: str):
-        self._query: str = event_query
-        self._event: Iterable[Event]
-        self._config: dict
-        self._calendar: CalendarCollection
-
-        self.path_config: str | None = find_configuration_file()
-        self.calendar_name: str = calendar_name
-
-    def load(self):
-        self._config = get_config(self.path_config)
-        self._calendar = build_collection(self._config, self.calendar_name)
-        self._events = self._calendar.search(self._query)
-
-    def update(self, attendees: list):
-        for event in self._events:
-            event.update_attendees(attendees)
-            self._calendar.update(event)
-
 
 class Export:
     """

@@ -1,9 +1,11 @@
 import logging
 from argparse import ArgumentParser
+from datetime import datetime
 
 from src.khal_items import (
     Calendar,
     KhalArgs,
+    edit_attendees,
 )
 from src.org_items import OrgAgendaItem
 from src.post_processors import Export
@@ -112,7 +114,7 @@ def new(calendar: str, **_) -> str:
     invoke the `khal new` command by calling Calendar.new_item.
 
     Args:
-        calendar_name: name of the khal calendar.
+        calendar: name of the khal calendar.
 
     Returns
     -------
@@ -122,10 +124,21 @@ def new(calendar: str, **_) -> str:
     args: KhalArgs = KhalArgs()
     khal_calendar: Calendar = Calendar(calendar)
     org_item: OrgAgendaItem = OrgAgendaItem()
+    format = khal_calendar.timestamp_format
 
     org_item.load_from_stdin()
     args['-a'] = calendar
-    args.load_from_org(org_item)
+    args.load_from_org(org_item, format)
 
     logging.debug(f'Khal args are: {args}')
-    return khal_calendar.new_item(args.as_list())
+    stdout_khal: str = khal_calendar.new_item(args.as_list())
+
+    start: datetime = datetime.strptime(args['start'], format)
+    end: datetime = datetime.strptime(args['end'], format)
+    edit_attendees(
+        calendar,
+        org_item.get_attendees(),
+        args['summary'],
+        start,
+        end)
+    return stdout_khal

@@ -155,3 +155,16 @@ class TestOrgAgendaItem(TestCase):
         expected: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
 
         self.assertTrue(actual == expected)
+
+    def test_get_attendees(self):
+        """
+        The attendees in the OrgAgendaItem.properties should be parsed as a
+        list.
+        """
+        item: OrgAgendaItem = OrgAgendaItem()
+        item.properties['ATTENDEES'] = (
+            'test@test.com, test2@test.com, test3@test.com'
+        )
+        actual: list = item.get_attendees()
+        expected: list = ['test@test.com', 'test2@test.com', 'test3@test.com']
+        self.assertEqual(actual, expected)

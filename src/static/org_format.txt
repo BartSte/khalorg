@@ -5,7 +5,7 @@
   :CALENDAR: {calendar}
   :LOCATION: {location}
   :ORGANIZER: {organizer}
-  :EMAIL: {attendees}
+  :ATTENDEES: {attendees}
   :URL: {url}
   :END:
   {description}

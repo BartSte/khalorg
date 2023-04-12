@@ -1,0 +1,30 @@
+[calendars]
+[[one]]
+path = {calpath}
+color = dark blue
+
+[[two]]
+path = {calpath2}
+color = dark green
+
+[[three]]
+path = {calpath3}
+
+[locale]
+local_timezone = Europe/Berlin
+default_timezone = Europe/Berlin
+
+timeformat = %H:%M
+dateformat = %d.%m.
+longdateformat = %d.%m.%Y
+datetimeformat =  %d.%m. %H:%M
+longdatetimeformat = %d.%m.%Y %H:%M
+firstweekday = 0
+
+[default]
+{default_calendar}
+timedelta = {delta}
+print_new = {print_new}
+
+[sqlite]
+path = {dbpath}

@@ -8,14 +8,15 @@ from unittest import TestCase
 from src.helpers import get_module_path
 
 
-class TestMain(TestCase):
+class TestNew(TestCase):
 
     def setUp(self) -> None:
         self.test_dir: str = get_module_path(test)
         return super().setUp()
 
-    def test_new(self):
-        """ When feeding the org file maximal_valid.org into khalorg_tester
+    def test_new_item(self):
+        """
+        When feeding the org file maximal_valid.org into khalorg_tester
         through stdin, it expected to get the command line arguments from
         stdout as is described by MaximalValid.khal_new_args.
         """
@@ -28,8 +29,7 @@ class TestMain(TestCase):
         cli_tester: str = join(self.test_dir, 'khalorg_tester')
 
         cat_args: tuple = ('cat', org_file)
-        cli_tester_args: tuple = (
-            cli_tester, 'new', 'Some_calendar')
+        cli_tester_args: tuple = (cli_tester, 'new', 'Some_calendar')
         try:
             stdout: bytes = self._pipe_subproccesses(cat_args, cli_tester_args)
         except CalledProcessError as error:
@@ -37,12 +37,16 @@ class TestMain(TestCase):
             self.fail(error.output.decode())
         else:
             message: str = f'\n\n{stdout}\n\n{expected.encode()}'
+            logging.debug(stdout)
             self.assertEqual(stdout, expected.encode(), msg=message)
 
     def _pipe_subproccesses(self, first: tuple, second: tuple) -> bytes:
         with Popen(first, stdout=PIPE) as cat:
             stdout: bytes = check_output(
-                second, stdin=cat.stdout, stderr=STDOUT)
+                second,
+                stdin=cat.stdout,
+                stderr=STDOUT
+            )
             cat.wait()
             return stdout
 
@@ -54,7 +58,8 @@ class TestParentParser(TestCase):
         return super().setUp()
 
     def test_with_args(self):
-        """ Expected that the khalorg_cli_tester executable return the
+        """
+        Expected that the khalorg_cli_tester executable return the
         calendar and the log level.
         """
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
@@ -82,7 +87,8 @@ class TestExportParser(TestCase):
         return super().setUp()
 
     def test_with_args(self):
-        """ Expected that the khalorg_cli_tester executable return the
+        """
+        Expected that the khalorg_cli_tester executable return the
         calendar, the loglevel, the start time, and stop time.
         """
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')

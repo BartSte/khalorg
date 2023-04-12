@@ -5,6 +5,7 @@
   :CALENDAR: outlook
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
   :END:
   Hello,
@@ -22,6 +23,7 @@
   :CALENDAR: outlook
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
   :END:
   Hello,

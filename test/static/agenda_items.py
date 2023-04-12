@@ -46,6 +46,7 @@ class MaximalValid(OrgArguments):
                         'CALENDAR': 'outlook',
                         "LOCATION": 'Somewhere',
                         "ORGANIZER": 'Someone (someone@outlook.com)',
+                        "ATTENDEES": 'test@test.com, test2@test.com',
                         "URL": 'www.test.com'}
     time_stamps = [NvimOrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
 
@@ -129,6 +130,8 @@ class Recurring(MaximalValid):
         '--repeat': 'weekly'
     }
 
+
 class Duplicate(MaximalValid):
-    """Validates duplicates.org"""
+    """Validates duplicates.org."""
+
     pass

@@ -1,16 +1,10 @@
-from os.path import join
-from khal.cli import build_collection
-from khal.settings.settings import find_configuration_file, get_config
-from munch import Munch
-from src.helpers import get_module_path
-from test import static
 from test.helpers import (
     compare_without_white_space,
     read_org_test_file,
 )
 from unittest import TestCase
 
-from src.post_processors import Attendees, Export
+from src.post_processors import Export
 
 
 class TestExport(TestCase):
@@ -37,17 +31,3 @@ class TestExport(TestCase):
 
         self.assertTrue(compare_without_white_space(expected, actual))
 
-
-class TestAttendees(TestCase):
-    # TODO: write test for this
-    # TODO: checkout the test_cli.py of khal for inspiration on how to create a
-    # khal db for testing.
-
-    def test_init(self):
-        pass
-
-    def test_load(self):
-        pass
-        
-    def test_update(self):
-        pass
