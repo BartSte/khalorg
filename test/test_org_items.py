@@ -10,6 +10,7 @@ from test.agenda_items import (
     MultipleTimstampsValid,
     NotFirstLevel,
     NoTimestamp,
+    ShortTimestamp,
     Recurring,
 )
 from typing import Any
@@ -83,6 +84,7 @@ class TestOrgAgendaItem(TestCase):
             ("not_first_level.org", NotFirstLevel),
             ("recurring.org", Recurring),
             ("all_day.org", AllDay),
+            ("short_timestamp.org", ShortTimestamp),
         )
 
         for file_, obj in org_file_vs_obj:

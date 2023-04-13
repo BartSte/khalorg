@@ -194,6 +194,7 @@ class OrgAgendaItem:
         """
         result: str = body
         re_general: str = f'(^[ ]*{OrgRegex.timestamp_long}[ ]*[\n]*)|({OrgRegex.timestamp_long})'  # noqa
+        re_general_short: str = f'(^[ ]*{OrgRegex.timestamp_short}[ ]*[\n]*)|({OrgRegex.timestamp_short})'  # noqa
 
         for time_stamp in time_stamps:
             exact: str = re.escape(str(time_stamp))
@@ -201,6 +202,7 @@ class OrgAgendaItem:
 
             result: str = re.sub(re_exact, '', result, re.M)
             result: str = re.sub(re_general, '', result, re.M)
+            result: str = re.sub(re_general_short, '', result, re.M)
 
         return result
 

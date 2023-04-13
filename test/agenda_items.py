@@ -137,7 +137,7 @@ class Duplicate(MaximalValid):
     pass
 
 class AllDay(MaximalValid):
-    """Used to validate agenda item: maximal_valid.org."""
+    """Used to validate agenda item: all_day.org."""
 
     time_stamps = [NvimOrgDate((2023, 1, 1))]
 
@@ -159,3 +159,8 @@ class AllDay(MaximalValid):
                      '2023-01-01 Sun',
                      'Meeting',
                      f':: {_DESCRIPTION}\n']
+
+class ShortTimestamp(MaximalValid):
+    """Validates othertimestamp.org."""
+
+    pass
