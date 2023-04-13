@@ -135,3 +135,27 @@ class Duplicate(MaximalValid):
     """Validates duplicates.org."""
 
     pass
+
+class AllDay(MaximalValid):
+    """Used to validate agenda item: maximal_valid.org."""
+
+    time_stamps = [NvimOrgDate((2023, 1, 1))]
+
+    description = _DESCRIPTION
+
+    command_line_args = {
+        'start': '2023-01-01 Sun',
+        'end': '2023-01-01 Sun',
+        'summary': 'Meeting',
+        'description': (f':: {_DESCRIPTION}'),
+        '--location': 'Somewhere',
+        '--url': 'www.test.com',
+    }
+
+    khal_new_args = ['-a Some_calendar',
+                     '--location Somewhere',
+                     '--url www.test.com',
+                     '2023-01-01 Sun',
+                     '2023-01-01 Sun',
+                     'Meeting',
+                     f':: {_DESCRIPTION}\n']

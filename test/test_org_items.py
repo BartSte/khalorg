@@ -2,7 +2,8 @@ import sys
 from test.helpers import (
     read_org_test_file,
 )
-from test.static.agenda_items import (
+from test.agenda_items import (
+    AllDay,
     BodyFirst,
     MaximalValid,
     MinimalValid,
@@ -81,6 +82,7 @@ class TestOrgAgendaItem(TestCase):
             ("no_time_stamp.org", NoTimestamp),
             ("not_first_level.org", NotFirstLevel),
             ("recurring.org", Recurring),
+            ("all_day.org", AllDay),
         )
 
         for file_, obj in org_file_vs_obj:

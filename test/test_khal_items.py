@@ -1,6 +1,6 @@
 from datetime import datetime
 from test.helpers import get_test_config, khal_runner
-from test.static.agenda_items import MaximalValid, Recurring
+from test.agenda_items import AllDay, MaximalValid, Recurring
 from typing import Callable
 from unittest import TestCase
 from unittest.mock import patch
@@ -26,9 +26,9 @@ class TestCalendar(Mixin, TestCase):
 
     @patch('src.khal_items.find_configuration_file',
            return_value=get_test_config())
-    def test_timestamp_format(self, _):
-        """The `timestamp_format` must coincide. """
-        self.assertEqual(self.calendar.timestamp_format, '%Y-%m-%d %a %H:%M')
+    def test_datetime_format(self, _):
+        """The `datetime_format` must coincide. """
+        self.assertEqual(self.calendar.datetime_format, '%Y-%m-%d %a %H:%M')
 
 
 class TestArgs(Mixin, TestCase):
@@ -55,6 +55,18 @@ class TestArgs(Mixin, TestCase):
         actual.load_from_org(agenda_item)
         expected: dict = Recurring.command_line_args
         self.assertEqual(actual, expected)
+
+    def test_load_from_org_all_day_event(self):
+        """ TODO """
+        args: list = AllDay.get_args()
+        agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
+        actual: KhalArgs = KhalArgs()
+        actual.load_from_org(agenda_item)
+        expected: dict = AllDay.command_line_args
+        message: str = (
+            f'\n\nActual: {actual}\n\nExpected: {expected}'
+        )
+        self.assertEqual(actual, expected, msg=message)
 
     def test_optional(self):
         """ When adding an option, it can be retrieved using Args.optional. """

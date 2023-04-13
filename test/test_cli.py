@@ -2,7 +2,7 @@ import logging
 import test
 from os.path import join
 from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
-from test.static.agenda_items import MaximalValid
+from test.agenda_items import MaximalValid
 from unittest import TestCase
 
 from src.helpers import get_module_path

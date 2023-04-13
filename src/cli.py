@@ -2,6 +2,8 @@ import logging
 from argparse import ArgumentParser
 from datetime import datetime
 
+from khal.khalendar import khalendar
+
 from src.hacks import edit_attendees
 from src.khal_items import Calendar, KhalArgs
 from src.org_items import OrgAgendaItem
@@ -121,21 +123,19 @@ def new(calendar: str, **_) -> str:
     args: KhalArgs = KhalArgs()
     khal_calendar: Calendar = Calendar(calendar)
     org_item: OrgAgendaItem = OrgAgendaItem()
-    format = khal_calendar.timestamp_format
 
     org_item.load_from_stdin()
     args['-a'] = calendar
-    args.load_from_org(org_item, format)
+    args.load_from_org(org_item)
 
     logging.debug(f'Khal args are: {args}')
     stdout_khal: str = khal_calendar.new_item(args.as_list())
 
-    start: datetime = datetime.strptime(args['start'], format)
-    end: datetime = datetime.strptime(args['end'], format)
+    # Only 1 org time stamp per org_item is supported for now
     edit_attendees(
         calendar,
         org_item.get_attendees(),
         args['summary'],
-        start,
-        end)
+        org_item.time_stamps[0].start,
+        org_item.time_stamps[0].end)
     return stdout_khal
