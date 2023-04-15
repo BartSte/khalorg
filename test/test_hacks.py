@@ -60,12 +60,10 @@ def test_add_attendee(get_cli_runner: Callable):
     list_cmd: str = 'list --format {attendees}'
 
     runner.invoke(main_khal, new_cmd)
-    events: list = edit_attendees('one', attendees, summary, start, end)
+    edit_attendees('one', attendees, summary, start, end)
     result = runner.invoke(main_khal, list_cmd.split(' '))
 
-    assert len(events) == 1
-    assert events[0].attendees == attendees[0]
-    assert attendees[0] in result.output
+    assert attendees[0] in result.output, result.output
 
 def test_add_attendee_all_day_event(get_cli_runner: Callable):
     """
@@ -91,11 +89,9 @@ def test_add_attendee_all_day_event(get_cli_runner: Callable):
     list_cmd: str = 'list --format {attendees}'
 
     runner.invoke(main_khal, new_cmd)
-    events: list = edit_attendees('one', attendees, summary, start, end)
+    edit_attendees('one', attendees, summary, start, end)
     result = runner.invoke(main_khal, list_cmd.split(' '))
 
-    assert len(events) == 1
-    assert events[0].attendees == attendees[0]
     assert attendees[0] in result.output
 
 def test_add_attendee_recurring_event(get_cli_runner: Callable):

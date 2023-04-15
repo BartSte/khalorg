@@ -1,3 +1,4 @@
+from datetime import date, datetime
 import logging
 
 from src.hacks import edit_attendees
@@ -34,7 +35,7 @@ def list_command(
     return post_processor.remove_duplicates()
 
 
-def new(calendar: str, **_) -> str:
+def new(calendar: str, until: str = '', **_) -> str:
     """
     Creates a new calendar item in a Khal calendar.
 
@@ -44,6 +45,7 @@ def new(calendar: str, **_) -> str:
 
     Args:
         calendar: name of the khal calendar.
+        until: Stop an event repeating on this date.
 
     Returns
     -------
@@ -56,16 +58,17 @@ def new(calendar: str, **_) -> str:
 
     org_item.load_from_stdin()
     args['-a'] = calendar
+    args['-u'] = until
     args.load_from_org(org_item)
 
-    logging.debug(f'Khal args are: {args}')
+    logging.debug(f'Khal args are: {args.as_list()}')
     stdout_khal: str = khal_calendar.new_item(args.as_list())
 
     # Only 1 org time stamp per org_item is supported for now
-    edit_attendees(
-        calendar,
-        org_item.get_attendees(),
-        args['summary'],
-        org_item.time_stamps[0].start,
-        org_item.time_stamps[0].end)
+    attendees: list = org_item.get_attendees()
+    start: datetime | date = org_item.time_stamps[0].start
+    end: datetime | date = org_item.time_stamps[0].end
+    if attendees:
+        edit_attendees(calendar, attendees, args['summary'], start, end)
+
     return stdout_khal
