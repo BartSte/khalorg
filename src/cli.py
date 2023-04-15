@@ -18,10 +18,10 @@ def get_parser() -> ArgumentParser:
 
     child_new: ArgumentParser = subparsers.add_parser('new', **ParserInfo.new)
     child_new.add_argument('calendar', **Args.calendar)
+    child_new.add_argument('--until', **Args.until)
     child_new.set_defaults(func=new)
 
-    child_list: ArgumentParser = subparsers.add_parser(
-        'list', **ParserInfo.list_command)
+    child_list: ArgumentParser = subparsers.add_parser('list', **ParserInfo.list_command)  # noqa
     child_list.add_argument('calendar', **Args.calendar)
     child_list.add_argument('start', **Args.start)
     child_list.add_argument('stop', **Args.stop)
@@ -58,6 +58,12 @@ class Args:
         default='WARNING',
         help=('Set the logging level to: CRITICAL, ERROR, WARNING '
               '(default), INFO, DEBUG')
+    )
+
+    until: dict = dict(
+        required=False,
+        default='',
+        help=('Stop an event repeating on this date.')
     )
 
     start: dict = dict(
