@@ -147,12 +147,10 @@
 
 ** Delete: 
    - In progress
+
 ** Neovim plugin
-   Check my dotfiles at: 
-   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khalorg.lua]]
-   for capturing org agenda items from Neovim and feeding them to khalorg.
-   Next, you can connect these functions to ~nvim-orgmode~ by checking out:
-   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/conf-orgmode.lua]]
+   Work in progress. The plugin works for the ~khalorg new~ command but some
+   settings ars still hard-coded. The plugin is called [[https://github.com/BartSte/nvim-khalorg][nvim-khalorg]].
 
 * Workflow for Office 365
   # Office 365 -> Davmail
