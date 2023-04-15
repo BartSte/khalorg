@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from os.path import exists, join
-from typing import Callable, Union
+from typing import Callable, Generator, Union
 
 from khal.cli import build_collection
 from khal.khalendar import CalendarCollection
@@ -199,10 +199,10 @@ class KhalArgs(OrderedDict):
             an OrderedDict represented as a list.
 
         """
-        optional: list = [f'{x} {self[x]}' for x in self.optional if self[x]]
+        generator: Generator = ((x, self[x]) for x in self.optional if self[x])
+        optional: list = [x for key_value in generator for x in key_value]
         positional: list = [self[x] for x in self.positional if self[x]]
-        as_str: str = ' '.join(optional + positional)
-        return as_str.split(' ')
+        return optional + positional
 
     @property
     def optional(self) -> dict:

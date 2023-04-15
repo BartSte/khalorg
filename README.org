@@ -136,7 +136,9 @@
    Note that this meeting is repeated every week (~+1w~). Currently, the
    following repeats are supported: daily, weekly, monthly or yearly.
    Bi-weekly (~+2w~) or other derivatives are not supported yet. These
-   events repeat forever, i.e., ~khal new --untill~ is not (yet) supported.
+   events repeat forever, unless you specify an end date using the `--until`
+   option. This option is passed on to khal so you can read about is in khal's
+   documentation.
 
    Optional attendees can be added to the ~ATTENDEES~ property field. The 
    attendees will be added to the ~Attendees~ field of khal. Once you
@@ -183,13 +185,6 @@
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
         
 * Improvements:
-  - The timestamp format is realy pikcy, in my case, when using:
-    - <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00 +1d>
-    It is fine. But when using:
-    - <2023-01-01 Sun 1:00>--<2023-01-01 Sun 2:00 +1d>
-    khalorg should present the user an error instead of interpreting it as an
-    all day event.
-
   - [ ] Recurring Khal agenda items are imported as separate org item while is
     would be better if they were imported with a repeater (e.g., ~+1w~) in the
     timestamp.

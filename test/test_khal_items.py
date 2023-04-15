@@ -97,14 +97,15 @@ class TestArgs(Mixin, TestCase):
         """
         args: KhalArgs = KhalArgs()
         args['--url'] = 'www.test.com'
+        args['--until'] = '2024-01-01 Mon 01:00'
         args['start'] = datetime(2023, 1, 1).strftime(FORMAT)
 
         expected: list = [
             '--url',
             'www.test.com',
-            '2023-01-01',
-            'Sun',
-            '00:00']
+            '--until',
+            '2024-01-01 Mon 01:00',
+            '2023-01-01 Sun 00:00']
 
         actual: list = args.as_list()
         self.assertEqual(actual, expected)

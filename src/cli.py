@@ -63,6 +63,7 @@ class Args:
     until: dict = dict(
         required=False,
         default='',
+        type=str,
         help=('Stop an event repeating on this date.')
     )
 

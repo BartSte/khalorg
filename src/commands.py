@@ -56,9 +56,10 @@ def new(calendar: str, until: str = '', **_) -> str:
     khal_calendar: Calendar = Calendar(calendar)
     org_item: OrgAgendaItem = OrgAgendaItem()
 
-    org_item.load_from_stdin()
-    args['-a'] = calendar
     args['-u'] = until
+    args['-a'] = calendar
+
+    org_item.load_from_stdin()
     args.load_from_org(org_item)
 
     logging.debug(f'Khal args are: {args.as_list()}')
