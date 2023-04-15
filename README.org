@@ -97,6 +97,11 @@
    called "my_calendar" exists. Make sure "my_calendar" is a calendar that
    exists on your local file system.
 
+   The khal ~--format~ is defined in ~./src/static/org_format.txt~. If you want
+   to define your own format, you can create the follow file
+   ~$HOME/.config/khalorg/org_format.txt~ and add your format there. This
+   format will then be used instead of the default one.
+
 ** New: from org to khal
    An org agenda item can be converted to a new khal agenda item by feeding the
    org item through stdin to ~khalorg~ and specifying the khal calendar name as
@@ -142,7 +147,7 @@
    - In progress
 ** Neovim plugin
    Check my dotfiles at: 
-   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khal-list.lua]]
+   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khalorg.lua]]
    for capturing org agenda items from Neovim and feeding them to khalorg.
    Next, you can connect these functions to ~nvim-orgmode~ by checking out:
    - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/conf-orgmode.lua]]
