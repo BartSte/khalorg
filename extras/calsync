@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage="Usage: $(basename "$0") [-h | --help] <davmail-config> <org file> <khalorg export arg> 
+usage="Usage: $(basename "$0") [-h | --help] <davmail-config> <org file> <khalorg list arg> 
 
 Sychronize all \`vdirsyncer\` calendars and export them to org with \`khalorg\`. 
 Davmail is used as the CalDav server. If it is not already running, it will be 
@@ -13,7 +13,7 @@ where:
     positional
     <davmail-config>        your davmailconfig
     <org file>              the output file
-    <khalorg export arg>    see \`khalorg export -h\`
+    <khalorg list arg>    see \`khalorg export -h\`
     "
 
 options=$(getopt -o h --long help -- "$@")
@@ -48,7 +48,7 @@ main(){
     has_internet || { echo "No internet connection detected."; exit ;}
     start_davmail
     vdirsyncer -v CRITICAL sync || { echo "vdirsyncer failed"; kill_davmail; exit ; }
-    khalorg_export || { echo "khalorg failed"; kill_davmail; exit; }
+    khalorg_list || { echo "khalorg failed"; kill_davmail; exit; }
     kill_davmail
     echo 'Calendar sync done.'
 }
@@ -72,8 +72,8 @@ kill_davmail() {
     [[ $pid_davmail ]] && kill $pid_davmail
 }
 
-khalorg_export() {
-    khalorg export $khalorg > $orgfile
+khalorg_list() {
+    khalorg list $khalorg > $orgfile
 }
 
 start_message='Calendar sync started'

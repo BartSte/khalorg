@@ -13,9 +13,9 @@ from orgparse.node import OrgNode
 
 
 
-class Export:
+class List:
     """
-    `khalorg export` relies on the command: `khal --format`. This command
+    `khalorg list` relies on the command: `khal --format`. This command
     duplicates multi-day items. This PostProcessor class aims to remove such
     duplicates.
 
@@ -100,6 +100,6 @@ class Export:
         return '\n'.join(self._unique_items)
 
     @classmethod
-    def from_str(cls, org_items: str) -> 'Export':
+    def from_str(cls, org_items: str) -> 'List':
         nodes: OrgNode = orgparse.loads(org_items)
         return cls(nodes)

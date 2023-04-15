@@ -79,7 +79,7 @@ class TestParentParser(TestCase):
             self.assertTrue(expected in stdout)
 
 
-class TestExportParser(TestCase):
+class TestListParser(TestCase):
 
     def setUp(self) -> None:
         logging.basicConfig(level='DEBUG')
@@ -96,7 +96,7 @@ class TestExportParser(TestCase):
             cli_tester,
             '--loglevel',
             'CRITICAL',
-            'export',
+            'list',
             'calendar',
             'today',
             '2d']

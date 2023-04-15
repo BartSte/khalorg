@@ -28,7 +28,7 @@ class Calendar:
     ----------
         name: calendar name
         config: Khal config
-        export: export command (khal list)
+        list: export command (khal list)
         new_item: new command (khal new)
     """
 
@@ -41,15 +41,15 @@ class Calendar:
             name: name of the khal calendar
         """
         path_config: Union[str, None] = find_configuration_file()
-        export_format: str = self.get_export_format()
+        list_format: str = self.get_list_format()
 
         new_item_args: list = ['khal', 'new']
-        export_args: list = ['khal', 'list', '--format', export_format]
+        list_args: list = ['khal', 'list', '--format', list_format]
 
         self.name: str = name
         self.config: dict = get_config(path_config)
-        self.export: Callable = subprocess_callback(export_args)
         self.new_item: Callable = subprocess_callback(new_item_args)
+        self.list_command: Callable = subprocess_callback(list_args)
 
     @property
     def date_format(self) -> str:
@@ -73,7 +73,7 @@ class Calendar:
         """
         return self.config['locale']['longdatetimeformat']
 
-    def get_export_format(self) -> str:
+    def get_list_format(self) -> str:
         """
         The format of the org item is returned.
 

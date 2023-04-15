@@ -61,18 +61,16 @@
    - [X] Can be used by org mode for emacs, vim and neovim.
    - [X] Import vdirsyncer calendar into org.   
      It is possible to import calendar items from vdirsyncer into org. 
-   - [X] Export a new org agenda item to vdirsyncer.  
-     Org's export functionality is used to export a single org item to a
+   - [X] List a new org agenda item to vdirsyncer.  
+     Org's list functionality is used to export a single org item to a
      vdirsyncer calendar. A heading and a plain timestamp are required for
-     this export.
+     this list.
    - [ ] Edit an existing calendar item in vdirsyncer from org.  
-     Imported org agenda items can be edited and exported so that the
+     Imported org agenda items can be edited and listed so that the
      vdirsyncer items are updated instead of duplicated.              
    - [X] Recurring items           
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
-   - [ ] Import/Export ~SCHEDULED~ timestamps                
-   - [ ] Import/Export ~DEADLINE~  timestamps                
    - [ ] Include timezones
    - [ ] Is available on PyPI.
 
@@ -81,15 +79,15 @@
     #+begin_src bash
     pip install -r requirements.txt
     #+end_src
-    Next, you can use the executable ~khalorg~ to import and export org agenda
+    Next, you can use the executable ~khalorg~ to import and list org agenda
     items. Checkout section [[Usage]] for more info.
 
 * Usage
-** Export: from khal to org
+** List: from khal to org
    Agenda items from khal can be converted to org items using the 
-   ~khalorg export~ command. For examples:
+   ~khalorg list~ command. For examples:
    #+begin_src bash
-   khalorg export my_calendar today 90d > my_calendar.org 
+   khalorg list my_calendar today 90d > my_calendar.org 
    #+end_src
    here, the khal agenda item of the calendar ~my_calendar~ are coverted to org
    mode format and written to a file called ~my_calendar.org~. The range is
@@ -144,7 +142,7 @@
    - In progress
 ** Neovim plugin
    Check my dotfiles at: 
-   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khal-export.lua]]
+   - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/khal-list.lua]]
    for capturing org agenda items from Neovim and feeding them to khalorg.
    Next, you can connect these functions to ~nvim-orgmode~ by checking out:
    - [[https://github.com/BartSte/dotfiles/blob/master/dotfiles/nvim/lua/conf-orgmode.lua]]
