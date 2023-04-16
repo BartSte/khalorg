@@ -2,7 +2,7 @@ from datetime import date, datetime
 import logging
 
 from src.hacks import edit_attendees
-from src.khal_items import Calendar, KhalArgs
+from src.khal_items import Calendar, KhalArgsNew
 from src.org_items import OrgAgendaItem
 from src.post_processors import List
 
@@ -52,7 +52,7 @@ def new(calendar: str, until: str = '', **_) -> str:
         stdout of the `khal new` command
 
     """
-    args: KhalArgs = KhalArgs()
+    args: KhalArgsNew = KhalArgsNew()
     khal_calendar: Calendar = Calendar(calendar)
     org_item: OrgAgendaItem = OrgAgendaItem()
 

@@ -16,8 +16,20 @@ from src.helpers import subprocess_callback
 from src.org_items import NvimOrgDate, OrgAgendaItem
 
 
-class KhalArgsError(Exception):
-    """Raised for an error in Args."""
+def get_calendar_collection(name: str) -> CalendarCollection:
+    """
+    Return the calendar collection for a specific calendar `name`.
+
+    Args:
+        name: name of the calendar
+
+    Returns
+    -------
+        calendar collection
+    """
+    path_config: str | None = find_configuration_file()
+    config: ConfigObj = get_config(path_config)
+    return build_collection(config, name)
 
 
 class Calendar:
@@ -92,6 +104,10 @@ class Calendar:
             return file_.read()
 
 
+class KhalArgsError(Exception):
+    """Raised for an error in Args."""
+
+
 class KhalArgs(OrderedDict):
 
     REPEAT_ORG_TO_KHAL: dict = {
@@ -107,85 +123,6 @@ class KhalArgs(OrderedDict):
         config: dict = get_config(path_config)
         self.date_format: str = config['locale']['longdateformat']
         self.datetime_format: str = config['locale']['longdatetimeformat']
-
-    def load_from_org(self, item: OrgAgendaItem) -> 'KhalArgs':
-        """
-        For convenience: directly load Args from OrgAgendaItem.
-
-        Load the command line arguments for khal into Args (which is an
-        OrderedDict) directly from an OrgAgendaItem.
-
-        Args:
-            item: an OrgAgendaItem object.
-            datetime_format: optionally, a timestamp format can be provided.
-
-        Returns
-        -------
-            itself
-
-        """
-        # For now, only 1 timestamp is supported
-        try:
-            time_stamp: NvimOrgDate = item.time_stamps[0]
-        except IndexError as error:
-            raise KhalArgsError('Timestamp missing in agenda item') from error
-        else:
-
-            if time_stamp.has_time():
-                format: str = self.datetime_format
-            else:
-                format: str = self.date_format
-
-            return self._load_from_org(time_stamp, item, format)
-
-    def _load_from_org(self,
-                       time_stamp: NvimOrgDate,
-                       item: OrgAgendaItem,
-                       format: str) -> 'KhalArgs':
-
-        key_vs_value: tuple = (
-            ('start', time_stamp.start.strftime(format)),
-            ('end', self._get_end(time_stamp, format)),
-            ('summary', item.heading),
-            ('description', f':: {item.body}'),
-            ('--location', item.properties.get('LOCATION', '')),
-            ('--url', item.properties.get('URL', '')),
-            ('--repeat', self._get_repeat(time_stamp))
-        )
-
-        for key, value in key_vs_value:
-            if value:
-                self[key] = value
-
-        return self
-
-    def _get_end(self, time_stamp: NvimOrgDate, format: str) -> str:
-        """
-        Returns the start time if no end time exists.
-
-        Args:
-            time_stamp: the end time
-            format: format
-
-        Returns
-        -------
-            timestamp as a str
-        """
-        try:
-            return time_stamp.end.strftime(format)
-        except AttributeError:
-            logging.debug('End timestamp cannot be formatted.')
-            return time_stamp.start.strftime(format)
-
-    def _get_repeat(self, time_stamp: NvimOrgDate) -> str:
-        try:
-            key: str = ''.join([str(x) for x in time_stamp._repeater])
-            return self.REPEAT_ORG_TO_KHAL[key]
-        except KeyError as error:
-            message: str = f'The repeat value of: {key} is not supported.'
-            raise KhalArgsError(message) from error
-        except TypeError:  # no repeater found
-            return ''
 
     def as_list(self) -> list:
         """
@@ -242,17 +179,83 @@ class KhalArgs(OrderedDict):
         return self._filter(condition)
 
 
-def get_calendar_collection(name: str) -> CalendarCollection:
-    """
-    Return the calendar collection for a specific calendar `name`.
+class KhalArgsNew(KhalArgs):
 
-    Args:
-        name: name of the calendar
+    def load_from_org(self, item: OrgAgendaItem) -> 'KhalArgsNew':
+        """
+        For convenience: directly load Args from OrgAgendaItem.
 
-    Returns
-    -------
-        calendar collection
-    """
-    path_config: str | None = find_configuration_file()
-    config: ConfigObj = get_config(path_config)
-    return build_collection(config, name)
+        Load the command line arguments for khal into Args (which is an
+        OrderedDict) directly from an OrgAgendaItem.
+
+        Args:
+            item: an OrgAgendaItem object.
+            datetime_format: optionally, a timestamp format can be provided.
+
+        Returns
+        -------
+            itself
+
+        """
+        # For now, only 1 timestamp is supported
+        try:
+            time_stamp: NvimOrgDate = item.time_stamps[0]
+        except IndexError as error:
+            raise KhalArgsError('Timestamp missing in agenda item') from error
+        else:
+
+            if time_stamp.has_time():
+                format: str = self.datetime_format
+            else:
+                format: str = self.date_format
+
+            return self._load_from_org(time_stamp, item, format)
+
+    def _load_from_org(self,
+                       time_stamp: NvimOrgDate,
+                       item: OrgAgendaItem,
+                       format: str) -> 'KhalArgsNew':
+
+        key_vs_value: tuple = (
+            ('start', time_stamp.start.strftime(format)),
+            ('end', self._get_end(time_stamp, format)),
+            ('summary', item.heading),
+            ('description', f':: {item.body}'),
+            ('--location', item.properties.get('LOCATION', '')),
+            ('--url', item.properties.get('URL', '')),
+            ('--repeat', self._get_repeat(time_stamp))
+        )
+
+        for key, value in key_vs_value:
+            if value:
+                self[key] = value
+
+        return self
+
+    def _get_end(self, time_stamp: NvimOrgDate, format: str) -> str:
+        """
+        Returns the start time if no end time exists.
+
+        Args:
+            time_stamp: the end time
+            format: format
+
+        Returns
+        -------
+            timestamp as a str
+        """
+        try:
+            return time_stamp.end.strftime(format)
+        except AttributeError:
+            logging.debug('End timestamp cannot be formatted.')
+            return time_stamp.start.strftime(format)
+
+    def _get_repeat(self, time_stamp: NvimOrgDate) -> str:
+        try:
+            key: str = ''.join([str(x) for x in time_stamp._repeater])
+            return self.REPEAT_ORG_TO_KHAL[key]
+        except KeyError as error:
+            message: str = f'The repeat value of: {key} is not supported.'
+            raise KhalArgsError(message) from error
+        except TypeError:  # no repeater found
+            return ''

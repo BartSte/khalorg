@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from khal.khalendar import CalendarCollection
 
-from src.khal_items import Calendar, KhalArgs, get_calendar_collection
+from src.khal_items import Calendar, KhalArgsNew, get_calendar_collection
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
@@ -39,7 +39,7 @@ class TestArgs(Mixin, TestCase):
         args must be the same as: MaximalValid.command_line_args
         .
         """
-        actual: KhalArgs = KhalArgs()
+        actual: KhalArgsNew = KhalArgsNew()
         actual.load_from_org(self.agenda_item)
         expected: dict = MaximalValid.command_line_args
         message: str = (
@@ -51,7 +51,7 @@ class TestArgs(Mixin, TestCase):
         """ Same as test_load_from_org but then with a recurring time stamp."""
         args: list = Recurring.get_args()
         agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
-        actual: KhalArgs = KhalArgs()
+        actual: KhalArgsNew = KhalArgsNew()
         actual.load_from_org(agenda_item)
         expected: dict = Recurring.command_line_args
         self.assertEqual(actual, expected)
@@ -60,7 +60,7 @@ class TestArgs(Mixin, TestCase):
         """ TODO """
         args: list = AllDay.get_args()
         agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
-        actual: KhalArgs = KhalArgs()
+        actual: KhalArgsNew = KhalArgsNew()
         actual.load_from_org(agenda_item)
         expected: dict = AllDay.command_line_args
         message: str = (
@@ -72,7 +72,7 @@ class TestArgs(Mixin, TestCase):
         """ When adding an option, it can be retrieved using Args.optional. """
         key = '--url'
         value: str = 'www.test.com'
-        args: KhalArgs = KhalArgs()
+        args: KhalArgsNew = KhalArgsNew()
         args[key] = value
         self.assertEqual(value, args.optional[key])
 
@@ -83,7 +83,7 @@ class TestArgs(Mixin, TestCase):
         """
         key = 'foo'
         value: str = 'bar'
-        args: KhalArgs = KhalArgs()
+        args: KhalArgsNew = KhalArgsNew()
         args[key] = value
         self.assertEqual(value, args.positional[key])
 
@@ -95,7 +95,7 @@ class TestArgs(Mixin, TestCase):
         on a whitespace. Statements surrounded by quotes are not (yet)
         supported.
         """
-        args: KhalArgs = KhalArgs()
+        args: KhalArgsNew = KhalArgsNew()
         args['--url'] = 'www.test.com'
         args['--until'] = '2024-01-01 Mon 01:00'
         args['start'] = datetime(2023, 1, 1).strftime(FORMAT)
