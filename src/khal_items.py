@@ -109,6 +109,34 @@ class KhalArgsError(Exception):
 
 
 class KhalArgs(OrderedDict):
+    """
+    Represents the command line arguments and options as an OrderedDict.
+
+    Any argument can be added to the dictionary. If the key of the dictionary
+    is prepended with a hyphen, it is interpreted as an option so its key-value
+    pair is returned when calling `KhalArgs.as_list`. Otherwise, it is
+    interpreted as a positional argument. Entries with a value that satisfy
+    `bool(value) == False` are ignored.
+
+    For example:
+    ```
+    args: KhalArgs = KhalArgs()
+    args['-x'] = 'foo'
+    args['--bar'] = 'bar'
+    argr['--baz'] = ''
+    args['one'] = 'first'
+    args['two'] = 'second'
+    args['three'] = ''
+    print(args.as_list())
+
+    >> ['-x', 'foo', '--bar', 'bar', 'first', 'second']
+    ```
+
+    Attributes
+    ----------
+        date_format: date format that is specified in the khal config.
+        datetime_format: datetime format that is specified in the khal config
+    """
 
     REPEAT_ORG_TO_KHAL: dict = {
         '+1d': 'daily',
@@ -179,13 +207,18 @@ class KhalArgs(OrderedDict):
         return self._filter(condition)
 
 
-class KhalArgsList(KhalArgs):
+class ListArgs(KhalArgs):
+    """ TODO """
     pass
 
 
-class KhalArgsNew(KhalArgs):
+class NewArgs(KhalArgs):
+    """
+    Loads the command line arguments for the `khal new` command
+    directly from an org file.
+    """
 
-    def load_from_org(self, item: OrgAgendaItem) -> 'KhalArgsNew':
+    def load_from_org(self, item: OrgAgendaItem) -> 'NewArgs':
         """
         For convenience: directly load Args from OrgAgendaItem.
 
@@ -218,7 +251,7 @@ class KhalArgsNew(KhalArgs):
     def _load_from_org(self,
                        time_stamp: NvimOrgDate,
                        item: OrgAgendaItem,
-                       format: str) -> 'KhalArgsNew':
+                       format: str) -> 'NewArgs':
 
         key_vs_value: tuple = (
             ('start', time_stamp.start.strftime(format)),
