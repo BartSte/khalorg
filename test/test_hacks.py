@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 from khal.cli import main_khal
 
-from src.hacks import edit_attendees
+from src.post_processors import edit_attendees
 
 
 @pytest.fixture

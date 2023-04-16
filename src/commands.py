@@ -1,7 +1,7 @@
 from datetime import date, datetime
 import logging
 
-from src.hacks import edit_attendees
+from src.post_processors import edit_attendees
 from src.khal_items import Calendar, KhalArgsNew
 from src.org_items import OrgAgendaItem
 from src.post_processors import List
