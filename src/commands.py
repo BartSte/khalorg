@@ -4,7 +4,7 @@ import logging
 from src.post_processors import edit_attendees
 from src.khal_items import Calendar, KhalArgsNew
 from src.org_items import OrgAgendaItem
-from src.post_processors import List
+from src.post_processors import ListPostProcessor
 
 
 def list_command(
@@ -25,13 +25,13 @@ def list_command(
         stdout of the `khal list` command after post processing
 
     """
-    post_processor: List
+    post_processor: ListPostProcessor
     khal_calendar: Calendar = Calendar(calendar)
 
     args: list = ['-a', calendar, start, stop]
     org_items: str = khal_calendar.list_command(args)
 
-    post_processor = List.from_str(org_items)
+    post_processor = ListPostProcessor.from_str(org_items)
     return post_processor.remove_duplicates()
 
 

@@ -59,7 +59,7 @@ def _replace(obj: _Time, **kwargs) -> _Time:
         return obj
 
 
-class List:
+class ListPostProcessor:
     """
     `khalorg list` relies on the command: `khal --format`. This command
     duplicates multi-day items. This PostProcessor class aims to remove such
@@ -146,6 +146,6 @@ class List:
         return '\n'.join(self._unique_items)
 
     @classmethod
-    def from_str(cls, org_items: str) -> 'List':
+    def from_str(cls, org_items: str) -> 'ListPostProcessor':
         nodes: OrgNode = orgparse.loads(org_items)
         return cls(nodes)

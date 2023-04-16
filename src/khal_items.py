@@ -179,6 +179,10 @@ class KhalArgs(OrderedDict):
         return self._filter(condition)
 
 
+class KhalArgsList(KhalArgs):
+    pass
+
+
 class KhalArgsNew(KhalArgs):
 
     def load_from_org(self, item: OrgAgendaItem) -> 'KhalArgsNew':
