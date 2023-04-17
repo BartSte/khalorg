@@ -4,6 +4,7 @@ commands.
 """
 
 import logging
+import re
 from datetime import date, datetime
 from typing import Generator
 
@@ -57,6 +58,32 @@ def _replace(obj: _Time, **kwargs) -> _Time:
         return obj.replace(**kwargs)
     except (AttributeError, TypeError):
         return obj
+
+
+def convert_repeat_pattern(org_items: str) -> str:
+    """TODO
+
+    Args:
+        org_items:
+
+    Returns
+    -------
+
+    """
+    regex: str = (
+        'FREQ=([A-Z])[A-Z]*;'
+        'UNTIL=[A-Z0-9]*;'
+        'INTERVAL=([0-9]*);'
+        'BYDAY=[A-Z]*;'
+        'WKST=[A-Z]*'
+    )
+
+    def replace(match: re.Match) -> str:
+        freq: str = match.group(1).lower()
+        interval: str = match.group(2)
+        return f' +{interval}{freq}'
+
+    return re.sub(regex, replace, org_items)
 
 
 class ListPostProcessor:

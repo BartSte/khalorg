@@ -1,3 +1,6 @@
 khal
 orgparse
 munch
+
+pytest
+vdirsyncer

@@ -29,7 +29,7 @@ def list_command(
     args: ListArgs = ListArgs()
 
     args['-a'] = calendar
-    args['once'] = '-o'
+    # args['once'] = '-o'
     args['start'] = start
     args['stop'] = stop
 
@@ -37,6 +37,7 @@ def list_command(
 
     post_processor = ListPostProcessor.from_str(org_items)
     return post_processor.remove_duplicates()
+    # return convert_repeat_pattern(org_items)
 
 
 def new(calendar: str, until: str = '', **_) -> str:

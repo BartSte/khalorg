@@ -45,25 +45,6 @@ class NvimOrgDate(OrgDate):
         return re.sub(OrgRegex.timestamp_short, '\\1-\\2', time_stamp)
 
 
-@staticmethod
-def format_timestamps(time_stamps: list[OrgDate]) -> list[NvimOrgDate]:
-    """
-    The notation <2021-09-03 Fri 16:01--17:30> is replaced by
-    <2021-09-03 Fri 16:01-17:30>. Check the documentation NvimOrgDate for
-    more info.
-
-    Args:
-        time_stamps: OrgDate time_stamps
-
-    Returns
-    -------
-        NvimOrgDate time_stamps
-
-    """
-    return [NvimOrgDate.list_from_str(str(x)).pop()
-            for x in time_stamps]  # type: ignore
-
-
 class OrgAgendaItem:
     """
     Represents an org agenda item.
@@ -253,3 +234,20 @@ class OrgAgendaItem:
             return []
         else:
             return attendees.split(delimiter)
+
+
+def format_timestamps(time_stamps: list[OrgDate]) -> list[NvimOrgDate]:
+    """
+    The notation <2021-09-03 Fri 16:01--17:30> is replaced by
+    <2021-09-03 Fri 16:01-17:30>. Check the documentation NvimOrgDate for
+    more info.
+
+    Args:
+        time_stamps: OrgDate time_stamps
+
+    Returns
+    -------
+        NvimOrgDate time_stamps
+
+    """
+    return [NvimOrgDate.list_from_str(str(x)).pop() for x in time_stamps]  # noqa  # type: ignore
