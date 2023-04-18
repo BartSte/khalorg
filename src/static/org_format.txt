@@ -1,7 +1,8 @@
 * {title} {cancelled} 
-  <{start-long}>--<{end-long}>
+  <{start-long}{repeat-pattern}>--<{end-long}{repeat-pattern}>
   :PROPERTIES:
   :ID: {uid}
+  :STATUS: {status}
   :CALENDAR: {calendar}
   :LOCATION: {location}
   :ORGANIZER: {organizer}

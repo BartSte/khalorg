@@ -1,6 +1,5 @@
 from datetime import date, datetime, timedelta
 from test.helpers import (
-    compare_without_white_space,
     khal_runner,
     read_org_test_file,
 )
@@ -12,7 +11,6 @@ from click.testing import CliRunner
 from khal.cli import main_khal
 
 from src.post_processors import (
-    ListPostProcessor,
     convert_repeat_pattern,
     edit_attendees,
 )
@@ -139,37 +137,24 @@ def test_add_attendee_recurring_event(get_cli_runner: Callable):
     assert result.output.count(attendees[0]) == days
 
 
-class TestListPostProcessor(TestCase):
-    """ Test if duplicated items are removed. """
-
-    def test_duplicates(self):
-        """ A duplicate is present maximal_valid.org is duplicated. """
-        post_processor: ListPostProcessor
-        duplicate: str = read_org_test_file("duplicate.org")
-        post_processor = ListPostProcessor.from_str(duplicate)
-
-        expected: str = read_org_test_file("maximal_valid.org")
-        actual: str = post_processor.remove_duplicates()
-
-        self.assertTrue(compare_without_white_space(expected, actual))
-
-    def test_no_duplicates(self):
-        """ No duplicate is present so no changed are expected. """
-        post_processor: ListPostProcessor
-        expected: str = read_org_test_file("no_duplicates.org")
-
-        post_processor = ListPostProcessor.from_str(expected)
-        actual: str = post_processor.remove_duplicates()
-
-        self.assertTrue(compare_without_white_space(expected, actual))
-
-
 class TestConvertRepeatPattern(TestCase):
+    """ Test converting the ical repeat pattern to the org repeat pattern. """
 
-    def test_weekly(self):
-        """ TODO """
-        expected: str = read_org_test_file('recurring.org')
-        org_item: str = read_org_test_file('repeat_pattern_weekly.org')
-        actual: str = convert_repeat_pattern(org_item)
-
-        self.assertEqual(actual, expected)
+    def test(self):
+        """
+        The {repeat-pattern} format of khal prints the ical description
+        of the repeat pattern of the event. This repeat pattern is converted to
+        an org repeat pattern by the convert_repeat_pattern function, which is
+        tested in this test.
+        """
+        org_vs_ics: tuple = (
+            ('recurring.org', 'repeat_pattern_weekly.org'),
+            ('recurring_monthly.org', 'repeat_pattern_monthly.org'),
+            ('recurring_allday_weekly.org', 'repeat_pattern_allday_weekly.org'),
+            ('recurring.org', 'repeat_pattern_weekly_no_end.org'),
+            ('recurring.org', 'repeat_pattern_weekly_no_wkstd_no_end.org')
+        )
+        for org, ics in org_vs_ics:
+            expected: str = read_org_test_file(org)
+            actual: str = convert_repeat_pattern(read_org_test_file(ics))
+            self.assertEqual(expected, actual)
