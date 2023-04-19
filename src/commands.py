@@ -1,9 +1,11 @@
 import logging
 from datetime import date, datetime
+from re import L
 
 from src.khal_items import Calendar, ListArgs, NewArgs
 from src.org_items import OrgAgendaItem
 from src.post_processors import (
+    ListPostProcessor,
     convert_repeat_pattern,
     edit_attendees,
 )
@@ -27,16 +29,18 @@ def list_command(
         stdout of the `khal list` command after post processing
 
     """
+    post: ListPostProcessor
     khal_calendar: Calendar = Calendar(calendar)
     args: ListArgs = ListArgs()
 
     args['-a'] = calendar
-    args['once'] = '-o'
     args['start'] = start
     args['stop'] = stop
 
     org_items: str = khal_calendar.list_command(args.as_list())
-    return convert_repeat_pattern(org_items)
+    org_items = convert_repeat_pattern(org_items)
+    post = ListPostProcessor.from_str(org_items)
+    return post.remove_duplicates()
 
 
 def new(calendar: str, until: str = '', **_) -> str:

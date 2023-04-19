@@ -1,5 +1,9 @@
 from datetime import date, datetime, timedelta
+from dateutil.rrule import rrulestr
+from khal.icalendar import rrulefstr
+
 from test.helpers import (
+    compare_without_white_space,
     khal_runner,
     read_org_test_file,
 )
@@ -11,6 +15,7 @@ from click.testing import CliRunner
 from khal.cli import main_khal
 
 from src.post_processors import (
+    ListPostProcessor,
     convert_repeat_pattern,
     edit_attendees,
 )
@@ -152,9 +157,52 @@ class TestConvertRepeatPattern(TestCase):
             ('recurring_monthly.org', 'repeat_pattern_monthly.org'),
             ('recurring_allday_weekly.org', 'repeat_pattern_allday_weekly.org'),
             ('recurring.org', 'repeat_pattern_weekly_no_end.org'),
-            ('recurring.org', 'repeat_pattern_weekly_no_wkstd_no_end.org')
+            ('maximal_valid.org', 'repeat_pattern_not_supported.org'),
+            ('maximal_valid.org', 'repeat_pattern_not_supported_2.org')
         )
         for org, ics in org_vs_ics:
+            item: str = read_org_test_file(ics)
+            actual: str = convert_repeat_pattern(item)
             expected: str = read_org_test_file(org)
-            actual: str = convert_repeat_pattern(read_org_test_file(ics))
-            self.assertEqual(expected, actual)
+            message: str = f'Test file: {ics}\n\n\n{item}'
+            self.assertEqual(expected, actual, msg=message)
+
+class TestListPostProcessor(TestCase):
+    """ Test if duplicated items are removed. """
+
+    def test_duplicates(self):
+        """ A duplicate is present maximal_valid.org is duplicated. """
+        post_processor: ListPostProcessor
+        duplicate: str = read_org_test_file("duplicate.org")
+        post_processor = ListPostProcessor.from_str(duplicate)
+
+        expected: str = read_org_test_file("maximal_valid.org")
+        actual: str = post_processor.remove_duplicates()
+
+        self.assertTrue(compare_without_white_space(expected, actual))
+
+    def test_no_duplicates(self):
+        """ No duplicate is present so no changed are expected. """
+        post_processor: ListPostProcessor
+        expected: str = read_org_test_file("no_duplicates.org")
+
+        post_processor = ListPostProcessor.from_str(expected)
+        actual: str = post_processor.remove_duplicates()
+
+        self.assertTrue(compare_without_white_space(expected, actual))
+
+    def test_duplicate_recurring(self):
+        """
+        Items with a repeat pattern can be considered a duplicates if they
+        have the same UID while having different timestamps.
+        """
+        post_processor: ListPostProcessor
+        duplicate: str = read_org_test_file("duplicate_recurring.org")
+
+        post_processor = ListPostProcessor.from_str(duplicate)
+        actual: str = post_processor.remove_duplicates()
+        expected: str = read_org_test_file("recurring.org")
+
+        message: str = f'\nActual: {actual}\n Expected: {expected}'
+        equal: bool = compare_without_white_space(actual, expected)
+        self.assertTrue(equal, msg=message)

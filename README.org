@@ -184,6 +184,16 @@
         
 * Improvements:
   - [-] Khal only suppors daily, weekly, monthly, yearly from the cli, while
-    org support more complex option. Find a workaround for this.
+    org support more complex option. Find a workaround to support all org
+    repeat patterns that can be created by 1 timestamp.
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
+  - [ ] Complex repeat pattern are not supported. Only patterns that can be
+    expressed with the following pattern are supported ~+{number}{letter}~ 
+    where ~number~ is a positive integer, and ~letter~ is: d, w, m, or y.
+    Thereare workarounds for complex repeat patterns:
+    - ~khal new~: you can combine multiple (recurring) meetings to creat a
+      complex combination. Multiple timestamps per item are not yet supported,
+      so you need to do this with multiple meetings.
+    - ~khal list~: complex repeat pattern are listed as individual events, as
+      is the default behavior for khal (when the ~--once~ flag is off). 
