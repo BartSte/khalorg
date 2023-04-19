@@ -1,4 +1,6 @@
+
 import logging
+import re
 from configparser import ConfigParser
 from inspect import getfile
 from os.path import dirname
@@ -10,7 +12,8 @@ from munch import Munch
 
 
 def get_module_path(module: ModuleType) -> str:
-    """Returns the path to the `module`.
+    """
+    Returns the path to the `module`.
 
     Args:
         module: a python module
@@ -24,7 +27,8 @@ def get_module_path(module: ModuleType) -> str:
 
 
 def subprocess_callback(cmd: list) -> Callable:
-    """Returns a subprocess.check_output callback where the `cmd` is defined
+    """
+    Returns a subprocess.check_output callback where the `cmd` is defined
     beforehand.
 
     Args:
@@ -52,8 +56,10 @@ def try_check_output(args: list) -> bytes:
         logging.critical(error_message)
         raise Exception(error_message) from error
 
+
 def get_config(sources: list) -> Munch:
-    """Reads the config files in `sources` and converts them to a Munch object.
+    """
+    Reads the config files in `sources` and converts them to a Munch object.
 
     Returns
     -------
@@ -62,3 +68,29 @@ def get_config(sources: list) -> Munch:
     config: ConfigParser = ConfigParser()
     config.read(sources)
     return Munch.fromDict(config)  # pyright: ignore
+
+
+def substitude_with_placeholder(text: str, callback: Callable,
+                                start_placeholder: str = 'KHALORG_START',
+                                stop_placeholder: str = 'KHALORG_STOP') -> str:
+    """
+    Replace all occurrences of a substring between two placeholders in a given
+    string with the output of a specified callback function. The regex
+    groupname or the text within the placeholders is "content".
+
+    Args:
+        text (str): The original string containing the substrings to be
+            replaced.
+        callback (Callable): A function that takes a substring as input and
+            returns a replacement string.
+        start_placeholder (str, optional): The starting placeholder string.
+            Defaults to 'KHALORG_START'.
+        stop_placeholder (str, optional): The ending placeholder string.
+            Defaults to 'KHALORG_STOP'.
+
+    Returns
+    -------
+        str: The modified string with all substrings replaced.
+    """
+    regex: str = rf'(?:{start_placeholder})(?P<content>.*?)(?:{stop_placeholder})'
+    return re.sub(regex, callback, text)

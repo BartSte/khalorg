@@ -1,6 +1,5 @@
 from datetime import date, datetime, timedelta
-from dateutil.rrule import rrulestr
-from khal.icalendar import rrulefstr
+from src.helpers import substitude_with_placeholder
 
 from test.helpers import (
     compare_without_white_space,
@@ -16,7 +15,7 @@ from khal.cli import main_khal
 
 from src.post_processors import (
     ListPostProcessor,
-    convert_repeat_pattern,
+    RegexReply,
     edit_attendees,
 )
 
@@ -142,7 +141,7 @@ def test_add_attendee_recurring_event(get_cli_runner: Callable):
     assert result.output.count(attendees[0]) == days
 
 
-class TestConvertRepeatPattern(TestCase):
+class TestRegexReply(TestCase):
     """ Test converting the ical repeat pattern to the org repeat pattern. """
 
     def test(self):
@@ -162,7 +161,7 @@ class TestConvertRepeatPattern(TestCase):
         )
         for org, ics in org_vs_ics:
             item: str = read_org_test_file(ics)
-            actual: str = convert_repeat_pattern(item)
+            actual: str = substitude_with_placeholder(item, RegexReply())
             expected: str = read_org_test_file(org)
             message: str = f'Test file: {ics}\n\n\n{item}'
             self.assertEqual(expected, actual, msg=message)

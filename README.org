@@ -192,6 +192,8 @@
 
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
+  - [ ] When 1 of the items of a serie recurring ones is moved, it is deleted
+    by the ~ListPostProcessor~ because it still has the same UID.
         
 * Improvements:
   - [-] Khal only suppors daily, weekly, monthly, yearly from the cli, while
@@ -215,3 +217,4 @@
       so you need to do this with multiple meetings.
     - ~khal list~: complex repeat pattern are listed as individual events, as
       is the default behavior for khal (when the ~--once~ flag is off). 
+  - [ ] Store the logs. 

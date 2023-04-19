@@ -6,12 +6,13 @@ commands.
 import logging
 import re
 from datetime import date, datetime
-from typing import Generator
+from typing import Callable, Generator
 
 import orgparse
-from dateutil.rrule import rrule, rruleset, rrulestr 
+from dateutil.rrule import rrule, rruleset, rrulestr
 from khal.khalendar import CalendarCollection
 from orgparse.node import OrgNode
+from src.helpers import substitude_with_placeholder
 
 from src.khal_items import get_calendar_collection
 
@@ -60,45 +61,121 @@ def _replace(obj: _Time, **kwargs) -> _Time:
     except (AttributeError, TypeError):
         return obj
 
-
-def convert_repeat_pattern(org_items: str) -> str:
+class RegexReply:
     """
-    TODO.
+    A class that defines a regular expression reply object.
 
-    Args:
-        org_items:
+    Attributes:
+        freq_map (tuple): A tuple of frequency codes.
+        rrule_unsupported (tuple): A tuple of unsupported RRULE attributes.
 
-    Returns
-    -------
+    Methods:
+        __call__(self, match: re.Match) -> str:
+            The main method that returns the original repeater after parsing the
+            RRULE.
 
+        get_rrule(self, text: str) -> rrule:
+            Parses the RRULE text and returns an rrule object.
+
+        get_org_repeater(self, obj: rrule) -> str:
+            Returns the original repeater string.
+
+        _get_org_repeater(self, obj: rrule) -> str:
+            Returns the original repeater string.
+
+        is_supported(self, obj: rrule) -> bool:
+            Checks whether the RRULE is supported.
+
+        _is_rrule_supported(self, obj: rrule) -> bool:
+            Checks whether the RRULE attributes are supported.
+
+        _is_byweekday_supported(self, repeater: rrule) -> bool:
+            Checks whether the BYWEEKDAY attribute is supported.
     """
-    #TODO refactor
-    #TODO the identifiers should be a class variable?
-    regex: str = r'(?:KHALORG_START)(.*?)(?:KHALORG_STOP)'
+
     freq_map: tuple = ('y', 'm', 'w', 'h')
+    rrule_unsupported = ('_byeaster', '_bymonthday', '_bynmonthday', '_bynweekday',
+                         '_bysetpos', '_byweekno', '_byyearday')
 
-    def replace(match: re.Match) -> str:
+    def __call__(self, match: re.Match) -> str:
+        """
+        Parses the RRULE and returns the original repeater.
 
+        Args:
+            match (re.Match): The regular expression match object.
+
+        Returns:
+            str: The original repeater string.
+        """
         try:
-            obj: rrule | rruleset = rrulestr(match.group(1))
+            repeater: rrule = self.get_rrule(match.group('content'))
         except ValueError:
             return ''
         else:
-            if isinstance(obj, rruleset):
-                logging.error('Only 1 RRULE per item is supported.')
-                return ''
+            return self.get_org_repeater(repeater)
 
-            weekday_supported: bool = obj._byweekday if obj._byweekday is None else len(obj._byweekday) > 1
-            not_supported: bool = weekday_supported or obj._byeaster or obj._bymonthday or obj._bynmonthday or obj._bynweekday or obj._bysetpos or obj._byweekno or obj._byyearday
+    def get_rrule(self, text: str) -> rrule:
+        """
+        Parses the RRULE text and returns an rrule object.
 
-            if not_supported:
-                return ''
-            else:
-                interval: int = obj._interval
-                freq: str = freq_map[obj._freq]
-                return f' +{interval}{freq}'
+        Args:
+            text (str): The RRULE text.
 
-    return re.sub(regex, replace, org_items)
+        Returns:
+            rrule: An rrule object.
+        """
+        obj: rrule | rruleset = rrulestr(text)
+        if isinstance(obj, rruleset):
+            raise ValueError('Only 1 RRULE supported')
+        else:
+            return obj
+
+    def get_org_repeater(self, obj: rrule) -> str:
+        """
+        Returns the original repeater string.
+
+        Args:
+            obj (rrule): An rrule object.
+
+        Returns:
+            str: The original repeater string.
+        """
+        if self.is_supported(obj):
+            return self._get_org_repeater(obj)
+        else:
+            return ''
+
+    def _get_org_repeater(self, obj: rrule) -> str:
+        """
+        Returns the original repeater string.
+
+        Args:
+            obj (rrule): An rrule object.
+
+        Returns:
+            str: The original repeater string.
+        """
+        interval: int = obj._interval
+        freq: str = self.freq_map[obj._freq]
+        return f' +{interval}{freq}'
+
+    def is_supported(self, obj: rrule) -> bool:
+        """
+        Checks whether the RRULE is supported.
+
+        Args:
+            obj (rrule): An rrule object.
+
+        Returns:
+            bool: True if the RRULE is supported, False otherwise.
+        """
+        return self._is_rrule_supported(obj) and self._is_byweekday_supported(obj)
+        
+    def _is_rrule_supported(self, obj: rrule) -> bool:
+        return all(bool(getattr(obj, x, None)) is False for x in self.rrule_unsupported)
+
+    def _is_byweekday_supported(self, repeater: rrule) -> bool:
+        return len(repeater._byweekday) < 2
 
 
 class ListPostProcessor:

@@ -1,12 +1,12 @@
 import logging
 from datetime import date, datetime
-from re import L
 
+from src.helpers import substitude_with_placeholder
 from src.khal_items import Calendar, ListArgs, NewArgs
 from src.org_items import OrgAgendaItem
 from src.post_processors import (
     ListPostProcessor,
-    convert_repeat_pattern,
+    RegexReply,
     edit_attendees,
 )
 
@@ -38,7 +38,7 @@ def list_command(
     args['stop'] = stop
 
     org_items: str = khal_calendar.list_command(args.as_list())
-    org_items = convert_repeat_pattern(org_items)
+    org_items = substitude_with_placeholder(org_items, RegexReply())
     post = ListPostProcessor.from_str(org_items)
     return post.remove_duplicates()
 
