@@ -157,8 +157,8 @@ class TestConvertRepeatPattern(TestCase):
             ('recurring_monthly.org', 'repeat_pattern_monthly.org'),
             ('recurring_allday_weekly.org', 'repeat_pattern_allday_weekly.org'),
             ('recurring.org', 'repeat_pattern_weekly_no_end.org'),
+            ('recurring.org', 'repeat_pattern_weekly_1TH.org'),
             ('maximal_valid.org', 'repeat_pattern_not_supported.org'),
-            ('maximal_valid.org', 'repeat_pattern_not_supported_2.org')
         )
         for org, ics in org_vs_ics:
             item: str = read_org_test_file(ics)

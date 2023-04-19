@@ -9,6 +9,7 @@ from datetime import date, datetime
 from typing import Generator
 
 import orgparse
+from dateutil.rrule import rrule, rruleset, rrulestr 
 from khal.khalendar import CalendarCollection
 from orgparse.node import OrgNode
 
@@ -71,29 +72,31 @@ def convert_repeat_pattern(org_items: str) -> str:
     -------
 
     """
-    regex: str = (
-        '(?P<head><[^>]*)'
-
-        'FREQ=(?P<freq>[A-Z])[A-Z]*;'
-        '(UNTIL=[A-Z0-9,]*;?)?'
-        'INTERVAL=(?P<interval>[0-9]*);'
-        '(?P<byday>BYDAY=[A-Z0-9,]*;?)?'
-        '(WKST=[A-Z]*;?)?'
-
-        '(?P<tail>[^<]*>)'
-    )
+    #TODO refactor
+    #TODO the identifiers should be a class variable?
+    regex: str = r'(?:KHALORG_START)(.*?)(?:KHALORG_STOP)'
+    freq_map: tuple = ('y', 'm', 'w', 'h')
 
     def replace(match: re.Match) -> str:
-        head: str = match.group('head')
-        tail: str = match.group('tail')
-        freq: str = match.group('freq').lower()
-        byday: str = match.group('byday')
-        interval: str = match.group('interval')
 
-        if re.match('.*[0-9,].*', byday): # unsupported for now
-            return f'{head}{tail}'
+        try:
+            obj: rrule | rruleset = rrulestr(match.group(1))
+        except ValueError:
+            return ''
         else:
-            return f'{head} +{interval}{freq}{tail}'
+            if isinstance(obj, rruleset):
+                logging.error('Only 1 RRULE per item is supported.')
+                return ''
+
+            weekday_supported: bool = obj._byweekday if obj._byweekday is None else len(obj._byweekday) > 1
+            not_supported: bool = weekday_supported or obj._byeaster or obj._bymonthday or obj._bynmonthday or obj._bynweekday or obj._bysetpos or obj._byweekno or obj._byyearday
+
+            if not_supported:
+                return ''
+            else:
+                interval: int = obj._interval
+                freq: str = freq_map[obj._freq]
+                return f' +{interval}{freq}'
 
     return re.sub(regex, replace, org_items)
 

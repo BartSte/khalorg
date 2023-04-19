@@ -1,12 +1,12 @@
 * {title} {cancelled} 
-  <{start-long}{repeat-pattern}>--<{end-long}{repeat-pattern}>
+  <{start-long}KHALORG_START{repeat-pattern}KHALORG_STOP>--<{end-long}KHALORG_START{repeat-pattern}KHALORG_STOP>
   :PROPERTIES:
-  :ID: {uid}
-  :STATUS: {status}
+  :ATTENDEES: {attendees}
   :CALENDAR: {calendar}
+  :ID: {uid}
   :LOCATION: {location}
   :ORGANIZER: {organizer}
-  :ATTENDEES: {attendees}
+  :STATUS: {status}
   :URL: {url}
   :END:
   {description}
