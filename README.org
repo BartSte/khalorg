@@ -80,7 +80,18 @@
     pip install -r requirements.txt
     #+end_src
     Next, you can use the executable ~khalorg~ to import and list org agenda
-    items. Checkout section [[Usage]] for more info.
+    items. Make sure your khal date format is compatible with org, otherwise it
+    will not work. When running ~khal printformats~ you should get:
+    
+    #+begin_src
+    longdatetimeformat: 2013-12-21 Sat 21:45
+    datetimeformat: 2013-12-21 Sat 21:45
+    longdateformat: 2013-12-21 Sat
+    dateformat: 2013-12-21 Sat
+    timeformat: 21:45
+    #+end_src
+
+    Checkout section [[Usage]] for more info.
 
 * Usage
 ** List: from khal to org
@@ -188,6 +199,13 @@
     repeat patterns that can be created by 1 timestamp.
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
+  - [ ] Only 1 timestamp per item is supported.
+  - [-] Repeat patterns are currently parsed with a regex that can be replaced
+    by ~dateutils.rrule~ I think. Best is to:
+    - With a regex parse anything that is encapsulated within ~<...>~.
+    - Split the timestamp from the RRULE.
+    - Feed the RRULE to ~rrulestr~ and make the org repeater.
+    - If the rrule is supported, substitute the RRULE with the org repeater.
   - [ ] Complex repeat pattern are not supported. Only patterns that can be
     expressed with the following pattern are supported ~+{number}{letter}~ 
     where ~number~ is a positive integer, and ~letter~ is: d, w, m, or y.
