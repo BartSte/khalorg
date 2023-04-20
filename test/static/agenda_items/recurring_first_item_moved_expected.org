@@ -1,0 +1,36 @@
+* Meeting                                                                :LABEL:
+  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+  :PROPERTIES:
+  :ID: 123
+  :CALENDAR: outlook
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
+  :URL: www.test.com
+  :END:
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+* Meeting                                                                :LABEL:
+  <2023-01-08 Sun 01:00 +1w>--<2023-01-08 Sun 02:00 +1w>
+  :PROPERTIES:
+  :ID: 123
+  :CALENDAR: outlook
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
+  :URL: www.test.com
+  :END:
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
