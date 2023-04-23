@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from src.commands import list_command, new
+from src.helpers import get_khalorg_format
 
 
 def get_parser() -> ArgumentParser:
@@ -17,11 +18,12 @@ def get_parser() -> ArgumentParser:
     subparsers = parent.add_subparsers()
 
     child_new: ArgumentParser = subparsers.add_parser('new', **ParserInfo.new)
-    child_new.add_argument('calendar', **Args.calendar)
     child_new.add_argument('--until', **Args.until)
+    child_new.add_argument('calendar', **Args.calendar)
     child_new.set_defaults(func=new)
 
     child_list: ArgumentParser = subparsers.add_parser('list', **ParserInfo.list_command)  # noqa
+    child_list.add_argument('--format', **Args.format)
     child_list.add_argument('calendar', **Args.calendar)
     child_list.add_argument('start', **Args.start)
     child_list.add_argument('stop', **Args.stop)
@@ -78,3 +80,9 @@ class Args:
         default='1d',
         nargs='?',
         help=('End date (default: 1d)'))
+
+    format: dict = dict(
+        type=str,
+        default=get_khalorg_format(),
+        help='The format of the events.'
+    )

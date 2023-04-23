@@ -1,6 +1,6 @@
 import logging
 from collections import OrderedDict
-from os.path import exists, join
+from datetime import date, datetime
 from typing import Callable, Generator, Union
 
 from khal.cli import build_collection
@@ -10,10 +10,55 @@ from khal.settings.settings import (
     find_configuration_file,
     get_config,
 )
+from orgparse.date import OrgDate
 
-from paths import org_format, static_dir
-from src.helpers import subprocess_callback
-from src.org_items import NvimOrgDate, OrgAgendaItem
+from src.helpers import get_khalorg_format, subprocess_callback
+from src.org_items import OrgAgendaItem
+
+_Time = date | datetime
+
+
+def edit_attendees(
+        calendar: str | CalendarCollection,  # type: ignore
+        attendees: tuple | list,
+        summary: str,
+        start: _Time,
+        end: _Time) -> None:
+    """
+    For `calendar` the `attendees` are added to all events that adhere to
+    the `summary`, the `start` time, and the `stop` time.
+
+    When `calendar` is a CalendarCollection the step of searching for a
+    calendar collection can be omitted.
+
+    Args:
+    ----
+        calendar: the calendar name or a CalendarCollection object.
+        attendees: list of attendees
+        summary: search query. The summary/title of the event is recommended.
+        start: start of the event.
+        end: end of the event.
+    """
+    if isinstance(calendar, str):
+        calendar: CalendarCollection = get_calendar_collection(calendar)
+
+    logging.debug(f'Get events on date: {start}')
+    events: Generator = (
+        x for x in calendar.get_events_on(start)
+        if x.summary == summary and _replace(x.end, tzinfo=None) == end
+    )
+
+    for event in events:
+        event.update_attendees(attendees)
+        calendar.update(event)
+        logging.info(f'Event: {event.summary} was updated')
+
+
+def _replace(obj: _Time, **kwargs) -> _Time:
+    try:
+        return obj.replace(**kwargs)
+    except (AttributeError, TypeError):
+        return obj
 
 
 def get_calendar_collection(name: str) -> CalendarCollection:
@@ -21,9 +66,10 @@ def get_calendar_collection(name: str) -> CalendarCollection:
     Return the calendar collection for a specific calendar `name`.
 
     Args:
+    ----
         name: name of the calendar
 
-    Returns
+    Returns:
     -------
         calendar collection
     """
@@ -53,7 +99,7 @@ class Calendar:
             name: name of the khal calendar
         """
         path_config: Union[str, None] = find_configuration_file()
-        list_format: str = self.get_list_format()
+        list_format: str = get_khalorg_format()
 
         new_item_args: list = ['khal', 'new']
         list_args: list = ['khal', 'list', '--format', list_format]
@@ -84,24 +130,6 @@ class Calendar:
 
         """
         return self.config['locale']['longdatetimeformat']
-
-    def get_list_format(self) -> str:
-        """
-        The format of the org item is returned.
-
-        It is defined in *.txt file that exists in the config directory of the
-        user as `org_format`. If it does nog exist, the `default_org_format` is
-        used.
-
-        Returns
-        -------
-            org format that is feeded to the `khal list --format` command.
-
-        """
-        default_org_format: str = join(static_dir, 'org_format.txt')
-        path: str = org_format if exists(org_format) else default_org_format
-        with open(path) as file_:
-            return file_.read()
 
 
 class KhalArgsError(Exception):
@@ -208,7 +236,8 @@ class KhalArgs(OrderedDict):
 
 
 class ListArgs(KhalArgs):
-    """ TODO """
+    """ TODO. """
+
     pass
 
 
@@ -226,17 +255,18 @@ class NewArgs(KhalArgs):
         OrderedDict) directly from an OrgAgendaItem.
 
         Args:
+        ----
             item: an OrgAgendaItem object.
             datetime_format: optionally, a timestamp format can be provided.
 
-        Returns
+        Returns:
         -------
             itself
 
         """
         # For now, only 1 timestamp is supported
         try:
-            time_stamp: NvimOrgDate = item.time_stamps[0]
+            time_stamp: OrgDate = item.timestamps[0]
         except IndexError as error:
             raise KhalArgsError('Timestamp missing in agenda item') from error
         else:
@@ -249,15 +279,15 @@ class NewArgs(KhalArgs):
             return self._load_from_org(time_stamp, item, format)
 
     def _load_from_org(self,
-                       time_stamp: NvimOrgDate,
+                       time_stamp: OrgDate,
                        item: OrgAgendaItem,
                        format: str) -> 'NewArgs':
 
         key_vs_value: tuple = (
             ('start', time_stamp.start.strftime(format)),
             ('end', self._get_end(time_stamp, format)),
-            ('summary', item.heading),
-            ('description', f':: {item.body}'),
+            ('summary', item.title),
+            ('description', f':: {item.description}'),
             ('--location', item.properties.get('LOCATION', '')),
             ('--url', item.properties.get('URL', '')),
             ('--repeat', self._get_repeat(time_stamp))
@@ -269,15 +299,16 @@ class NewArgs(KhalArgs):
 
         return self
 
-    def _get_end(self, time_stamp: NvimOrgDate, format: str) -> str:
+    def _get_end(self, time_stamp: OrgDate, format: str) -> str:
         """
         Returns the start time if no end time exists.
 
         Args:
+        ----
             time_stamp: the end time
             format: format
 
-        Returns
+        Returns:
         -------
             timestamp as a str
         """
@@ -287,7 +318,7 @@ class NewArgs(KhalArgs):
             logging.debug('End timestamp cannot be formatted.')
             return time_stamp.start.strftime(format)
 
-    def _get_repeat(self, time_stamp: NvimOrgDate) -> str:
+    def _get_repeat(self, time_stamp: OrgDate) -> str:
         try:
             key: str = ''.join([str(x) for x in time_stamp._repeater])
             return self.REPEAT_ORG_TO_KHAL[key]

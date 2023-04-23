@@ -7,6 +7,8 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
+  :STATUS: CONFIRMED
+  :CATEGORIES: Something
   :RRULE: 
   :END:
   Hello,
@@ -18,7 +20,7 @@
 
   Someone
 * Meeting                                                                :LABEL:
-  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+  <2023-01-08 Sun 01:00>--<2023-01-08 Sun 02:00>
   :PROPERTIES:
   :UID: 123
   :CALENDAR: outlook
@@ -26,7 +28,30 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
-  :RRULE: 
+  :STATUS: CONFIRMED
+  :CATEGORIES: Something
+  :RRULE: FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO
+  :END:
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+* Meeting                                                                :LABEL:
+  <2023-01-15 Sun 01:00>--<2023-01-15 Sun 02:00>
+  :PROPERTIES:
+  :UID: 123
+  :CALENDAR: outlook
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
+  :URL: www.test.com
+  :STATUS: CONFIRMED
+  :CATEGORIES: Something
+  :RRULE: FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO
   :END:
   Hello,
 

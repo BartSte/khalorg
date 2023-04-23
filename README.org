@@ -122,7 +122,7 @@
    * Meeting                                                            :LABEL:
    <2023-01-01 Sun 01:00-02:00 +1w>
    :PROPERTIES:
-   :ID: 123
+   :UID: 123
    :LOCATION: Somewhere
    :ORGANIZER: Someone (someone@outlook.com)
    :ATTENDEES: test@test.com, test2@test.com
@@ -192,8 +192,6 @@
 
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
-  - [ ] When 1 of the items of a serie recurring ones is moved, it is deleted
-    by the ~ListPostProcessor~ because it still has the same UID.
         
 * Improvements:
   - [-] Khal only suppors daily, weekly, monthly, yearly from the cli, while
@@ -202,12 +200,6 @@
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
   - [ ] Only 1 timestamp per item is supported.
-  - [-] Repeat patterns are currently parsed with a regex that can be replaced
-    by ~dateutils.rrule~ I think. Best is to:
-    - With a regex parse anything that is encapsulated within ~<...>~.
-    - Split the timestamp from the RRULE.
-    - Feed the RRULE to ~rrulestr~ and make the org repeater.
-    - If the rrule is supported, substitute the RRULE with the org repeater.
   - [ ] Complex repeat pattern are not supported. Only patterns that can be
     expressed with the following pattern are supported ~+{number}{letter}~ 
     where ~number~ is a positive integer, and ~letter~ is: d, w, m, or y.
@@ -218,3 +210,5 @@
     - ~khal list~: complex repeat pattern are listed as individual events, as
       is the default behavior for khal (when the ~--once~ flag is off). 
   - [ ] Store the logs. 
+  - [ ] NvimOrgDate can be replaced by OrgDate with the value
+    ~OrgDate._allow_short_range~ to ~False~.

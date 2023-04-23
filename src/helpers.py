@@ -1,14 +1,27 @@
-
 import logging
 import re
 from configparser import ConfigParser
 from inspect import getfile
-from os.path import dirname
+from os.path import dirname, exists
 from subprocess import STDOUT, CalledProcessError, check_output
 from types import ModuleType
 from typing import Callable
 
 from munch import Munch
+
+import paths
+
+
+def get_khal_format():
+    with open(paths.khal_format) as file_:
+        return file_.read()
+
+
+def get_khalorg_format():
+    """ TODO. """
+    path: str = paths.format if exists(paths.format) else paths.default_format
+    with open(path) as file_:
+        return file_.read()
 
 
 def get_module_path(module: ModuleType) -> str:
@@ -16,9 +29,10 @@ def get_module_path(module: ModuleType) -> str:
     Returns the path to the `module`.
 
     Args:
+    ----
         module: a python module
 
-    Returns
+    Returns:
     -------
         str: path to module
 
@@ -32,9 +46,10 @@ def subprocess_callback(cmd: list) -> Callable:
     beforehand.
 
     Args:
+    ----
         cmd: the base command. For example: ['khal', 'new']
 
-    Returns
+    Returns:
     -------
         callback function
 
@@ -79,6 +94,7 @@ def substitude_with_placeholder(text: str, callback: Callable,
     groupname or the text within the placeholders is "content".
 
     Args:
+    ----
         text (str): The original string containing the substrings to be
             replaced.
         callback (Callable): A function that takes a substring as input and
@@ -88,9 +104,24 @@ def substitude_with_placeholder(text: str, callback: Callable,
         stop_placeholder (str, optional): The ending placeholder string.
             Defaults to 'KHALORG_STOP'.
 
-    Returns
+    Returns:
     -------
         str: The modified string with all substrings replaced.
     """
     regex: str = rf'(?:{start_placeholder})(?P<content>.*?)(?:{stop_placeholder})'
     return re.sub(regex, callback, text)
+
+
+def get_indent(text: str, piece: str) -> list:
+    """Returns the indent for a `piece` of `text`. If `piece` is found multiple
+    times, the returned list has a length that is larger than one.
+
+    Args:
+        text: the text
+        piece: the str that needs to be found. 
+
+    Returns:
+        the indents that belong to the matches.
+        
+    """
+    return re.findall(rf'^(\s+){piece}', text, re.MULTILINE)

@@ -32,7 +32,7 @@ def read_org_test_file(org_file: str) -> str:
 
 
 def compare_without_white_space(a, b) -> bool:
-    return compare_with_exclude(a, b, ('', '\n', '\t'))
+    return compare_with_exclude(a, b, ('',  '\n', '\t'))
 
 
 def compare_with_exclude(a: str, b: str, excludes: tuple = tuple()) -> bool:

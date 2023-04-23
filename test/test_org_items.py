@@ -1,17 +1,20 @@
 import sys
-from test.helpers import (
-    read_org_test_file,
-)
+
+from orgparse.date import OrgDate
 from test.agenda_items import (
     AllDay,
+    AllDayRecurring,
     BodyFirst,
     MaximalValid,
     MinimalValid,
     MultipleTimstampsValid,
     NotFirstLevel,
     NoTimestamp,
-    ShortTimestamp,
     Recurring,
+    ShortTimestamp,
+)
+from test.helpers import (
+    read_org_test_file,
 )
 from typing import Any
 from unittest import TestCase
@@ -20,22 +23,13 @@ from unittest.mock import patch
 from orgparse import loads
 from orgparse.node import OrgNode
 
+import paths
 from src.org_items import (
-    NvimOrgDate,
+    OrgAgendaFile,
     OrgAgendaItem,
     OrgAgendaItemError,
+    OrgDateAgenda,
 )
-
-
-class TestNvimOrgDate(TestCase):
-    def test(self):
-        """Should print a date that is compatible with nvim-orgmode."""
-        actual: str = str(
-            NvimOrgDate(
-                (2023, 1, 1, 1, 0, 0),
-                (2023, 1, 1, 2, 0, 0)))
-        expected: str = "<2023-01-01 Sun 01:00-02:00>"
-        self.assertEqual(actual, expected)
 
 
 class TestOrgAgendaItem(TestCase):
@@ -49,7 +43,7 @@ class TestOrgAgendaItem(TestCase):
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
-        dummy_args = ["x", [NvimOrgDate(1)], NvimOrgDate(1), None, {}, ""]
+        dummy_args = ["x", [OrgDate(1)], NvimOrgDate(1), None, {}, ""]
         agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         for count, x in enumerate(dummy_args):
             args: list = list(MaximalValid.get_args())  # copy object
@@ -62,9 +56,9 @@ class TestOrgAgendaItem(TestCase):
         text: str = (
             "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"
         )
-        time_stamp: list[NvimOrgDate] = [
-            NvimOrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0)),
-            NvimOrgDate((2023, 1, 1, 1, 0, 0))
+        time_stamp: list[OrgDate] = [
+            OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0)),
+            OrgDate((2023, 1, 1, 1, 0, 0))
         ]
         expected: str = "Some text\n"
         actual: str = OrgAgendaItem.remove_timestamps(text, time_stamp)
@@ -138,8 +132,8 @@ class TestOrgAgendaItem(TestCase):
         for file_ in org_files:
             node: OrgNode = loads(read_org_test_file(file_))
             item: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
-            self.assertEqual(item.heading, "Heading")
-            self.assertFalse(item.time_stamps)
+            self.assertEqual(item.title, "Heading")
+            self.assertFalse(item.timestamps)
 
     @patch.object(sys.stdin, "read")
     def test_load_from_stdin(self, patch_stdin: Any):
@@ -172,3 +166,58 @@ class TestOrgAgendaItem(TestCase):
         actual: list = item.get_attendees()
         expected: list = ['test@test.com', 'test2@test.com', 'test3@test.com']
         self.assertEqual(actual, expected)
+
+
+class TestAgendaOrgDates(TestCase):
+    """ Test if duplicated items are removed. """
+
+    def test_orgdates(self):
+        orgs: tuple = (
+            ("maximal_valid.org", MaximalValid),
+            ("recurring.org", Recurring),
+            ("body_first.org", BodyFirst),
+            ("minimal_valid.org", MinimalValid),
+            ("not_first_level.org", NotFirstLevel),
+            ("all_day.org", AllDay),
+            ("recurring.org", Recurring),
+            ("recurring_allday.org", AllDayRecurring),
+            ("short_timestamp.org", ShortTimestamp),
+        )
+        for org, expected in orgs:
+            item: str = read_org_test_file(org)
+            nodes: OrgNode = loads(item)
+            actual: OrgDateAgenda = OrgDateAgenda(nodes)
+
+            self.assertEqual(actual.dates, expected.org_dates, msg=org)
+            self.assertEqual(str(actual.dates['123']),
+                             str(expected.org_dates['123']), msg=org)
+
+
+class TestCompose(TestCase):
+
+    def test(self):
+        with open(paths.default_format) as f:
+            khalorg_format: str = f.read()
+
+        orgs: tuple = (
+            ('khal_list_recurring.org', 'recurring.org'),
+            ('khal_list_recurring_monthly.org', 'recurring_monthly.org'),
+            ('khal_list_recurring_allday.org', 'recurring_allday.org'),
+            ('khal_list_recurring_duplicates.org', 'recurring.org'),
+            ('khal_list_recurring_not_supported.org', 'maximal_valid.org'),
+            ('khal_list_recurring_1th.org', 'recurring.org'),
+            ('khal_list_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
+        )
+
+        for org, expected_org in orgs:
+            item: str = read_org_test_file(org)
+            agenda: OrgAgendaFile = OrgAgendaFile.from_str(item)
+            agenda.apply_rrules()
+            actual: str = format(agenda, khalorg_format)
+            expected: str = read_org_test_file(expected_org)
+            message: str = (
+                f"\n\nFor org file: {org} an error is found:"
+                f"\n\nActual is:\n{actual}"
+                f"\n\nExpected is:\n{expected}"
+            )
+            self.assertEqual(actual, expected, msg=message)

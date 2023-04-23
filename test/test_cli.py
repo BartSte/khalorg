@@ -5,7 +5,7 @@ from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
 from test.agenda_items import MaximalValid
 from unittest import TestCase
 
-from src.helpers import get_module_path
+from src.helpers import get_list_format, get_module_path
 
 
 class TestNew(TestCase):
@@ -75,8 +75,9 @@ class TestParentParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            expected: bytes = b"loglevel='CRITICAL', calendar='calendar'"
-            self.assertTrue(expected in stdout)
+            expected: bytes = b"loglevel='CRITICAL', until='', calendar='calendar'"
+            message: str = f"\n\nstdout:\n{stdout}\n\nexpected:\n{expected}"
+            self.assertTrue(expected in stdout, msg=message)
 
 
 class TestListParser(TestCase):
@@ -91,6 +92,7 @@ class TestListParser(TestCase):
         Expected that the khalorg_cli_tester executable return the
         calendar, the loglevel, the start time, and stop time.
         """
+        format: str = get_list_format()
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
         args: list = [
             cli_tester,
@@ -106,6 +108,38 @@ class TestListParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            expected: bytes = (b"loglevel='CRITICAL', calendar='calendar', "
-                               b"start='today', stop='2d'")
-            self.assertTrue(expected in stdout)
+            expected: str = (f"loglevel='CRITICAL', format='{format}', "
+                             "calendar='calendar', start='today', stop='2d'")
+            expected_bytes: bytes = expected.encode('unicode_escape')
+
+            message: str = f"\n\n{stdout}\n\n{expected_bytes}"
+            self.assertTrue(expected_bytes in stdout, msg=message)
+
+    def test_with_args_and_format(self):
+        """
+        Expected that the khalorg_cli_tester executable return the
+        calendar, the loglevel, the start time, and stop time.
+        """
+        cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
+        args: list = [
+            cli_tester,
+            '--loglevel',
+            'CRITICAL',
+            'list',
+            '--format',
+            '{org-dates}',
+            'calendar',
+            'today',
+            '2d']
+        try:
+            stdout: bytes = check_output(args)
+        except CalledProcessError as error:
+            logging.critical(error.output.decode())
+            self.fail(error.output.decode())
+        else:
+            expected: str = ("loglevel='CRITICAL', format='{org-dates}', "
+                             "calendar='calendar', start='today', stop='2d'")
+            expected_bytes: bytes = expected.encode('unicode_escape')
+
+            message: str = f"\n\nstdout:\n{stdout}\n\nexpected:\n{expected_bytes}"
+            self.assertTrue(expected_bytes in stdout, msg=message)

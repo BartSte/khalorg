@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.org_items import NvimOrgDate
+from orgparse.date import OrgDate
 
 _DESCRIPTION: str = (
     "  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
@@ -14,10 +14,10 @@ class OrgArguments:
     """
 
     heading: str
-    time_stamps: list[NvimOrgDate]
+    time_stamps: list[OrgDate]
     properties: dict = {}
-    deadline: NvimOrgDate = NvimOrgDate(None)
-    scheduled: NvimOrgDate = NvimOrgDate(None)
+
+    org_dates: dict
 
     description: str = ''
 
@@ -48,7 +48,11 @@ class MaximalValid(OrgArguments):
                         "ORGANIZER": 'Someone (someone@outlook.com)',
                         "ATTENDEES": 'test@test.com, test2@test.com',
                         "URL": 'www.test.com'}
-    time_stamps = [NvimOrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
+    time_stamps = [OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
+    org_dates = {
+        '123': [
+            OrgDate(
+                (2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]}
 
     description = _DESCRIPTION
 
@@ -74,17 +78,22 @@ class MinimalValid(OrgArguments):
     """Used to validate agenda item: minimal_valid.org."""
 
     heading: str = 'Meeting'
-    time_stamps: list = [NvimOrgDate(datetime(2023, 1, 1, 1, 0),
+    time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
                                      datetime(2023, 1, 1, 2, 0))]
+
+    org_dates = {
+        '123': [
+            OrgDate(
+                (2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]}
 
 
 class MultipleTimstampsValid(MaximalValid):
     """Used to validate agenda item: multile_timestamps.org."""
 
     time_stamps: list = [
-        NvimOrgDate(datetime(2023, 1, 1, 1, 0), datetime(2023, 1, 1, 2, 0)),
-        NvimOrgDate(datetime(2023, 1, 2, 3, 0), datetime(2023, 1, 2, 4, 0)),
-        NvimOrgDate(datetime(2023, 1, 3, 5, 0), datetime(2023, 1, 3, 6, 0))
+        OrgDate(datetime(2023, 1, 1, 1, 0), datetime(2023, 1, 1, 2, 0)),
+        OrgDate(datetime(2023, 1, 2, 3, 0), datetime(2023, 1, 2, 4, 0)),
+        OrgDate(datetime(2023, 1, 3, 5, 0), datetime(2023, 1, 3, 6, 0))
     ]
 
 
@@ -114,12 +123,16 @@ class BodyFirst(MaximalValid):
 
 class Recurring(MaximalValid):
     time_stamps = [
-        NvimOrgDate(
+        OrgDate(
             start=(2023, 1, 1, 1, 0, 0),
             end=(2023, 1, 1, 2, 0, 0),
             repeater=('+', 1, 'w'))
     ]
 
+    org_dates = {'123': [OrgDate((2023, 1, 1, 1, 0, 0),
+                                 (2023, 1, 1, 2, 0, 0),
+                                 True,
+                                 ('+', '1', 'w'))]}
     command_line_args = {
         'start': '2023-01-01 Sun 01:00',
         'end': '2023-01-01 Sun 02:00',
@@ -136,10 +149,13 @@ class Duplicate(MaximalValid):
 
     pass
 
+
 class AllDay(MaximalValid):
     """Used to validate agenda item: all_day.org."""
 
-    time_stamps = [NvimOrgDate((2023, 1, 1))]
+    time_stamps = [OrgDate((2023, 1, 1))]
+
+    org_dates = {'123': [OrgDate((2023, 1, 1))]}
 
     description = _DESCRIPTION
 
@@ -159,6 +175,28 @@ class AllDay(MaximalValid):
                      '2023-01-01 Sun',
                      'Meeting',
                      f':: {_DESCRIPTION}\n']
+
+
+class AllDayRecurring(MaximalValid):
+    time_stamps = [
+        OrgDate(start=(2023, 1, 1), end=None, repeater=('+', 1, 'w'))
+    ]
+
+    org_dates = {
+        '123': [
+            OrgDate(
+                (2023, 1, 1), (2023, 1, 1), True, ('+', '1', 'w'))]}
+
+    command_line_args = {
+        'start': '2023-01-01 Sun',
+        'end': '2023-01-01 Sun',
+        'summary': 'Meeting',
+        'description': (f':: {_DESCRIPTION}'),
+        '--location': 'Somewhere',
+        '--url': 'www.test.com',
+        '--repeat': 'weekly'
+    }
+
 
 class ShortTimestamp(MaximalValid):
     """Validates othertimestamp.org."""

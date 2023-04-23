@@ -1,11 +1,13 @@
-*
-  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+* Meeting
+  <2023-01-01 Sun +1w>--<2023-01-01 Sun>
   :PROPERTIES:
-  :UID: 123
+  :ATTENDEES: test@test.com, test2@test.com
   :CALENDAR: outlook
+  :CATEGORIES: Something
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
-  :ATTENDEES: test@test.com, test2@test.com
+  :STATUS: CONFIRMED
+  :UID: 123
   :URL: www.test.com
   :END:
   Hello,
@@ -16,4 +18,3 @@
 
 
   Someone
-

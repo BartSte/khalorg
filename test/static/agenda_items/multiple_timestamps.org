@@ -3,7 +3,7 @@
   <2023-01-02 Mon 03:00-04:00>
   <2023-01-03 Tue 05:00-06:00>
   :PROPERTIES:
-  :ID: 123
+  :UID: 123
   :CALENDAR: outlook
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)

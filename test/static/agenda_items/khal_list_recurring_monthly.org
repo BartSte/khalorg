@@ -1,5 +1,5 @@
 * Meeting
-  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+  <2023-01-01 Sun 01:00 +1m>--<2023-01-01 Sun 02:00>
   :PROPERTIES:
   :ATTENDEES: test@test.com, test2@test.com
   :CALENDAR: outlook
@@ -9,6 +9,7 @@
   :STATUS: CONFIRMED
   :UID: 123
   :URL: www.test.com
+  :RRULE: FREQ=MONTHLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO
   :END:
   Hello,
 

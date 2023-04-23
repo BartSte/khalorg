@@ -1,0 +1,13 @@
+* {title}
+  {timestamps}
+  :PROPERTIES:
+  :ATTENDEES: {attendees}
+  :CALENDAR: {calendar}
+  :CATEGORIES: {categories}
+  :LOCATION: {location}
+  :ORGANIZER: {organizer}
+  :STATUS: {status}
+  :UID: {uid}
+  :URL: {url}
+  :END:
+  {description}

@@ -9,7 +9,7 @@
   Someone
   <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
   :PROPERTIES:
-  :ID: 123
+  :UID: 123
   :CALENDAR: outlook
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)

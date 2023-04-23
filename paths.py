@@ -1,11 +1,13 @@
+from inspect import getfile
 from os.path import dirname, expanduser, join
-from src import static
 
-from src.helpers import get_module_path
+from src import static
 
 root: str = dirname(__file__)
 config_dir: str = expanduser('~/.config/khalorg')
-static_dir: str = get_module_path(static)
+static_dir: str = dirname(getfile(static))
 
 config: str = join(config_dir, 'config.ini')
-org_format: str = join(config_dir, 'org_format.txt')
+format: str = join(config_dir, 'khalorg_format.txt')
+khal_format: str = join(static_dir, 'khal_format.txt')
+default_format: str = join(static_dir, 'khalorg_format.txt')

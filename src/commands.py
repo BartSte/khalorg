@@ -1,18 +1,13 @@
 import logging
 from datetime import date, datetime
 
-from src.helpers import substitude_with_placeholder
-from src.khal_items import Calendar, ListArgs, NewArgs
-from src.org_items import OrgAgendaItem
-from src.post_processors import (
-    ListPostProcessor,
-    RegexReply,
-    edit_attendees,
-)
-
+from src.helpers import get_khal_format, get_khalorg_format
+from src.khal_items import Calendar, ListArgs, NewArgs, edit_attendees
+from src.org_items import OrgAgendaFile, OrgAgendaItem
 
 def list_command(
         calendar: str,
+        khalorg_format: str = get_khalorg_format(),
         start: str = 'today',
         stop: str = '1d',
         **_) -> str:
@@ -20,27 +15,28 @@ def list_command(
     Lists khal agenda items to org format.
 
     Args:
+    ----
         calendar: name of the khal calendar
         start: start date (default: today)
         stop: end date (default: 1d)
 
-    Returns
+    Returns:
     -------
         stdout of the `khal list` command after post processing
 
     """
-    post: ListPostProcessor
     khal_calendar: Calendar = Calendar(calendar)
     args: ListArgs = ListArgs()
 
     args['-a'] = calendar
+    args['-f'] = get_khal_format()
     args['start'] = start
     args['stop'] = stop
 
     org_items: str = khal_calendar.list_command(args.as_list())
-    org_items = substitude_with_placeholder(org_items, RegexReply())
-    post = ListPostProcessor.from_str(org_items)
-    return post.remove_duplicates()
+    agenda: OrgAgendaFile = OrgAgendaFile.from_str(org_items)
+    agenda.apply_rrules()
+    return format(agenda, khalorg_format)
 
 
 def new(calendar: str, until: str = '', **_) -> str:
@@ -52,10 +48,11 @@ def new(calendar: str, until: str = '', **_) -> str:
     invoke the `khal new` command by calling Calendar.new_item.
 
     Args:
+    ----
         calendar: name of the khal calendar.
         until: Stop an event repeating on this date.
 
-    Returns
+    Returns:
     -------
         stdout of the `khal new` command
 
@@ -75,9 +72,10 @@ def new(calendar: str, until: str = '', **_) -> str:
 
     # Only 1 org time stamp per org_item is supported for now
     attendees: list = org_item.get_attendees()
-    start: datetime | date = org_item.time_stamps[0].start
-    end: datetime | date = org_item.time_stamps[0].end
+    start: datetime | date = org_item.timestamps[0].start
+    end: datetime | date = org_item.timestamps[0].end
     if attendees:
+        # TODO should be a method of calendar
         edit_attendees(calendar, attendees, args['summary'], start, end)
 
     return stdout_khal

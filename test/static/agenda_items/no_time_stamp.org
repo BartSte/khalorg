@@ -1,6 +1,6 @@
 * Meeting                                                                :LABEL:
   :PROPERTIES:
-  :ID: 123
+  :UID: 123
   :CALENDAR: outlook
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
