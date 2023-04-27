@@ -2,33 +2,21 @@ import logging
 import re
 import sys
 from dataclasses import dataclass
-from textwrap import indent
 from typing import Generator
 
 import orgparse
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
+
 from src.helpers import get_indent
-
 from src.rrule import get_orgdate, rrulestr_is_supported
-
-
-@dataclass
-class OrgRegex:
-    day: str = '[A-Z]{1}[a-z]{2}'
-    time: str = '[0-9]{2}:[0-9]{2}'
-    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    repeater: str = '[-+]{1,2}[0-9]+[a-z]+'
-    timestamp: str = f'<{date}( {day})?( {time})?( {repeater})?>'
-    timestamp_short: str = f'(<{date} {day} {time})--({time} ({repeater})?>)'
-    timestamp_long: str = f'{timestamp}--{timestamp}'
 
 
 class OrgAgendaItemError(Exception):
     """Raised for an error in OrgAgendaItem."""
 
 
-def remove_timestamps(body: str, time_stamps: list) -> str:
+def remove_timestamps(body: str) -> str:
     """
     OrgNode.body contains the time_stamps that should be removed because the
     time stamps are already parsed in OrgAgendaItem.time_stamps and
@@ -55,6 +43,17 @@ def remove_timestamps(body: str, time_stamps: list) -> str:
     result = re.sub(r'^\s+', '', result, re.MULTILINE)
 
     return result
+
+
+@dataclass
+class OrgRegex:
+    day: str = '[A-Z]{1}[a-z]{2}'
+    time: str = '[0-9]{2}:[0-9]{2}'
+    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+    repeater: str = '[-+]{1,2}[0-9]+[a-z]+'
+    timestamp: str = f'<{date}( {day})?( {time})?( {repeater})?>'
+    timestamp_short: str = f'(<{date} {day} {time})--({time} ({repeater})?>)'
+    timestamp_long: str = f'{timestamp}--{timestamp}'
 
 
 class OrgDateAgenda:
@@ -202,7 +201,7 @@ class OrgAgendaItem:
         self.title = item.heading
         self.properties = item.properties
         self.timestamps = item.get_timestamps(**kwargs)
-        self.description = remove_timestamps(item.body, self.timestamps)
+        self.description = remove_timestamps(item.body)
 
         return self
 
@@ -343,3 +342,4 @@ class OrgAgendaFile:
     def from_str(cls, items: str) -> 'OrgAgendaFile':
         nodes: OrgNode = orgparse.loads(items)
         return cls(nodes)
+
