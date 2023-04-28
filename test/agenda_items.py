@@ -36,8 +36,8 @@ class OrgArguments:
             cls.description]
 
 
-class MaximalValid(OrgArguments):
-    """Used to validate agenda item: maximal_valid.org."""
+class Valid(OrgArguments):
+    """Used to validate agenda item: valid.org."""
 
     heading = 'Meeting'
     properties = {
@@ -76,8 +76,8 @@ class MaximalValid(OrgArguments):
                      f':: {_DESCRIPTION}\n']
 
 
-class MinimalValid(OrgArguments):
-    """Used to validate agenda item: minimal_valid.org."""
+class Minimal(OrgArguments):
+    """Used to validate agenda item: minimal.org."""
 
     heading: str = 'Meeting'
     time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
@@ -89,7 +89,7 @@ class MinimalValid(OrgArguments):
                 (2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]}
 
 
-class MultipleTimstampsValid(MaximalValid):
+class MultipleTimstampsValid(Valid):
     """Used to validate agenda item: multile_timestamps.org."""
 
     time_stamps: list = [
@@ -99,31 +99,31 @@ class MultipleTimstampsValid(MaximalValid):
     ]
 
 
-class NoHeading(MaximalValid):
+class NoHeading(Valid):
     """Used to validate agenda item: no_heading.org."""
 
     heading = ''
 
 
-class NoTimestamp(MaximalValid):
+class NoTimestamp(Valid):
     """Used to validate agenda item: no_timestamp.org."""
 
     time_stamps = []
 
 
-class NotFirstLevel(MaximalValid):
+class NotFirstLevel(Valid):
     """Used to validate item: not_first_level.org."""
 
     pass
 
 
-class BodyFirst(MaximalValid):
+class BodyFirst(Valid):
     """Used to validate item: not_first_level.org."""
 
     pass
 
 
-class Recurring(MaximalValid):
+class Recurring(Valid):
     time_stamps = [
         OrgDate(
             start=(2023, 1, 1, 1, 0, 0),
@@ -146,13 +146,13 @@ class Recurring(MaximalValid):
     }
 
 
-class Duplicate(MaximalValid):
+class Duplicate(Valid):
     """Validates duplicates.org."""
 
     pass
 
 
-class AllDay(MaximalValid):
+class AllDay(Valid):
     """Used to validate agenda item: all_day.org."""
 
     time_stamps = [OrgDate((2023, 1, 1))]
@@ -179,7 +179,7 @@ class AllDay(MaximalValid):
                      f':: {_DESCRIPTION}\n']
 
 
-class AllDayRecurring(MaximalValid):
+class AllDayRecurring(Valid):
     time_stamps = [
         OrgDate(start=(2023, 1, 1), end=None, repeater=('+', 1, 'w'))
     ]
@@ -200,7 +200,7 @@ class AllDayRecurring(MaximalValid):
     }
 
 
-class ShortTimestamp(MaximalValid):
+class ShortTimestamp(Valid):
     """Validates othertimestamp.org."""
 
     pass

@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from test.agenda_items import AllDay, MaximalValid, Recurring
+from test.agenda_items import AllDay, Valid, Recurring
 from test.helpers import (
     get_test_config,
     khal_runner,
@@ -22,7 +22,7 @@ FORMAT = '%Y-%m-%d %a %H:%M'
 class Mixin:
 
     def setUp(self) -> None:
-        args: list = MaximalValid.get_args()
+        args: list = Valid.get_args()
         self.agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
         self.calendar = Calendar('test_calendar')
 
@@ -40,13 +40,13 @@ class TestArgs(Mixin, TestCase):
 
     def test_load_from_org(self):
         """
-        When loaded from the org file maximal_valid.org, the resulting cli
-        args must be the same as: MaximalValid.command_line_args
+        When loaded from the org file valid.org, the resulting cli
+        args must be the same as: Valid.command_line_args
         .
         """
         actual: NewArgs = NewArgs()
         actual.load_from_org(self.agenda_item)
-        expected: dict = MaximalValid.command_line_args
+        expected: dict = Valid.command_line_args
         message: str = (
             f'\nActual: {actual}\n Expected: {expected}'
         )

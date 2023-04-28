@@ -1,9 +1,8 @@
-import paths
 import logging
 import test
 from os.path import join
 from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
-from test.agenda_items import MaximalValid
+from test.agenda_items import Valid
 from unittest import TestCase
 
 from src.helpers import get_default_khalorg_format, get_module_path
@@ -17,16 +16,16 @@ class TestNew(TestCase):
 
     def test_new_item(self):
         """
-        When feeding the org file maximal_valid.org into khalorg_tester
+        When feeding the org file valid.org into khalorg_tester
         through stdin, it expected to get the command line arguments from
         stdout as is described by MaximalValid.khal_new_args.
         """
-        expected: str = 'khal new ' + ' '.join(MaximalValid.khal_new_args)
+        expected: str = 'khal new ' + ' '.join(Valid.khal_new_args)
         org_file: str = join(
             self.test_dir,
             'static',
             'agenda_items',
-            'maximal_valid.org')
+            'valid.org')
         cli_tester: str = join(self.test_dir, 'khalorg_tester')
 
         cat_args: tuple = ('cat', org_file)
@@ -112,8 +111,9 @@ class TestListParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            expected: str = (f"loglevel='CRITICAL', format='{default_format}', "
-                             "calendar='calendar', start='today', stop='2d'")
+            expected: str = (
+                f"loglevel='CRITICAL', format='{default_format}', "
+                "calendar='calendar', start='today', stop='2d'")
             expected_bytes: bytes = expected.encode('unicode_escape')
 
             message: str = f"\n\n{stdout}\n\n{expected_bytes}"

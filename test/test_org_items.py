@@ -5,8 +5,8 @@ from test.agenda_items import (
     AllDay,
     AllDayRecurring,
     BodyFirst,
-    MaximalValid,
-    MinimalValid,
+    Valid,
+    Minimal,
     MultipleTimstampsValid,
     NotFirstLevel,
     NoTimestamp,
@@ -38,16 +38,16 @@ class TestOrgAgendaItem(TestCase):
 
     def test_eq(self):
         """Two objects with the same arguments must be equal."""
-        a: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
-        b: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
+        a: OrgAgendaItem = OrgAgendaItem(*Valid.get_args())
+        b: OrgAgendaItem = OrgAgendaItem(*Valid.get_args())
         self.assertTrue(a == b)
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
         dummy_args = ["x", [OrgDate(1)], {}, ""]
-        agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
+        agenda_item: OrgAgendaItem = OrgAgendaItem(*Valid.get_args())
         for count, x in enumerate(dummy_args):
-            args: list = list(MaximalValid.get_args())  # copy object
+            args: list = list(Valid.get_args())  # copy object
             args[count] = x
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
@@ -68,8 +68,8 @@ class TestOrgAgendaItem(TestCase):
         """
         org_file_vs_obj: tuple = (
             ("body_first.org", BodyFirst),
-            ("maximal_valid.org", MaximalValid),
-            ("minimal_valid.org", MinimalValid),
+            ("valid.org", Valid),
+            ("minimal.org", Minimal),
             ("multiple_timestamps.org", MultipleTimstampsValid),
             ("no_time_stamp.org", NoTimestamp),
             ("not_first_level.org", NotFirstLevel),
@@ -142,7 +142,7 @@ class TestOrgAgendaItem(TestCase):
         ----
             patch_stdin: stdin's read function is patched
         """
-        org_file: str = read_org_test_file("maximal_valid.org")
+        org_file: str = read_org_test_file("valid.org")
         patch_stdin.return_value = org_file
         node: OrgNode = loads(org_file)
 
@@ -170,7 +170,7 @@ class TestAgendaOrgDates(TestCase):
 
     def test_orgdates(self):
         orgs: tuple = (
-            ("maximal_valid.org", MaximalValid),
+            ("valid.org", Valid),
             ("rrule_recurring.org", Recurring),
             ("body_first.org", BodyFirst),
             ("not_first_level.org", NotFirstLevel),
@@ -199,7 +199,7 @@ class TestCompose(TestCase):
             ('rrule_recurring_monthly.org', 'recurring_monthly.org'),
             ('rrule_recurring_allday.org', 'recurring_allday.org'),
             ('rrule_recurring_duplicates.org', 'recurring.org'),
-            ('rrule_recurring_not_supported.org', 'maximal_valid.org'),
+            ('rrule_recurring_not_supported.org', 'valid.org'),
             ('rrule_recurring_1th.org', 'recurring.org'),
             ('rrule_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
         )
