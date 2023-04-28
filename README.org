@@ -14,10 +14,8 @@
 ** Definitions
    - CalDav -> internet standard for client access to calendars [[https://en.wikipedia.org/wiki/CalDAV]]
    - Davmail -> CalDav exchange gateway [[https://davmail.sourceforge.net/e]]
-   - emacs -> text editor [[https://www.gnu.org/software/emacs/]]
    - khal -> command line calendar app [[https://github.com/pimutils/khal]]
    - khalel -> interface between emacs and khal [[https://gitlab.com/hperrey/khalel]]
-   - neovim -> text editor [[https://neovim.io/]]
    - nvim-orgmode -> org mode for neovim [[https://github.com/nvim-orgmode/orgmode]]
    - org -> plain text system for keeping notes, agendas and more. [[https://orgmode.org]]
    - vdirsyncer -> a command line tool for synchronizing calendars and 
@@ -32,14 +30,14 @@
    manipulate the agena items. To bridge the gap between khal and org mode,
    only 1 program exists called: khalel. However, this program is designed for
    emacs. Since there are also org mode users outside of emacs (e.g. neovim),
-   khalorg aims to be a general interface between khal and org mode.
+   ~khalorg~ aims to be a general interface between khal and org mode.
 
    Based on the above, the following workflow is desired:
    # CalDav server -> vdirsyncer
    # vdirsyncer -> khal
    # khal -> khal-orgmode
    # khal-orgmode -> org mode
-   #+begin_example
+   #+begin_example ascii
    ┌─────────────┐
    │CalDav server│
    └┬────────────┘
@@ -59,16 +57,19 @@
 
 ** Features
    - [X] Can be used by org mode for emacs, vim and neovim.
-   - [X] Import vdirsyncer calendar into org.   
-     It is possible to import calendar items from vdirsyncer into org. 
-   - [X] List a new org agenda item to vdirsyncer.  
-     Org's list functionality is used to export a single org item to a
-     vdirsyncer calendar. A heading and a plain timestamp are required for
-     this list.
-   - [ ] Edit an existing calendar item in vdirsyncer from org.  
-     Imported org agenda items can be edited and listed so that the
-     vdirsyncer items are updated instead of duplicated.              
-   - [X] Recurring items           
+   - [X] Vdirsyncer calendars can be manipulated by using the cli of ~khal~ as
+     the interface.
+   - [X] Convert an org agenda item into a ~khal~ agenda item by using the
+     ~khalorg new~ command.
+   - [x] Convert a ~khal~ agenda item into an org agenda item by using the
+     ~khalorg list~ command.
+   - [X] Recurring items are supported by providing and org repeater in the
+     timesstamp (e.g., ~+1w~) when using the ~khalorg new~ command. When using
+     ~khalorg list~ the ~RRULE~ information of ~khal~ is converted in de
+     appropriate org repeater. If the ~RRULE~ cannot be expressed easily by an
+     org repeater, the timestamps will be concatenated within 1 org agenda item
+     to achieve the desired recurrence.
+   - [-] Edit an existing ~khal~ agenda item.
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
    - [ ] Include timezones
@@ -77,49 +78,114 @@
 * Installation
   - For now, you need to clone this repository and run:
     #+begin_src bash
-    pip install -r requirements.txt
-    #+end_src
-    Next, you can use the executable ~khalorg~ to import and list org agenda
-    items. Make sure your khal date format is compatible with org, otherwise it
-    will not work. When running ~khal printformats~ you should get:
-    
-    #+begin_src
-    longdatetimeformat: 2013-12-21 Sat 21:45
-    datetimeformat: 2013-12-21 Sat 21:45
-    longdateformat: 2013-12-21 Sat
-    dateformat: 2013-12-21 Sat
-    timeformat: 21:45
-    #+end_src
+  pip install -r requirements.txt
+  #+end_src
+  Next, you can use the executable ~khalorg~ to import and list org agenda
+  items. Make sure your ~khal~ date format is compatible with org, otherwise
+  it will not work. When running ~khal printformats~ you should get:
 
-    Checkout section [[Usage]] for more info.
+  #+begin_src
+  longdatetimeformat: 2013-12-21 Sat 21:45
+  datetimeformat: 2013-12-21 Sat 21:45
+  longdateformat: 2013-12-21 Sat
+  dateformat: 2013-12-21 Sat
+  timeformat: 21:45
+  #+end_src
+
+  Checkout section [[Usage]] for more info.
 
 * Usage
+  Use ~khalorg --help~ to get information about the cli of ~khalorg~. The
+  following section discuss the ~khalorg~ commands that are available.
+
 ** List: from khal to org
-   Agenda items from khal can be converted to org items using the 
+   Agenda items from ~khal~ can be converted to org items using the 
    ~khalorg list~ command. For examples:
    #+begin_src bash
    khalorg list my_calendar today 90d > my_calendar.org 
    #+end_src
-   here, the khal agenda item of the calendar ~my_calendar~ are coverted to org
-   mode format and written to a file called ~my_calendar.org~. The range is
+   Here, the ~khal~ agenda items of the calendar ~my_calendar~ are converted to
+   org format and written to a file called ~my_calendar.org~. The range is
    specified from ~today~ till ~90d~ (90 days) in the future. For more
    information about the allowed date formats, check the ~khal list~ command,
-   which is used for this functionality. It is assumed that the khal calendar
-   called "my_calendar" exists. Make sure "my_calendar" is a calendar that
+   which is used for this functionality. It is assumed that the ~khal~ calendar
+   called ~my_calendar~ exists. Make sure ~my_calendar~ is a calendar that
    exists on your local file system.
 
-   The khal ~--format~ is defined in ~./src/static/org_format.txt~. If you want
-   to define your own format, you can create the follow file
-   ~$HOME/.config/khalorg/org_format.txt~ and add your format there. This
-   format will then be used instead of the default one.
+*** --format
+    If ~khalorg list --format~ option is not defined, the default one is used
+    which can be found at ~./src/static/khalorg_format.txt~. If you want to
+    define your own format, you have 2 options: you can use the 
+    ~khalorg list --format~ option, or you can place your custom format at
+    ~$HOME/.config/khalorg/khalorg_format.txt~ this format will then be used
+    instead of the default one that is shown below.
+    #+begin_src txt
+    * {title}
+    {timestamps}
+    :PROPERTIES:
+    :ATTENDEES: {attendees}
+    :CALENDAR: {calendar}
+    :CATEGORIES: {categories}
+    :LOCATION: {location}
+    :ORGANIZER: {organizer}
+    :STATUS: {status}
+    :UID: {uid}
+    :URL: {url}
+    :END:
+    {description}
+    #+end_src
+    the following keys are supported:
+    - attendees
+    - calendar
+    - categories
+    - description.
+    - location
+    - organizer
+    - rrule
+    - status
+    - timestamps
+    - title
+    - uid
+    - url
+
+*** Recurring items
+    The ~khalorg list~ command relies on the ~khal list~ command. Using this
+    command the ~RRULE~ of each item is retrieved to created the correct org
+    repeater. Only simple org repeaters are supported that have the following
+    form: ~+[number][h,w,m,y]~. Complex ~RRULEs~ are described by concatenating
+    the corresponding timestamps within 1 agenda item, resulting in a list of
+    items. For example, the agenda item below represents a weekly recurring
+    event where the first meeting was moved to another date, resulting in a
+    timestamp without a repeater, and one with a repeater.
+
+    #+begin_example
+    * Meeting
+    <2023-01-05 Thu 01:00-02:00>
+    <2023-01-08 Sun 01:00-02:00 +1w>
+    :PROPERTIES:
+    :UID: 123
+    :LOCATION: Somewhere
+    :ORGANIZER: Someone (someone@outlook.com)
+    :ATTENDEES: test@test.com, test2@test.com
+    :URL: www.test.com
+    :END:
+    Hello,
+
+    Lets have a meeting.
+
+    Regards,
+
+
+    Someone
+    #+end_example
 
 ** New: from org to khal
-   An org agenda item can be converted to a new khal agenda item by feeding the
-   org item through stdin to ~khalorg~ and specifying the khal calendar name as
-   a positional argument. For example, the consider the org item below, which
-   is saved as ~meeting.org~.
+   An org agenda item can be converted to a new ~khal~ agenda item by feeding
+   the org item through stdin to ~khalorg new~ and specifying the khal calendar
+   name as a positional argument. For example, the consider the org item below,
+   which is saved as ~meeting.org~.
    #+begin_example
-   * Meeting                                                            :LABEL:
+   * Meeting
    <2023-01-01 Sun 01:00-02:00 +1w>
    :PROPERTIES:
    :UID: 123
@@ -137,24 +203,30 @@
 
    Someone
    #+end_example
-   This item can be converted to the khal calendar called "my_calendar" as follows:
+   This item can be converted to the ~khal~ calendar called "my_calendar" as
+   follows:
    #+begin_src bash
    cat meeting.org | khalorg new my_calendar
    #+end_src
-   It is assumed that the khal calendar called "my_calendar" exists. Make sure
-   "my_calendar" is a calendar that exists on your local file system.
+   It is assumed that the ~khal~ calendar called "my_calendar" exists. Make
+   sure "my_calendar" is a calendar that exists on your local file system.
 
+*** Recurring items
    Note that this meeting is repeated every week (~+1w~). Currently, the
    following repeats are supported: daily, weekly, monthly or yearly.
    Bi-weekly (~+2w~) or other derivatives are not supported yet. These
    events repeat forever, unless you specify an end date using the `--until`
-   option. This option is passed on to khal so you can read about is in khal's
-   documentation.
+   option. This option is passed on to ~khal~ so you can read about is in
+   ~khal's~ documentation.
 
-   Optional attendees can be added to the ~ATTENDEES~ property field. The 
-   attendees will be added to the ~Attendees~ field of khal. Once you
-   synchronize khal with a server (e.g., outlook) an invitation will be send to
-   the attendees.
+*** Attendees
+   Optionally, attendees can be added to the ~ATTENDEES~ property field. The 
+   attendees will be added to the ~Attendees~ field of ~khal~. Once you
+   synchronize ~khal~ with a server (e.g., outlook) an invitation will be send
+   to the attendees.
+
+** Edit
+   - In progress
 
 ** Delete: 
    - In progress
@@ -192,23 +264,18 @@
 
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
-        
+
 * Improvements:
-  - [-] Khal only suppors daily, weekly, monthly, yearly from the cli, while
-    org support more complex option. Find a workaround to support all org
-    repeat patterns that can be created by 1 timestamp.
+  - [ ] ~khalorg new~ only support 1 timestamp per item. ~khalorg list~ support
+    many timestamps per item.
+  - [ ] ~Khal~ only supports daily, weekly, monthly, yearly from the cli, while
+    org support more complex option. As a workaround, the corresponding ~RRULE~
+    could be set to the ~khal~ event.
+  - [ ] For ~khalorg new~, complex repeat pattern are not supported. Only
+    patterns that can be expressed with the following pattern are supported
+    ~+{number}{letter}~ where ~number~ is a positive integer, and ~letter~ is:
+    d, w, m, or y. Complex patterns can be created by combine multiple 
+    (recurring) timestamps to create a complex combination. Multiple timestamps
+    per item are not yet supported, but will be in the future.
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
-  - [ ] Only 1 timestamp per item is supported.
-  - [ ] Complex repeat pattern are not supported. Only patterns that can be
-    expressed with the following pattern are supported ~+{number}{letter}~ 
-    where ~number~ is a positive integer, and ~letter~ is: d, w, m, or y.
-    Thereare workarounds for complex repeat patterns:
-    - ~khal new~: you can combine multiple (recurring) meetings to creat a
-      complex combination. Multiple timestamps per item are not yet supported,
-      so you need to do this with multiple meetings.
-    - ~khal list~: complex repeat pattern are listed as individual events, as
-      is the default behavior for khal (when the ~--once~ flag is off). 
-  - [ ] Store the logs. 
-  - [ ] NvimOrgDate can be replaced by OrgDate with the value
-    ~OrgDate._allow_short_range~ to ~False~.
