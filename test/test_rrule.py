@@ -26,12 +26,12 @@ class TestRepeater(TestCase):
         rule: str = (
             'FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO'
         )
-        repeater: tuple = rrulestr_to_org(rule)
-        self.assertEqual(repeater, ('+', '1', 'w'))
+        repeater: tuple | None = rrulestr_to_org(rule)
+        self.assertEqual(repeater, ('+', 1, 'w'))
 
     def test_rrule_to_org_not_supported(self):
         rule: str = (
             'FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO,TH;WKST=MO'
         )
-        repeater: tuple = rrulestr_to_org(rule)
-        self.assertEqual(repeater, ('', '', ''))
+        repeater: tuple | None = rrulestr_to_org(rule)
+        self.assertIsNone(repeater)

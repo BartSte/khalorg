@@ -1,11 +1,13 @@
 * Meeting                                                                :LABEL:
   <2023-01-01 Sun>
   :PROPERTIES:
-  :UID: 123
+  :ATTENDEES: test@test.com, test2@test.com
   :CALENDAR: outlook
+  :CATEGORIES: Something
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
-  :ATTENDEES: test@test.com, test2@test.com
+  :STATUS: CONFIRMED
+  :UID: 123
   :URL: www.test.com
   :END:
   Hello,

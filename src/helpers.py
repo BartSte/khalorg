@@ -16,6 +16,10 @@ def get_khal_format():
     with open(paths.khal_format) as file_:
         return file_.read()
 
+def get_default_khalorg_format():
+    """ TODO. """
+    with open(paths.default_format) as file_:
+        return file_.read()
 
 def get_khalorg_format():
     """ TODO. """

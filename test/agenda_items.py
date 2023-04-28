@@ -3,7 +3,7 @@ from datetime import datetime
 from orgparse.date import OrgDate
 
 _DESCRIPTION: str = (
-    "  Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
+    "Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone"
 )
 
 
@@ -32,8 +32,6 @@ class OrgArguments:
         return [
             cls.heading,
             cls.time_stamps,
-            cls.scheduled,
-            cls.deadline,
             cls.properties,
             cls.description]
 
@@ -42,12 +40,16 @@ class MaximalValid(OrgArguments):
     """Used to validate agenda item: maximal_valid.org."""
 
     heading = 'Meeting'
-    properties = {'ID': '123',
-                        'CALENDAR': 'outlook',
-                        "LOCATION": 'Somewhere',
-                        "ORGANIZER": 'Someone (someone@outlook.com)',
-                        "ATTENDEES": 'test@test.com, test2@test.com',
-                        "URL": 'www.test.com'}
+    properties = {
+        "ATTENDEES": 'test@test.com, test2@test.com',
+        "CALENDAR": 'outlook',
+        "CATEGORIES": 'Something',
+        "LOCATION": 'Somewhere',
+        "ORGANIZER": 'Someone (someone@outlook.com)',
+        "STATUS": 'CONFIRMED',
+        'UID': '123',
+        "URL": 'www.test.com',
+    }
     time_stamps = [OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
     org_dates = {
         '123': [
@@ -79,10 +81,10 @@ class MinimalValid(OrgArguments):
 
     heading: str = 'Meeting'
     time_stamps: list = [OrgDate(datetime(2023, 1, 1, 1, 0),
-                                     datetime(2023, 1, 1, 2, 0))]
+                                 datetime(2023, 1, 1, 2, 0))]
 
     org_dates = {
-        '123': [
+        '': [
             OrgDate(
                 (2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]}
 
@@ -118,7 +120,7 @@ class NotFirstLevel(MaximalValid):
 class BodyFirst(MaximalValid):
     """Used to validate item: not_first_level.org."""
 
-    description = _DESCRIPTION + '\n  '
+    pass
 
 
 class Recurring(MaximalValid):
@@ -132,7 +134,7 @@ class Recurring(MaximalValid):
     org_dates = {'123': [OrgDate((2023, 1, 1, 1, 0, 0),
                                  (2023, 1, 1, 2, 0, 0),
                                  True,
-                                 ('+', '1', 'w'))]}
+                                 ('+', 1, 'w'))]}
     command_line_args = {
         'start': '2023-01-01 Sun 01:00',
         'end': '2023-01-01 Sun 02:00',
@@ -185,7 +187,7 @@ class AllDayRecurring(MaximalValid):
     org_dates = {
         '123': [
             OrgDate(
-                (2023, 1, 1), (2023, 1, 1), True, ('+', '1', 'w'))]}
+                (2023, 1, 1), (2023, 1, 1), True, ('+', 1, 'w'))]}
 
     command_line_args = {
         'start': '2023-01-01 Sun',

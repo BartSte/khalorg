@@ -33,13 +33,21 @@ def remove_timestamps(text: str) -> str:
         text without active ranr timestamps
 
     """
+    '^(?:\s*<foo>\s*)+$'
     result: str = text
-    regex: str = f'(^[ ]*{OrgRegex.timestamp_long}[ ]*[\n]*)'
-    regex += f'|({OrgRegex.timestamp_long})'
-    result: str = re.sub(regex, '', result, re.M)
+    head: str = r'(^|\n)\s*'
+    tail: str = r'\s*(\n|$)'
+    timestamps: str = (
+        f'(?:{OrgRegex.timestamp_long})|'
+        f'(?:{OrgRegex.timestamp_short})|'
+        f'(?:{OrgRegex.timestamp_short_alt})|'
+        f'(?:{OrgRegex.timestamp})'
+    )
+    regex: str = f'({head}{timestamps}{tail})+'
+    result: str = re.sub(regex, '', result)
 
     # Remove indent first line.
-    result = re.sub(r'^\s+', '', result, re.MULTILINE)
+    result = re.sub(r'^\s+', '', result)
 
     return result
 
@@ -53,7 +61,8 @@ class OrgRegex:
     date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
     repeater: str = '[-+]{1,2}[0-9]+[a-z]+'
     timestamp: str = f'<{date}( {day})?( {time})?( {repeater})?>'
-    timestamp_short: str = f'(<{date} {day} {time})--({time} ({repeater})?>)'
+    timestamp_short: str = f'<{date}( {day})? {time}--{time}( {repeater})?>'
+    timestamp_short_alt: str = f'<{date}( {day})? {time}-{time}( {repeater})?>'
     timestamp_long: str = f'{timestamp}--{timestamp}'
 
 

@@ -1,3 +1,4 @@
+import paths
 import logging
 import test
 from os.path import join
@@ -5,7 +6,7 @@ from subprocess import PIPE, STDOUT, CalledProcessError, Popen, check_output
 from test.agenda_items import MaximalValid
 from unittest import TestCase
 
-from src.helpers import get_list_format, get_module_path
+from src.helpers import get_default_khalorg_format, get_module_path
 
 
 class TestNew(TestCase):
@@ -92,13 +93,16 @@ class TestListParser(TestCase):
         Expected that the khalorg_cli_tester executable return the
         calendar, the loglevel, the start time, and stop time.
         """
-        format: str = get_list_format()
+        default_format: str = get_default_khalorg_format()
+
         cli_tester: str = join(self.test_dir, 'khalorg_cli_tester')
         args: list = [
             cli_tester,
             '--loglevel',
             'CRITICAL',
             'list',
+            '--format',
+            default_format,
             'calendar',
             'today',
             '2d']
@@ -108,7 +112,7 @@ class TestListParser(TestCase):
             logging.critical(error.output.decode())
             self.fail(error.output.decode())
         else:
-            expected: str = (f"loglevel='CRITICAL', format='{format}', "
+            expected: str = (f"loglevel='CRITICAL', format='{default_format}', "
                              "calendar='calendar', start='today', stop='2d'")
             expected_bytes: bytes = expected.encode('unicode_escape')
 

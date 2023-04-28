@@ -3,11 +3,13 @@
   <2023-01-02 Mon 03:00-04:00>
   <2023-01-03 Tue 05:00-06:00>
   :PROPERTIES:
-  :UID: 123
+  :ATTENDEES: test@test.com, test2@test.com
   :CALENDAR: outlook
+  :CATEGORIES: Something
   :LOCATION: Somewhere
   :ORGANIZER: Someone (someone@outlook.com)
-  :ATTENDEES: test@test.com, test2@test.com
+  :STATUS: CONFIRMED
+  :UID: 123
   :URL: www.test.com
   :END:
   Hello,

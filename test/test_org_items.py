@@ -29,6 +29,7 @@ from src.org_items import (
     OrgAgendaItem,
     OrgAgendaItemError,
     OrgDateAgenda,
+    remove_timestamps,
 )
 
 
@@ -43,7 +44,7 @@ class TestOrgAgendaItem(TestCase):
 
     def test_not_eq(self):
         """Two objects with different args should not be equal."""
-        dummy_args = ["x", [OrgDate(1)], NvimOrgDate(1), None, {}, ""]
+        dummy_args = ["x", [OrgDate(1)], {}, ""]
         agenda_item: OrgAgendaItem = OrgAgendaItem(*MaximalValid.get_args())
         for count, x in enumerate(dummy_args):
             args: list = list(MaximalValid.get_args())  # copy object
@@ -56,12 +57,8 @@ class TestOrgAgendaItem(TestCase):
         text: str = (
             "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"
         )
-        time_stamp: list[OrgDate] = [
-            OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0)),
-            OrgDate((2023, 1, 1, 1, 0, 0))
-        ]
         expected: str = "Some text\n"
-        actual: str = OrgAgendaItem.remove_timestamps(text, time_stamp)
+        actual: str = remove_timestamps(text)
         self.assertEqual(actual, expected)
 
     def test_load_from_org_node_valid(self):
@@ -174,13 +171,11 @@ class TestAgendaOrgDates(TestCase):
     def test_orgdates(self):
         orgs: tuple = (
             ("maximal_valid.org", MaximalValid),
-            ("recurring.org", Recurring),
+            ("rrule_recurring.org", Recurring),
             ("body_first.org", BodyFirst),
-            ("minimal_valid.org", MinimalValid),
             ("not_first_level.org", NotFirstLevel),
             ("all_day.org", AllDay),
-            ("recurring.org", Recurring),
-            ("recurring_allday.org", AllDayRecurring),
+            ("rrule_recurring_allday.org", AllDayRecurring),
             ("short_timestamp.org", ShortTimestamp),
         )
         for org, expected in orgs:
@@ -200,13 +195,13 @@ class TestCompose(TestCase):
             khalorg_format: str = f.read()
 
         orgs: tuple = (
-            ('khal_list_recurring.org', 'recurring.org'),
-            ('khal_list_recurring_monthly.org', 'recurring_monthly.org'),
-            ('khal_list_recurring_allday.org', 'recurring_allday.org'),
-            ('khal_list_recurring_duplicates.org', 'recurring.org'),
-            ('khal_list_recurring_not_supported.org', 'maximal_valid.org'),
-            ('khal_list_recurring_1th.org', 'recurring.org'),
-            ('khal_list_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
+            ('rrule_recurring.org', 'recurring.org'),
+            ('rrule_recurring_monthly.org', 'recurring_monthly.org'),
+            ('rrule_recurring_allday.org', 'recurring_allday.org'),
+            ('rrule_recurring_duplicates.org', 'recurring.org'),
+            ('rrule_recurring_not_supported.org', 'maximal_valid.org'),
+            ('rrule_recurring_1th.org', 'recurring.org'),
+            ('rrule_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
         )
 
         for org, expected_org in orgs:
