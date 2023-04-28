@@ -5,6 +5,11 @@
     be activated temporarly.
   - Recurring items are now supported for the ~khal new~ command. Only ~+1d~,
     ~+1w~,  ~+1m~, and  ~+1y~ are supported for now.
-  - Added ListPostProcessor to eliminate duplicated item that originate from
-    ~khal --format~.
+  - Added OrgDateAgenda, which applies RRULE information to the timestamps and
+    groups them together within 1 org agenda item.
+  - Added OrgAgenda which is a collection of OrgAgendaItems. OrgAgenda objects
+    accept a format file that can be found in the static folder of the source
+    (`khalorg_format.txt`). If the user creates it in
+    ~$HOME/.config/khalorg/khalorg_format.txt~ the user can specify a personal
+    formatting file.
 
