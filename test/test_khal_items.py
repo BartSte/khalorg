@@ -62,7 +62,18 @@ class TestArgs(Mixin, TestCase):
         self.assertEqual(actual, expected)
 
     def test_load_from_org_all_day_event(self):
-        """ TODO. """
+        """Test case for loading an all-day event from Org AgendaItem.
+
+        This test case verifies that the method `load_from_org` of the
+        `NewArgs` class is able to load an all-day event from an
+        `OrgAgendaItem` object and produce the expected output. The test checks
+        whether the loaded event matches the expected event.
+
+        Raises:
+            AssertionError: If the loaded event does not match the expected
+            event.
+
+        """
         args: list = AllDay.get_args()
         agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
         actual: NewArgs = NewArgs()
@@ -275,25 +286,3 @@ def test_add_attendee_recurring_event(get_cli_runner: Callable):
     result = runner.invoke(main_khal, list_cmd.split(' '))
 
     assert result.output.count(attendees[0]) == days
-
-    # def test_rrule(self):
-    #     """
-    #     The {repeat-pattern} format of khal prints the ical description
-    #     of the repeat pattern of the event. This repeat pattern is converted to
-    #     an org repeat pattern by the convert_repeat_pattern function, which is
-    #     tested in this test.
-    #     """
-    #     org_vs_ics: tuple = (
-    #         ('recurring.org', 'repeat_pattern_weekly.org'),
-    #         ('recurring_monthly.org', 'repeat_pattern_monthly.org'),
-    #         ('recurring_allday_weekly.org', 'repeat_pattern_allday_weekly.org'),
-    #         ('recurring.org', 'repeat_pattern_weekly_no_end.org'),
-    #         ('recurring.org', 'repeat_pattern_weekly_1TH.org'),
-    #         ('maximal_valid.org', 'repeat_pattern_not_supported.org'),
-    #     )
-    #     for org, ics in org_vs_ics:
-    #         item: str = read_org_test_file(ics)
-    #         actual: str = substitude_with_placeholder(item, RegexReply())
-    #         expected: str = read_org_test_file(org)
-    #         message: str = f'Test file: {ics}\n\n\n{item}'
-    #         self.assertEqual(expected, actual, msg=message)

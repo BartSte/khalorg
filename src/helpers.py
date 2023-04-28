@@ -13,16 +13,42 @@ import paths
 
 
 def get_khal_format():
+    """
+    Returns the format that is used for the `khal list --format` command
+    that is used within the `khalorg list` command.
+
+    Returns
+    -------
+        the khal list format
+
+    """
     with open(paths.khal_format) as file_:
         return file_.read()
 
-def get_default_khalorg_format():
-    """ TODO. """
+
+def get_default_khalorg_format() -> str:
+    """
+    Returns the default format for the `khalorg list --format` option.
+
+    Returns
+    -------
+       the format as a str
+    """
     with open(paths.default_format) as file_:
         return file_.read()
 
+
 def get_khalorg_format():
-    """ TODO. """
+    """
+    Returns the user specified `khalorg list --format` optional argument.
+    This format should be stored at the `~/.config/khalorg/khalorg_format.txt`
+    file. This file does not exists untill it is created by the user.
+
+    Returns
+    -------
+        the user-specific format.
+
+    """
     path: str = paths.format if exists(paths.format) else paths.default_format
     with open(path) as file_:
         return file_.read()
@@ -117,15 +143,18 @@ def substitude_with_placeholder(text: str, callback: Callable,
 
 
 def get_indent(text: str, piece: str) -> list:
-    """Returns the indent for a `piece` of `text`. If `piece` is found multiple
+    """
+    Returns the indent for a `piece` of `text`. If `piece` is found multiple
     times, the returned list has a length that is larger than one.
 
     Args:
+    ----
         text: the text
-        piece: the str that needs to be found. 
+        piece: the str that needs to be found.
 
     Returns:
+    -------
         the indents that belong to the matches.
-        
+
     """
     return re.findall(rf'^(\s+){piece}', text, re.MULTILINE)

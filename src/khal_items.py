@@ -236,7 +236,7 @@ class KhalArgs(OrderedDict):
 
 
 class ListArgs(KhalArgs):
-    """ TODO. """
+    """ Arguments for het `khal list` command. """
 
     pass
 

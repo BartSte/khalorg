@@ -45,7 +45,7 @@ def _rrule_to_org(obj: rrule) -> tuple[str, int, str] | None:
     ----
         obj (rrule): An rrule object.
 
-    Returns
+    Returns:
     -------
         str: The original repeater string.
     """
@@ -63,7 +63,7 @@ def rrulestr_to_rrule(value: str) -> rrule:
     ----
         text (str): The RRULE text.
 
-    Returns
+    Returns:
     -------
         rrule: An rrule object.
     """
@@ -76,17 +76,23 @@ def rrulestr_to_rrule(value: str) -> rrule:
 
 def rrulestr_is_supported(value: str) -> bool:
     """
-    Todo:
-    ----
-    ----.
+    Check if an iCalendar recurrence rule string is supported.
+
+    This function checks if a given iCalendar recurrence rule string is
+    supported. An empty string is considered a supported rrule. The function
+    parses the string to an rrule object and checks if it is supported.
 
     Args:
     ----
-        value:
+        value (str): The iCalendar recurrence rule string to check.
 
-    Returns
+    Returns:
     -------
+        bool: True if the recurrence rule string is supported, False otherwise.
 
+    Raises:
+    ------
+        AssertionError: If `value` is not a str.
     """
     assert isinstance(value, str), '`value` must be a str'
 
@@ -101,15 +107,24 @@ def rrule_is_supported(rrule_obj: rrule,
                        max_days: int = MAX_WEEKDAYS,
                        unsupported: tuple = NOT_SUPPORTED) -> bool:
     """
-    TODO.
+    Check if a given rrule object is supported.
+
+    This function checks if a given rrule object is supported. The rrule is
+    considered unsupported if it has any of the attributes specified in
+    `unsupported`. The rrule is also considered unsupported if it has more than
+    `max_days` weekdays.
 
     Args:
     ----
-        obj:
+        rrule_obj (rrule): The rrule object to check for support.
+        max_days (int, optional): The maximum number of weekdays allowed.
+        Defaults to MAX_WEEKDAYS.
+        unsupported (tuple, optional): A tuple of strings representing
+        unsupported attributes. Defaults to NOT_SUPPORTED.
 
-    Returns
+    Returns:
     -------
-
+        bool: True if the rrule object is supported, False otherwise.
     """
     rrule_is_supported: bool = all(
         bool(getattr(rrule_obj, x, None)) is False
