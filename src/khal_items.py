@@ -131,6 +131,23 @@ class Calendar:
         """
         return self.config['locale']['longdatetimeformat']
 
+    def edit_attendees(
+            self,
+            attendees: tuple | list,
+            summary: str,
+            start: _Time,
+            end: _Time) -> None:
+        """Wraps edit_attendees.
+
+        Args:
+            attendees: list of attendees
+            summary: search query. The summary/title of the event is recommended.
+            start: start of the event.
+            end: end of the event.
+        """
+        if attendees:
+            edit_attendees(self.name, attendees, summary, start, end)
+
 
 class KhalArgsError(Exception):
     """Raised for an error in Args."""

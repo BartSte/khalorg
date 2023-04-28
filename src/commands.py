@@ -74,8 +74,6 @@ def new(calendar: str, until: str = '', **_) -> str:
     attendees: list = org_item.get_attendees()
     start: datetime | date = org_item.timestamps[0].start
     end: datetime | date = org_item.timestamps[0].end
-    if attendees:
-        # TODO should be a method of calendar
-        edit_attendees(calendar, attendees, args['summary'], start, end)
+    khal_calendar.edit_attendees(attendees, args['summary'], start, end)
 
     return stdout_khal
