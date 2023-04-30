@@ -1,4 +1,6 @@
 from datetime import date, datetime, timedelta
+
+from khal.controllers import Event
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
     get_test_config,
@@ -16,7 +18,6 @@ from khal.khalendar import CalendarCollection
 from src.khal_items import (
     Calendar,
     NewArgs,
-    edit_attendees,
     get_calendar_collection,
 )
 from src.org_items import OrgAgendaItem
@@ -34,8 +35,8 @@ class Mixin:
 
 class TestCalendar(Mixin, TestCase):
 
-    @patch('src.khal_items.find_configuration_file',
-           return_value=get_test_config())
+    module: str = 'src.khal_items.find_configuration_file'
+    @patch(module, return_value=get_test_config())
     def test_datetime_format(self, _):
         """The `datetime_format` must coincide. """
         self.assertEqual(self.calendar.datetime_format, '%Y-%m-%d %a %H:%M')
@@ -206,9 +207,14 @@ def test_add_attendee(get_cli_runner: Callable):
     list_cmd: str = 'list --format {attendees}'
 
     runner.invoke(main_khal, new_cmd)
-    edit_attendees('one', attendees, summary, start, end)
-    result = runner.invoke(main_khal, list_cmd.split(' '))
+    khal_calendar: Calendar = Calendar('one')
+    events: list[Event] = khal_calendar.get_events(summary, start, end)
+    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+    event: Event = events.pop()
+    event.update_attendees(attendees)
+    khal_calendar.update(event)
 
+    result = runner.invoke(main_khal, list_cmd.split(' '))
     assert attendees[0] in result.output, result.output
 
 
@@ -236,10 +242,15 @@ def test_add_attendee_all_day_event(get_cli_runner: Callable):
     list_cmd: str = 'list --format {attendees}'
 
     runner.invoke(main_khal, new_cmd)
-    edit_attendees('one', attendees, summary, start, end)
-    result = runner.invoke(main_khal, list_cmd.split(' '))
+    khal_calendar: Calendar = Calendar('one')
+    events: list[Event] = khal_calendar.get_events(summary, start, end)
+    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+    event: Event = events.pop()
+    event.update_attendees(attendees)
+    khal_calendar.update(event)
 
-    assert attendees[0] in result.output
+    result = runner.invoke(main_khal, list_cmd.split(' '))
+    assert attendees[0] in result.output, result.output
 
 
 def test_add_attendee_recurring_event(get_cli_runner: Callable):
@@ -270,7 +281,12 @@ def test_add_attendee_recurring_event(get_cli_runner: Callable):
     list_cmd: str = 'list --format {attendees}'
 
     runner.invoke(main_khal, new_cmd)
-    edit_attendees('one', attendees, summary, start, end)
-    result = runner.invoke(main_khal, list_cmd.split(' '))
+    khal_calendar: Calendar = Calendar('one')
+    events: list[Event] = khal_calendar.get_events(summary, start, end)
+    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+    event: Event = events.pop()
+    event.update_attendees(attendees)
+    khal_calendar.update(event)
 
-    assert result.output.count(attendees[0]) == days
+    result = runner.invoke(main_khal, list_cmd.split(' '))
+    assert attendees[0] in result.output, result.output

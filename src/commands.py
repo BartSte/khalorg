@@ -1,9 +1,15 @@
 import logging
 from datetime import date, datetime
 
+from khal.controllers import Event
+
 from src.helpers import get_khal_format, get_khalorg_format
 from src.khal_items import Calendar, ListArgs, NewArgs
 from src.org_items import OrgAgendaFile, OrgAgendaItem
+
+
+class KhalorgError(Exception):
+    """Raised when an error within Khalorg occurs."""
 
 
 def list_command(
@@ -77,6 +83,62 @@ def new(calendar: str, until: str = '', **_) -> str:
     end: datetime | date = org_item.timestamps[0].end
 
     if attendees:  # Attendees field is empty by default
-        khal_calendar.edit_attendees(attendees, args['summary'], start, end)
+        events: list[Event] = khal_calendar.get_events(args['summary'],
+                                                       start,
+                                                       end)
+        message: str = 'Event summary and timestamp are duplicated.'
+        assert len(events) <= 1, message
+
+        try:
+            event: Event = events.pop()
+        except IndexError as error:
+            message: str = 'New event could not be found.'
+            raise KhalorgError(message) from error
+        else:
+            event.update_attendees(attendees)
+            khal_calendar.update(event)
 
     return stdout_khal
+
+
+def edit(calendar: str, **_) -> str:
+    """
+    Todo:
+    ----
+    ----.
+
+    Args:
+    ----
+        calendar:
+        **_:
+
+    Returns:
+    -------
+
+    """
+    # TODO write tests for edit command
+    # Refactor new command
+    # Refactor edit command
+    khal_calendar: Calendar = Calendar(calendar)
+    org_item: OrgAgendaItem = OrgAgendaItem()
+
+    org_item.load_from_stdin()
+
+    # Currently, 1 timestamp is supported.
+    events: list[Event] = khal_calendar.get_events(
+        org_item.title,
+        org_item.timestamps[0].start,
+        org_item.timestamps[0].end,
+        org_item.properties.get('UID', '')
+    )
+
+    for event in events:
+        event.update_url(org_item.properties.get('URL'))
+        event.update_summary(org_item.title)
+        event.update_location(org_item.properties.get('LOCATION', ''))
+        event.update_attendees(org_item.properties.get('ATTENDEES', ''))
+        event.update_categories(org_item.properties.get('CATEGORIES', ''))
+        event.update_description(org_item.description)
+        khal_calendar.update(event)
+
+    return ''

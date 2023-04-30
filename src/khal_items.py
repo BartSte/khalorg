@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import Callable, Generator, Union
 
 from khal.cli import build_collection
+from khal.controllers import Event
 from khal.khalendar import CalendarCollection
 from khal.settings.settings import (
     ConfigObj,
@@ -16,49 +17,6 @@ from src.helpers import get_khalorg_format, subprocess_callback
 from src.org_items import OrgAgendaItem
 
 _Time = date | datetime
-
-
-def edit_attendees(
-        calendar: str | CalendarCollection,  # type: ignore
-        attendees: tuple | list,
-        summary: str,
-        start: _Time,
-        end: _Time) -> None:
-    """
-    For `calendar` the `attendees` are added to all events that adhere to
-    the `summary`, the `start` time, and the `stop` time.
-
-    When `calendar` is a CalendarCollection the step of searching for a
-    calendar collection can be omitted.
-
-    Args:
-    ----
-        calendar: the calendar name or a CalendarCollection object.
-        attendees: list of attendees
-        summary: search query. The summary/title of the event is recommended.
-        start: start of the event.
-        end: end of the event.
-    """
-    if isinstance(calendar, str):
-        calendar: CalendarCollection = get_calendar_collection(calendar)
-
-    logging.debug(f'Get events on date: {start}')
-    events: Generator = (
-        x for x in calendar.get_events_on(start)
-        if x.summary == summary and _replace(x.end, tzinfo=None) == end
-    )
-
-    for event in events:
-        event.update_attendees(attendees)
-        calendar.update(event)
-        logging.info(f'Event: {event.summary} was updated')
-
-
-def _replace(obj: _Time, **kwargs) -> _Time:
-    try:
-        return obj.replace(**kwargs)
-    except (AttributeError, TypeError):
-        return obj
 
 
 def get_calendar_collection(name: str) -> CalendarCollection:
@@ -104,6 +62,7 @@ class Calendar:
         new_item_args: list = ['khal', 'new']
         list_args: list = ['khal', 'list', '--format', list_format]
 
+        self._collection: CalendarCollection
         self.name: str = name
         self.config: dict = get_config(path_config)
         self.new_item: Callable = subprocess_callback(new_item_args)
@@ -131,22 +90,64 @@ class Calendar:
         """
         return self.config['locale']['longdatetimeformat']
 
-    def edit_attendees(
+    @property
+    def collection(self) -> CalendarCollection:
+        """
+        Todo:
+        ----
+        ----.
+
+        Returns:
+        -------
+
+        """
+        if not hasattr(self, '_collection'):
+            self._collection = get_calendar_collection(self.name)
+
+        return self._collection
+
+    def get_events(
             self,
-            attendees: tuple | list,
             summary: str,
             start: _Time,
-            end: _Time) -> None:
-        """Wraps edit_attendees.
+            end: _Time,
+            uid: str = '') -> list[Event]:
+        """TODO
 
         Args:
-            attendees: list of attendees
-            summary: search query. The summary/title of the event is recommended.
-            start: start of the event.
-            end: end of the event.
+            summary: 
+            start: 
+            end: 
+            uid: 
+
+        Returns:
+            
         """
-        if attendees:
-            edit_attendees(self.name, attendees, summary, start, end)
+        logging.debug(f'Get events on date: {start}')
+        events: Generator = (
+            x for x in self.collection.get_events_on(start)
+            if x.summary == summary and self._replace(x.end, tzinfo=None) == end
+        )
+
+        return [x for x in events if x.uid == uid or not uid]
+
+    @staticmethod
+    def _replace(obj: _Time, **kwargs) -> _Time:
+        try:
+            return obj.replace(**kwargs)
+        except (AttributeError, TypeError):
+            return obj
+
+    def update(self, event: Event) -> None:
+        """
+        Todo:
+        ----
+
+        Args:
+        ----
+            event:
+        """
+        self.collection.update(event)
 
 
 class KhalArgsError(Exception):
