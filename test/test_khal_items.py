@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from test.agenda_items import AllDay, Valid, Recurring
+from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
     get_test_config,
     khal_runner,
@@ -13,7 +13,12 @@ from click.testing import CliRunner
 from khal.cli import main_khal
 from khal.khalendar import CalendarCollection
 
-from src.khal_items import Calendar, NewArgs, edit_attendees, get_calendar_collection
+from src.khal_items import (
+    Calendar,
+    NewArgs,
+    edit_attendees,
+    get_calendar_collection,
+)
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
@@ -62,14 +67,16 @@ class TestArgs(Mixin, TestCase):
         self.assertEqual(actual, expected)
 
     def test_load_from_org_all_day_event(self):
-        """Test case for loading an all-day event from Org AgendaItem.
+        """
+        Test case for loading an all-day event from Org AgendaItem.
 
         This test case verifies that the method `load_from_org` of the
         `NewArgs` class is able to load an all-day event from an
         `OrgAgendaItem` object and produce the expected output. The test checks
         whether the loaded event matches the expected event.
 
-        Raises:
+        Raises
+        ------
             AssertionError: If the loaded event does not match the expected
             event.
 
@@ -164,25 +171,6 @@ def test_get_calendar_no_config(get_cli_runner):
     get_cli_runner()
     collection: CalendarCollection = get_calendar_collection('noneexisting')
     assert isinstance(collection, CalendarCollection)
-
-
-@pytest.fixture
-def get_cli_runner(tmpdir, monkeypatch) -> Callable:
-    """
-    `khal_runner` was borrowd from the `khal` repo at:
-    https://github.com/pimutils/khal/blob/master/tests/cli_test.py.
-
-    Args:
-    ----
-        tmpdir: build-in pytest fixture for temporary directories
-        monkeypatch: build-in pytest fixture for patching.
-
-    Returns:
-    -------
-        a test runner function
-
-    """
-    return khal_runner(tmpdir, monkeypatch)
 
 
 def test_empty_calendar(get_cli_runner):

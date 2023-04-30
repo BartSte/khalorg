@@ -239,6 +239,9 @@ class OrgDateAgenda:
         """
         return '\n'.join([str(x) for x in self.dates[uid]])
 
+    def rrules_as_str(self, uid: str) -> str:
+        return ';'.join(str(x) for x in self.rrules[uid])
+
 
 class OrgAgendaItem:
     """
@@ -540,6 +543,7 @@ class OrgAgendaFile:
             uid: str = item.properties['UID']
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
+                item.properties['RRULE'] = agenda_timestamps.rrules_as_str(uid)
                 uids.add(uid)
                 items.append(item)
 

@@ -266,16 +266,16 @@
   - [ ] Org item not recognized by neovim plugin when no blank line is present at the bottom.
 
 * Improvements:
-  - [-]  ~khalorg list~ support many timestamps per item. ~khalorg new~ only
+  - [ ]  ~khalorg list~ support many timestamps per item. ~khalorg new~ only
     support 1 timestamp per item. It is desired that ~khalorg new~ creates an
     event for each timestamp where all events share the same UID. This is not
-    possible through the ~khal new~ command. 
+    possible through the ~khal new~ command.
 
     The best solution is to replace ~khal new~ with ~khal import~, resulting in
     a new command called ~khalorg import~ (and deprecating ~khalorg new~). This
     has the following positive side effects:
     - More complex repeat patterns are possible.    
-    - The "edit_attendees" hack can be removed.
+    - The "edit_attendees" routine can be removed.
     - Multiple timestamps per org item can be processed.
 
     The following steps need to be performed:
@@ -283,7 +283,12 @@
       timestamp results in 1 Event object.
     - Concatenate the Event objects into 1 ics file, where all events have the
       same UID. 
-    - Feed the ics to the ~khal import~ command.
+    - Feed the ics to the ~khal import~ command using ~ImportArgs.as_list~
+
+    Alternatively, we could omit all of this and let an external tool (e.g.,
+    emacs) do the org to ical conversion and feed this to ~khal import~. This
+    will be more stable but gives no control over the process and adds an
+    external dependency.
 
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
