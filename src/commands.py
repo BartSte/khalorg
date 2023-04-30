@@ -2,8 +2,9 @@ import logging
 from datetime import date, datetime
 
 from src.helpers import get_khal_format, get_khalorg_format
-from src.khal_items import Calendar, ListArgs, NewArgs, edit_attendees
+from src.khal_items import Calendar, ListArgs, NewArgs
 from src.org_items import OrgAgendaFile, OrgAgendaItem
+
 
 def list_command(
         calendar: str,
@@ -74,6 +75,8 @@ def new(calendar: str, until: str = '', **_) -> str:
     attendees: list = org_item.get_attendees()
     start: datetime | date = org_item.timestamps[0].start
     end: datetime | date = org_item.timestamps[0].end
-    khal_calendar.edit_attendees(attendees, args['summary'], start, end)
+
+    if attendees:  # Attendees field is empty by default
+        khal_calendar.edit_attendees(attendees, args['summary'], start, end)
 
     return stdout_khal
