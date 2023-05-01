@@ -106,22 +106,63 @@ class Calendar:
 
         return self._collection
 
+    def edit_item(self,
+                  org_item: OrgAgendaItem,
+                  uid: str = '') -> None:
+        """
+        Todo:
+        ----
+        ----.
+
+        Args:
+        ----
+            khal_calendar:
+            org_item:
+        """
+        # Only 1 org time stamp per org_item is supported for now
+        events: list[Event] = self.get_events(
+            org_item.title,
+            org_item.timestamps[0].start,
+            org_item.timestamps[0].end,
+            uid
+        )
+
+        number_of_events: int = len(events)
+        if number_of_events != 1:
+            logging.warning(
+                f'Number of events found was not 1 but: {number_of_events}'
+            )
+
+        for event in events:
+            event.update_url(org_item.properties.get('URL'))
+            event.update_summary(org_item.title)
+            event.update_location(org_item.properties.get('LOCATION', ''))
+            event.update_attendees(org_item.split_property('ATTENDEES'))
+            event.update_categories(org_item.split_property('CATEGORIES'))
+            event.update_description(org_item.description)
+            self.collection.update(event)
+
     def get_events(
             self,
             summary: str,
             start: _Time,
             end: _Time,
             uid: str = '') -> list[Event]:
-        """TODO
+        """
+        Todo:
+        ----
+        ----.
 
         Args:
-            summary: 
-            start: 
-            end: 
-            uid: 
+        ----
+            summary:
+            start:
+            end:
+            uid:
 
         Returns:
-            
+        -------
+
         """
         logging.debug(f'Get events on date: {start}')
         events: Generator = (
@@ -142,6 +183,7 @@ class Calendar:
         """
         Todo:
         ----
+        ----.
 
         Args:
         ----

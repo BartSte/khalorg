@@ -391,9 +391,9 @@ class OrgAgendaItem:
         time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
         return attribute_equal and time_stamps_equal
 
-    def get_attendees(self, delimiter: str = ', ') -> list:
+    def split_property(self, key: str, delimiter: str = ', ') -> list:
         """
-        The attendees are stored as a str that is separated by a
+        It is assumed that the value is stored as a str that is separated by a
         `delimiter`. This function splits this string into a list using the
         `delimiter`.
 
@@ -403,15 +403,15 @@ class OrgAgendaItem:
 
         Returns:
         -------
-            attendees as list
+            value split by `delimiter` and retuned as a list
         """
-        attendees: str
+        value: str
         try:
-            attendees = self.properties['ATTENDEES']
+            value = self.properties[key]
         except KeyError:
             return []
         else:
-            return attendees.split(delimiter)
+            return value.split(delimiter)
 
     def __format__(self, spec: str) -> str:
         """

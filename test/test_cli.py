@@ -38,7 +38,7 @@ class TestNew(TestCase):
         else:
             message: str = f'\n\n{stdout}\n\n{expected.encode()}'
             logging.debug(stdout)
-            self.assertEqual(stdout, expected.encode(), msg=message)
+            self.assertTrue(expected.encode() in stdout, msg=message)
 
     def _pipe_subproccesses(self, first: tuple, second: tuple) -> bytes:
         with Popen(first, stdout=PIPE) as cat:

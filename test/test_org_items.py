@@ -1,17 +1,15 @@
 import sys
-
-from orgparse.date import OrgDate
 from test.agenda_items import (
     AllDay,
     AllDayRecurring,
     BodyFirst,
-    Valid,
     Minimal,
     MultipleTimstampsValid,
     NotFirstLevel,
     NoTimestamp,
     Recurring,
     ShortTimestamp,
+    Valid,
 )
 from test.helpers import (
     read_org_test_file,
@@ -21,6 +19,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from orgparse import loads
+from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 import paths
@@ -160,7 +159,7 @@ class TestOrgAgendaItem(TestCase):
         item.properties['ATTENDEES'] = (
             'test@test.com, test2@test.com, test3@test.com'
         )
-        actual: list = item.get_attendees()
+        actual: list = item.split_property('ATTENDEES')
         expected: list = ['test@test.com', 'test2@test.com', 'test3@test.com']
         self.assertEqual(actual, expected)
 
