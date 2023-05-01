@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from khal.controllers import Event
+from orgparse.date import OrgDate
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
     get_test_config,
@@ -181,21 +182,37 @@ def test_empty_calendar(get_cli_runner):
     assert not result.exception
 
 
-def test_add_attendee(get_cli_runner: Callable):
-    """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
+def test_calendar_edit_item(get_cli_runner: Callable):
+    """Test Calendar.edit_item
+
+    Creates a new event with the bare minimal information. Later, the
+    additional information is edited using the edit command. The result is
+    asserted using the `khal list` command.
+
+    Args:
+        get_cli_runner: 
     """
     runner: CliRunner = get_cli_runner()
     format: str = '%d.%m.%Y %H:%M'
+
     start: datetime = datetime.now()
     end: datetime = datetime.now() + timedelta(hours=1)
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)
-    attendees: list = ['test@test.com']
-    description: str = "Hello,\n\n Text.\n\nBye"
 
+    url: str = 'www.test.com'
     summary: str = 'Summary'
+    location: str = 'Location1, Location2'
+    attendees: str = 'test@test.com, test2@test.com'
+    categories: str = 'Category1, Category2'
+    description: str = "Hello,\n\n Text.\n\nBye"
+    properties: dict = {
+        'ATTENDEES': attendees,
+        'CATEGORIES': categories,
+        'LOCATION': location,
+        'URL': url
+    }
+
     new_cmd: list = [
         'new',
         start.strftime(format),
@@ -204,20 +221,32 @@ def test_add_attendee(get_cli_runner: Callable):
         '::',
         description
     ]
-    list_cmd: str = 'list --format {attendees}'
+    list_cmd: list = [
+        "list",
+        "--format", "{attendees} {categories} {location} {url}"
+    ]
 
     runner.invoke(main_khal, new_cmd)
     khal_calendar: Calendar = Calendar('one')
     events: list[Event] = khal_calendar.get_events(summary, start, end)
     assert len(events) == 1, 'Event summary and timestamp are duplicated.'
-    event: Event = events.pop()
-    event.update_attendees(attendees)
-    khal_calendar.update(event)
 
-    result = runner.invoke(main_khal, list_cmd.split(' '))
-    assert attendees[0] in result.output, result.output
+    org_item: OrgAgendaItem = OrgAgendaItem(
+        title=summary,
+        timestamps=[OrgDate(start, end)],
+        properties=properties,
+        description=description
+    )
 
+    khal_calendar.edit_item(org_item)
+    events: list[Event] = khal_calendar.get_events(summary, start, end)
+    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
 
+    result = runner.invoke(main_khal, list_cmd)
+    expected: str = f'{attendees} {categories} {location} {url}'
+    assert expected in result.output, result.output
+
+# TODO similar to the test above, edit attendees is replaced by Calendar.edit.
 def test_add_attendee_all_day_event(get_cli_runner: Callable):
     """
     After adding a new event, its addendees are added. When running khal

@@ -134,11 +134,15 @@ class Calendar:
             )
 
         for event in events:
+            # categories is processed as list by khal intenals without needing
+            # to split it based on its delimiters
+            categories: list = [org_item.properties.get('CATEGORIES', '')]
+
             event.update_url(org_item.properties.get('URL'))
             event.update_summary(org_item.title)
             event.update_location(org_item.properties.get('LOCATION', ''))
             event.update_attendees(org_item.split_property('ATTENDEES'))
-            event.update_categories(org_item.split_property('CATEGORIES'))
+            event.update_categories(categories)
             event.update_description(org_item.description)
             self.collection.update(event)
 
