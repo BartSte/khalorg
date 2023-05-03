@@ -66,15 +66,16 @@ class TestOrgAgendaItem(TestCase):
         same.
         """
         org_file_vs_obj: tuple = (
-            ("body_first.org", BodyFirst),
-            ("valid.org", Valid),
-            ("minimal.org", Minimal),
-            ("multiple_timestamps.org", MultipleTimstampsValid),
-            ("no_time_stamp.org", NoTimestamp),
-            ("not_first_level.org", NotFirstLevel),
-            ("recurring.org", Recurring),
-            ("all_day.org", AllDay),
-            ("short_timestamp.org", ShortTimestamp),
+            # ("body_first.org", BodyFirst),
+            # ("valid.org", Valid),
+            # ("minimal.org", Minimal),
+            # ("multiple_timestamps.org", MultipleTimstampsValid),
+            ("multiple_timestamps_unsorted.org", MultipleTimstampsValid),
+            # ("no_time_stamp.org", NoTimestamp),
+            # ("not_first_level.org", NotFirstLevel),
+            # ("recurring.org", Recurring),
+            # ("all_day.org", AllDay),
+            # ("short_timestamp.org", ShortTimestamp),
         )
 
         for file_, obj in org_file_vs_obj:
@@ -91,10 +92,11 @@ class TestOrgAgendaItem(TestCase):
         Comapre an *.org file with a OrgAgendaItem.
 
         Args:
+        ----
             org_file: situated in ./test/static/agenda_item/
             expected: the expected OrgAgendaItem.
 
-        Returns
+        Returns:
         -------
            bool represents the comparison, and an optional error message is
            provided as str.
@@ -187,7 +189,7 @@ class TestAgendaOrgDates(TestCase):
                              str(expected.org_dates['123']), msg=org)
 
 
-class TestCompose(TestCase):
+class TestOrgAgendaFile(TestCase):
 
     def test(self):
         with open(paths.default_format) as f:

@@ -149,8 +149,8 @@ class Calendar:
             
         """
         summary: str = org_items.title
-        start: datetime | date = org_items.timestamps[0].start
-        end: datetime | date = org_items.timestamps[0].end
+        start: datetime | date = org_items.first_timestamp.start
+        end: datetime | date = org_items.first_timestamp.end
         uid: str = org_items.properties.get('UID', '')
 
         logging.debug(f'Get events on date: {start}')
@@ -313,19 +313,13 @@ class NewArgs(KhalArgs):
             itself
 
         """
-        # For now, only 1 timestamp is supported
-        try:
-            time_stamp: OrgDate = item.timestamps[0]
-        except IndexError as error:
-            raise KhalArgsError('Timestamp missing in agenda item') from error
+
+        if item.first_timestamp.has_time():
+            format: str = self.datetime_format
         else:
+            format: str = self.date_format
 
-            if time_stamp.has_time():
-                format: str = self.datetime_format
-            else:
-                format: str = self.date_format
-
-            return self._load_from_org(time_stamp, item, format)
+        return self._load_from_org(item.first_timestamp, item, format)
 
     def _load_from_org(self,
                        time_stamp: OrgDate,

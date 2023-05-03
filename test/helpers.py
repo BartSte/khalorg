@@ -295,7 +295,7 @@ def assert_event_edited(runner: Any,
     """
     calendar: Calendar = Calendar(calendar_name)
     events: list[Event] = calendar.get_events(org_item)
-    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+    assert len(events) == 1, f'Number of events is {len(events)}'
 
     list_fields: tuple = 'attendees', 'categories', 'location', 'url'
     list_cmd: list = [

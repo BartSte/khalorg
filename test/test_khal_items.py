@@ -226,7 +226,8 @@ def test_calendar_edit_item(get_cli_runner: Callable):
     )
 
     create_event(runner, org_item)
-    org_item.properties['UID'] = assert_event_created('one', org_item)
+    event = assert_event_created('one', org_item)
+    org_item.properties['UID'] = event.uid
     edit_event('one', org_item)
     assert_event_edited(runner, 'one', org_item)
 

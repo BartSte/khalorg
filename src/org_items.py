@@ -33,7 +33,7 @@ def remove_timestamps(text: str) -> str:
         text without active ranr timestamps
 
     """
-    '^(?:\s*<foo>\s*)+$'
+    '^(?:\\s*<foo>\\s*)+$'
     result: str = text
     head: str = r'(^|\n)\s*'
     tail: str = r'\s*(\n|$)'
@@ -274,10 +274,52 @@ class OrgAgendaItem:
             properties: a dict containing the :PROPERTIES:
             body: all text that is not part of PROPERTIES
         """
+        self._timestamps: list[OrgDate] = []
+
         self.title: str = title
-        self.timestamps: list[OrgDate] = timestamps
+        self.timestamps = timestamps
         self.properties: dict = properties
         self.description: str = description
+
+    @property
+    def timestamps(self) -> list[OrgDate]:
+        """
+        Returns a list of OrgDate objects that are sorted by start date.
+
+        Returns
+        -------
+            list of sorted org dates
+
+        """
+        return self._timestamps
+
+    @timestamps.setter
+    def timestamps(self, value: list[OrgDate]):
+        """
+        Ensures the timestamps are sorted by start date.
+
+        Args:
+        ----
+            value: list of OrgDate objects
+        """
+        value.sort(key=lambda x: x.start)
+        self._timestamps = value
+
+    @property
+    def first_timestamp(self) -> OrgDate:
+        """
+        Returns the first timestamp of a sorted list of OrgDate objects.
+
+        Returns
+        -------
+            the OrgDate objects with the first start date.
+
+        """
+        try:
+            return self.timestamps[0]
+        except IndexError as error:
+            message: str = 'Timestamp missing in agenda item'
+            raise OrgAgendaItemError(message) from error
 
     def load_from_stdin(self) -> 'OrgAgendaItem':
         """
