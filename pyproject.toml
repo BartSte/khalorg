@@ -10,7 +10,7 @@ stubPath = "src/stubs"
 venv = ".venv"
 
 reportMissingImports = true
-reportMissingTypeStubs = false
+reportMissingTypeStubs = true
 
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
@@ -18,7 +18,7 @@ pythonPlatform = "Linux"
 executionEnvironments = []
 
 [tool.ruff]
-line-length = 80
+line-length = 79
 
 select = [
     "F",  # pyflakes
