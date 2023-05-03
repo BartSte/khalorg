@@ -1,11 +1,21 @@
 import os
+from datetime import date, datetime
 from os.path import join
+import re
 from test import static
-from typing import Callable
+from typing import Any, Callable
 
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
+from khal.cli import main_khal
+from khal.controllers import Event
+from munch import Munch
 
 from src.helpers import get_module_path
+from src.khal_items import (
+    Calendar,
+    NewArgs,
+)
+from src.org_items import OrgAgendaItem
 
 
 def get_test_config() -> str:
@@ -19,9 +29,10 @@ def read_org_test_file(org_file: str) -> str:
     directory is fixed and set to: /test/static/agenda_items.
 
     Args:
+    ----
         org_file (str): path to an org file.
 
-    Returns
+    Returns:
     -------
         str: org file is converted to a string.
 
@@ -32,7 +43,7 @@ def read_org_test_file(org_file: str) -> str:
 
 
 def compare_without_white_space(a, b) -> bool:
-    return compare_with_exclude(a, b, ('',  '\n', '\t'))
+    return compare_with_exclude(a, b, ('', '\n', '\t'))
 
 
 def compare_with_exclude(a: str, b: str, excludes: tuple = tuple()) -> bool:
@@ -80,10 +91,11 @@ def khal_runner(tmpdir, monkeypatch) -> Callable:
     is the default calendar.
 
     Args:
+    ----
         tmpdir: build-in pytest fixture for temporary directories
         monkeypatch: build-in pytest fixture for patching.
 
-    Returns
+    Returns:
     -------
         a test runner function
 
@@ -146,7 +158,8 @@ def get_config_template() -> str:
 
 
 class Config():
-    """Copied from khal.cli_test.
+    """
+    Copied from khal.cli_test.
 
     helper class for mocking vdirsyncer's config objects.
     """
@@ -190,3 +203,109 @@ class Config():
             'url': 'http://list.of/events/',
         },
     }
+
+
+def create_event(
+        runner: Any,
+        org_item: OrgAgendaItem,
+        repeat: str = '',
+        until: datetime | date | None = None):
+    """
+    Create a new event.
+
+    Args:
+    ----
+        runner: click runner
+        calendar_name: name of calendar
+        event_props: event values
+        start: start date
+        end: end date
+        repeat: set to daily, weekly, monhtly, or yearly
+    """
+    args: NewArgs = NewArgs()
+    args['--repeat'] = repeat
+
+    if isinstance(until, datetime):
+        args['--until'] = until.strftime(args.datetime_format)
+    elif isinstance(until, date):
+        args['--until'] = until.strftime(args.date_format)
+
+    args.load_from_org(org_item)
+
+    new_cmd: list = ['new'] + args.as_list()
+    stdout: Result = runner.invoke(main_khal, new_cmd)
+    assert stdout.exit_code == 0, stdout.output
+
+
+def assert_event_created(
+        calendar_name: str,
+        org_item: OrgAgendaItem,
+        recurring: bool = False) -> Event:
+    """
+    Test if an event exists based on its summary and timestamp.
+
+    Args:
+    ----
+      calendar_name: name of calendar
+      event_props: event values
+      start: start date
+      end: start date
+    """
+    calendar: Calendar = Calendar(calendar_name)
+    events: list[Event] = calendar.get_events(org_item)
+    assert len(events) == 1, f'Number of events was {len(events)}'
+
+    event: Event = events.pop()
+    assert event.uid, 'UID is empty'
+    assert recurring == event.recurring, f'recurring is {event.recurring}'
+
+    return event
+
+
+def edit_event(calendar_name: str, org_item: OrgAgendaItem):
+    """
+    Test if an event is edited properly. It is found based on its summary
+    and timestamp.
+
+    Args:
+    ----
+        runner: click runner
+        calendar_name: name of calendar
+        summary:
+        start: start date
+        end: end date
+    """
+    calendar: Calendar = Calendar(calendar_name)
+    calendar.edit_item(org_item)
+
+
+def assert_event_edited(runner: Any,
+                        calendar_name: str,
+                        org_item: OrgAgendaItem,
+                        count: int = 1):
+    """
+    Asserts whether the event, defined by event_props, start, and end
+    exitst.
+
+    Args:
+    ----
+        runner: click runner
+        calendar_name: name of calendar
+        org_item: org agenda item
+    """
+    calendar: Calendar = Calendar(calendar_name)
+    events: list[Event] = calendar.get_events(org_item)
+    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+
+    list_fields: tuple = 'attendees', 'categories', 'location', 'url'
+    list_cmd: list = [
+        "list",
+        "--format", ' '.join([f'{{{x}}}' for x in list_fields])
+    ]
+
+    result = runner.invoke(main_khal, list_cmd)
+    expected: str = ' '.join([org_item.properties[x.upper()]
+                              for x in list_fields])
+
+    number_of_matches: int = len(re.findall(expected, result.output))
+    assert count == number_of_matches, f'{number_of_matches=} for: \n{result.output}'

@@ -106,9 +106,7 @@ class Calendar:
 
         return self._collection
 
-    def edit_item(self,
-                  org_item: OrgAgendaItem,
-                  uid: str = '') -> None:
+    def edit_item(self, org_item: OrgAgendaItem) -> None:
         """
         Todo:
         ----
@@ -120,12 +118,7 @@ class Calendar:
             org_item:
         """
         # Only 1 org time stamp per org_item is supported for now
-        events: list[Event] = self.get_events(
-            org_item.title,
-            org_item.timestamps[0].start,
-            org_item.timestamps[0].end,
-            uid
-        )
+        events: list[Event] = self.get_events(org_item)
 
         number_of_events: int = len(events)
         if number_of_events != 1:
@@ -146,28 +139,20 @@ class Calendar:
             event.update_description(org_item.description)
             self.collection.update(event)
 
-    def get_events(
-            self,
-            summary: str,
-            start: _Time,
-            end: _Time,
-            uid: str = '') -> list[Event]:
-        """
-        Todo:
-        ----
-        ----.
+    def get_events(self, org_items: OrgAgendaItem) -> list[Event]:
+        """TODO
 
         Args:
-        ----
-            summary:
-            start:
-            end:
-            uid:
+            org_items: 
 
         Returns:
-        -------
-
+            
         """
+        summary: str = org_items.title
+        start: datetime | date = org_items.timestamps[0].start
+        end: datetime | date = org_items.timestamps[0].end
+        uid: str = org_items.properties.get('UID', '')
+
         logging.debug(f'Get events on date: {start}')
         events: Generator = (
             x for x in self.collection.get_events_on(start)

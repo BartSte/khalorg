@@ -1,9 +1,13 @@
 from datetime import date, datetime, timedelta
+from khal.controllers import Event, re
 
-from khal.controllers import Event
 from orgparse.date import OrgDate
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
+    assert_event_created,
+    assert_event_edited,
+    create_event,
+    edit_event,
     get_test_config,
     khal_runner,
 )
@@ -15,6 +19,7 @@ import pytest
 from click.testing import CliRunner
 from khal.cli import main_khal
 from khal.khalendar import CalendarCollection
+from munch import Munch, munchify
 
 from src.khal_items import (
     Calendar,
@@ -37,6 +42,7 @@ class Mixin:
 class TestCalendar(Mixin, TestCase):
 
     module: str = 'src.khal_items.find_configuration_file'
+
     @patch(module, return_value=get_test_config())
     def test_datetime_format(self, _):
         """The `datetime_format` must coincide. """
@@ -147,7 +153,7 @@ def get_cli_runner(tmpdir, monkeypatch) -> Callable:
         tmpdir: build-in pytest fixture for temporary directories
         monkeypatch: build-in pytest fixture for patching.
 
-    Returns:
+    Returns
     -------
         a test runner function
 
@@ -182,140 +188,99 @@ def test_empty_calendar(get_cli_runner):
     assert not result.exception
 
 
+_TEST_EVENT: dict = dict(
+    summary='summary',
+    description="hello,\n\n text.\n\nbye",
+    properties={
+        'ATTENDEES': 'test@test.com, test2@test.com',
+        'CATEGORIES': 'category1, category2',
+        'LOCATION': 'location1, location2',
+        'URL': 'www.test.com'
+    })
+
+
 def test_calendar_edit_item(get_cli_runner: Callable):
-    """Test Calendar.edit_item
+    """Test Calendar.edit_item.
 
     Creates a new event with the bare minimal information. Later, the
     additional information is edited using the edit command. The result is
     asserted using the `khal list` command.
 
     Args:
-        get_cli_runner: 
+    ----
+        get_cli_runner:
     """
+    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
     runner: CliRunner = get_cli_runner()
-    format: str = '%d.%m.%Y %H:%M'
 
     start: datetime = datetime.now()
     end: datetime = datetime.now() + timedelta(hours=1)
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)
-
-    url: str = 'www.test.com'
-    summary: str = 'Summary'
-    location: str = 'Location1, Location2'
-    attendees: str = 'test@test.com, test2@test.com'
-    categories: str = 'Category1, Category2'
-    description: str = "Hello,\n\n Text.\n\nBye"
-    properties: dict = {
-        'ATTENDEES': attendees,
-        'CATEGORIES': categories,
-        'LOCATION': location,
-        'URL': url
-    }
-
-    new_cmd: list = [
-        'new',
-        start.strftime(format),
-        end.strftime(format),
-        summary,
-        '::',
-        description
-    ]
-    list_cmd: list = [
-        "list",
-        "--format", "{attendees} {categories} {location} {url}"
-    ]
-
-    runner.invoke(main_khal, new_cmd)
-    khal_calendar: Calendar = Calendar('one')
-    events: list[Event] = khal_calendar.get_events(summary, start, end)
-    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
 
     org_item: OrgAgendaItem = OrgAgendaItem(
-        title=summary,
+        title=test_event.summary,
         timestamps=[OrgDate(start, end)],
-        properties=properties,
-        description=description
+        properties=test_event.properties,
+        description=test_event.description
     )
 
-    khal_calendar.edit_item(org_item)
-    events: list[Event] = khal_calendar.get_events(summary, start, end)
-    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
+    create_event(runner, org_item)
+    org_item.properties['UID'] = assert_event_created('one', org_item)
+    edit_event('one', org_item)
+    assert_event_edited(runner, 'one', org_item)
 
-    result = runner.invoke(main_khal, list_cmd)
-    expected: str = f'{attendees} {categories} {location} {url}'
-    assert expected in result.output, result.output
 
-# TODO similar to the test above, edit attendees is replaced by Calendar.edit.
-def test_add_attendee_all_day_event(get_cli_runner: Callable):
+def test_calendar_edit_item_all_day(get_cli_runner: Callable):
     """
     After adding a new event, its addendees are added. When running khal
     list, the attendees should be visible.
     """
+    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
     runner: CliRunner = get_cli_runner()
-    format: str = '%d.%m.%Y'
     start: datetime | date = datetime.date(datetime.today())
     end: datetime | date = start
-    attendees: list = ['test@test.com']
-    description: str = "Hello,\n\n Text.\n\nBye"
-    summary: str = 'Summary'
 
-    new_cmd: list = [
-        'new',
-        start.strftime(format),
-        end.strftime(format),
-        summary,
-        '::',
-        description
-    ]
-    list_cmd: str = 'list --format {attendees}'
+    org_item: OrgAgendaItem = OrgAgendaItem(
+        title=test_event.summary,
+        timestamps=[OrgDate(start, end)],
+        properties=test_event.properties,
+        description=test_event.description
+    )
 
-    runner.invoke(main_khal, new_cmd)
-    khal_calendar: Calendar = Calendar('one')
-    events: list[Event] = khal_calendar.get_events(summary, start, end)
-    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
-    event: Event = events.pop()
-    event.update_attendees(attendees)
-    khal_calendar.update(event)
-
-    result = runner.invoke(main_khal, list_cmd.split(' '))
-    assert attendees[0] in result.output, result.output
+    create_event(runner, org_item)
+    event: Event = assert_event_created('one', org_item)
+    org_item.properties['UID'] = event.uid
+    edit_event('one', org_item)
+    assert_event_edited(runner, 'one', org_item)
 
 
-def test_add_attendee_recurring_event(get_cli_runner: Callable):
+def test_calendar_edit_item_recurring(get_cli_runner: Callable):
     """
     After adding a new event, its addendees are added. When running khal
     list, the attendees should be visible.
     """
-    days: int = 7
-    runner: CliRunner = get_cli_runner(days=days)
-    format: str = '%d.%m.%Y %H:%M'
+    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
+    runner: CliRunner = get_cli_runner(days=7)
+
     start: datetime = datetime.now()
     end: datetime = datetime.now() + timedelta(hours=1)
+    until = datetime.now() + timedelta(days=7)
+
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)
-    attendees: list = ['test@test.com']
-    description: str = "Hello,\n\n Text.\n\nBye"
-    summary: str = 'Summary'
+    until = until.replace(second=0, microsecond=0)
 
-    new_cmd: list = [
-        'new',
-        '--repeat', 'daily',
-        start.strftime(format),
-        end.strftime(format),
-        summary,
-        '::',
-        description
-    ]
-    list_cmd: str = 'list --format {attendees}'
+    org_item: OrgAgendaItem = OrgAgendaItem(
+        title=test_event.summary,
+        timestamps=[OrgDate(start, end)],
+        properties=test_event.properties,
+        description=test_event.description
+    )
 
-    runner.invoke(main_khal, new_cmd)
-    khal_calendar: Calendar = Calendar('one')
-    events: list[Event] = khal_calendar.get_events(summary, start, end)
-    assert len(events) == 1, 'Event summary and timestamp are duplicated.'
-    event: Event = events.pop()
-    event.update_attendees(attendees)
-    khal_calendar.update(event)
+    create_event(runner, org_item, repeat='daily', until=until)
+    event: Event = assert_event_created('one', org_item, recurring=True)
 
-    result = runner.invoke(main_khal, list_cmd.split(' '))
-    assert attendees[0] in result.output, result.output
+    org_item.properties['UID'] = event.uid
+    edit_event('one', org_item)
+    assert_event_edited(runner, 'one', org_item, count=7)

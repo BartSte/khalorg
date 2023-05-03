@@ -98,8 +98,6 @@ def edit(calendar: str, **_) -> str:
     -------
 
     """
-    # TODO write tests for new command
-    # TODO write tests for edit command
     # Refactor new command
     # Refactor edit command
     khal_calendar: Calendar = Calendar(calendar)
