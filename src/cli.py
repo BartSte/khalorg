@@ -1,6 +1,9 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from functools import partial
+from os.path import join
 
-from src.commands import list_command, new, edit
+import paths
+from src.commands import edit, list_command, new
 from src.helpers import get_khalorg_format
 
 
@@ -36,45 +39,11 @@ def get_parser() -> ArgumentParser:
     return parent
 
 
-_NEW_DESCRIPTION: str = """Create a new khal item from an org item.
+def _read_static_txt(name: str) -> str:
+    path: str = join(paths.static_dir, name)
+    with open(path) as file_:
+        return file_.read()
 
-An org agenda item can be converted to a new khal agenda item by feeding the
-org item through stdin to `khalorg new` and specifying the khal calendar name
-as a positional argument.
-
-The following repeats are supported: daily, weekly, monthly or yearly. The
-events repeat forever, unless you specify an end date using the `--until`
-option."""
-
-_LIST_DESCRIPTION: str = """List khal items as org items.
-
-Agenda items from `khal` can be converted to org items using the `khalorg list`
-command. For example:
-
-khalorg list my_calendar today 90d > my_calendar.org
-
-Here, the `khal` agenda items of the calendar `my_calendar` are converted to
-org format and written to a file called `my_calendar.org`. The range is
-specified from `today` till `90d` (90 days) in the future.
-
-If ~khalorg list --format~ option is not defined, the default one is used
-which can be found at `./src/static/khalorg_format.txt`. If you want to
-define your own format, you have 2 options: you can use the
-`khalorg list --format` option, or you can place your custom format at
-`$HOME/.config/khalorg/khalorg_format.txt` this format will then be used
-instead of the default.
-
-The following keys are supported:
-- attendees     - calendar
-- categories    - description.
-- location      - organizer
-- rrule         - status
-- timestamps    - title
-- uid           - url
-"""
-
-_EDIT_DESCRIPTION = """Edit and existing khal event.
-"""
 
 class ParserInfo:
     """ Constructor arguments for the ArgumentParser objects."""
@@ -87,14 +56,19 @@ class ParserInfo:
     new: dict = dict(
         prog='khalorg new',
         formatter_class=RawDescriptionHelpFormatter,
-        description=_NEW_DESCRIPTION)
+        description=_read_static_txt('description_new_command.txt')
+    )
 
     list_command: dict = dict(
         formatter_class=RawDescriptionHelpFormatter,
-        prog='khalorg list', description=_LIST_DESCRIPTION)
+        prog='khalorg list',
+        description=_read_static_txt('description_list_command.txt')
+    )
 
     edit: dict = dict(
-        prog='khalorg edit', description=_EDIT_DESCRIPTION)
+        prog='khalorg edit',
+        description=_read_static_txt('description_edit_command.txt')
+    )
 
 
 class Args:

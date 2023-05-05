@@ -1,0 +1,9 @@
+Create a new khal item from an org item.
+
+An org agenda item can be converted to a new khal agenda item by feeding the
+org item through stdin to `khalorg new` and specifying the khal calendar name
+as a positional argument.
+
+The following repeats are supported: daily, weekly, monthly or yearly. The
+events repeat forever, unless you specify an end date using the `--until`
+option.

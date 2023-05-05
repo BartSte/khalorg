@@ -1,14 +1,15 @@
 import logging
-
-from khal.controllers import Event
+import sys
 
 from src.helpers import get_khal_format, get_khalorg_format
-from src.khal_items import Calendar, ListArgs, NewArgs
+from src.khal_items import (
+    Calendar,
+    CalendarProperties,
+    EditArgs,
+    ListArgs,
+    NewArgs,
+)
 from src.org_items import OrgAgendaFile, OrgAgendaItem
-
-
-class KhalorgError(Exception):
-    """Raised when an error within Khalorg occurs."""
 
 
 def list_command(
@@ -26,7 +27,7 @@ def list_command(
         start: start date (default: today)
         stop: end date (default: 1d)
 
-    Returns:
+    Returns
     -------
         stdout of the `khal list` command after post processing
 
@@ -45,65 +46,80 @@ def list_command(
     return format(agenda, khalorg_format)
 
 
-def new(calendar: str, until: str = '', **_) -> str:
+def new(calendar: str, until: str = '', org: str = '', **_) -> str:
     """
     Creates a new calendar item in a Khal calendar.
 
     It does this, by parsing an org agenda item, that is supplied through
     stdin, into a list of command line arguments. These arguments are used to
-    invoke the `khal new` command by calling Calendar.new_item.
+    invoke the `khal new` command by calling Calendar.new_item. Alternatively,
+    the org item can be supplied through the keyword arg `org`.
+
+    After running the `khal new` command, properties are added to the event
+    using the Calendar.edit command. These properties cannot be added through
+    the `khal new` command, so this is a workaround.
 
     Args:
     ----
         calendar: name of the khal calendar.
         until: Stop an event repeating on this date.
+        org: omit the stdin and send the input as an argument
 
-    Returns:
+    Returns
     -------
         stdout of the `khal new` command
 
     """
-    args: NewArgs = NewArgs()
+    org = org or sys.stdin.read()
+
+    args_new: NewArgs = NewArgs()
+    args_edit: EditArgs = EditArgs()
     khal_calendar: Calendar = Calendar(calendar)
-    org_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
 
-    args['-u'] = until
-    args['-a'] = calendar
+    args_new['-u'] = until
+    args_new['-a'] = calendar
 
-    org_item.load_from_stdin()
-    args.load_from_org(org_item)
+    agenda_item.load_from_str(org)
+    args_new.load_from_org(agenda_item)
 
-    logging.debug(f'Khal args are: {args.as_list()}')
-    stdout_khal: str = khal_calendar.new_item(args.as_list())
+    logging.debug(f'Khal new args are: {args_new.as_list()}')
+    stdout_khal: str = khal_calendar.new_item(args_new.as_list())
 
-    # attendees are added after the `khal new` command.
-    if org_item.split_property('ATTENDEES'):  # Attendees field is empty by default
-        khal_calendar.edit_item(org_item)
+    args_edit.load_from_org(agenda_item)
+    args_edit['uid'] = ''  # new items should not have a uid
+    logging.debug(f'Khal edit args are: {args_edit.as_list()}')
+    khal_calendar.edit(CalendarProperties(**args_edit))
 
     return stdout_khal
 
 
-def edit(calendar: str, **_) -> str:
-    """
-    Todo:
-    ----
-    ----.
+def edit(calendar: str, org: str = '', **_) -> str:
+    """Edit an existing khal agenda item.
+
+    An existing khal agenda item is edited by supplying an org file with the
+    desired properties. Empty fields are interpreted as being actuall empty and
+    are thus not ignored.
+
+    The org file can be supplied through stdin or through the `org` keyword
+    argument.
+
+    Ensure the correct UID is available in the UID properties otherwise the
+    corresponding event cannot be found.
 
     Args:
     ----
-        calendar:
+        calendar: the name of the calendar.
+        org: omit the stdin and send the input as an argument
         **_:
-
-    Returns:
-    -------
-
     """
-    # Refactor new command
-    # Refactor edit command
+    org = org or sys.stdin.read()
+
+    args: EditArgs = EditArgs()
     khal_calendar: Calendar = Calendar(calendar)
-    org_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
 
-    org_item.load_from_stdin()
-    khal_calendar.edit_item(org_item)
-
+    agenda_item.load_from_str(org)
+    args.load_from_org(agenda_item)
+    khal_calendar.edit(CalendarProperties(**args))
     return ''

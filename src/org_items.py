@@ -28,7 +28,7 @@ def remove_timestamps(text: str) -> str:
     ----
         text: str containing time stamps
 
-    Returns:
+    Returns
     -------
         text without active ranr timestamps
 
@@ -104,7 +104,7 @@ class OrgDateAgenda:
         ----
             nodes (OrgNode | None): An OrgNode object or None. Defaults to None.
 
-        Returns:
+        Returns
         -------
             None.
         """
@@ -122,7 +122,7 @@ class OrgDateAgenda:
         ----
             org_file (str): The Org file contents as a string.
 
-        Returns:
+        Returns
         -------
             OrgDateAgenda: A new instance of the OrgDateAgenda class.
         """
@@ -137,7 +137,7 @@ class OrgDateAgenda:
         ----
             nodes (OrgNode): An OrgNode object.
 
-        Returns:
+        Returns
         -------
             None.
         """
@@ -155,7 +155,7 @@ class OrgDateAgenda:
         ----
             uid (str): The UID to create.
 
-        Returns:
+        Returns
         -------
             None.
         """
@@ -172,7 +172,7 @@ class OrgDateAgenda:
             timestamp (OrgDate): The date to add.
             rule (str): The recurrence rule to add.
 
-        Returns:
+        Returns
         -------
             None.
         """
@@ -213,7 +213,7 @@ class OrgDateAgenda:
             node: object that represents an org file
             allow_short_range: see OrgDate._allow_short_range
 
-        Returns:
+        Returns
         -------
             the UID, timestamp, and RRULE property of an OrgNode.
 
@@ -233,7 +233,7 @@ class OrgDateAgenda:
         ----
             uid:  the UID
 
-        Returns:
+        Returns
         -------
             item as a str
         """
@@ -316,20 +316,11 @@ class OrgAgendaItem:
 
         """
         try:
+
             return self.timestamps[0]
         except IndexError as error:
             message: str = 'Timestamp missing in agenda item'
             raise OrgAgendaItemError(message) from error
-
-    def load_from_stdin(self) -> 'OrgAgendaItem':
-        """
-        Load an agenda item from stdin.
-
-        Returns
-        -------
-            OrgAgendaItem: returns itself.
-        """
-        return self.load_from_str(sys.stdin.read())
 
     def load_from_str(self, text: str) -> 'OrgAgendaItem':
         """
@@ -339,7 +330,7 @@ class OrgAgendaItem:
         ----
             text: org agenda item as a str
 
-        Returns:
+        Returns
         -------
             the agenda item
 
@@ -355,7 +346,7 @@ class OrgAgendaItem:
         ----
             node: an org file that is parsed as `OrgNode`
 
-        Returns:
+        Returns
         -------
             OrgAgendaItem: returns itself.
 
@@ -379,7 +370,7 @@ class OrgAgendaItem:
         ----
             node:
 
-        Returns:
+        Returns
         -------
 
         """
@@ -394,7 +385,7 @@ class OrgAgendaItem:
         ----
             node: the agenda item as `OrgNode`
 
-        Returns:
+        Returns
         -------
             OrgNode: the agenda item.
 
@@ -422,7 +413,7 @@ class OrgAgendaItem:
             a: agenda item
             b: agenda item
 
-        Returns:
+        Returns
         -------
             bool: True if the items are equal.
 
@@ -443,7 +434,7 @@ class OrgAgendaItem:
         ----
             delimiter: str that separates attendees
 
-        Returns:
+        Returns
         -------
             value split by `delimiter` and retuned as a list
         """
@@ -479,7 +470,7 @@ class OrgAgendaItem:
         ----
             spec: a template where keys surrounded by "{}" will be formatted.
 
-        Returns:
+        Returns
         -------
             the formatted `spec`
 
@@ -513,7 +504,7 @@ class OrgAgendaItem:
         ----
             spec: the used spec is needed to determine the indent.
 
-        Returns:
+        Returns
         -------
             the indented timestamps
 
@@ -560,7 +551,7 @@ class OrgAgendaFile:
         ----
             nodes: An OrgNode object representing the parsed org file.
 
-        Returns:
+        Returns
         -------
             None.
         """
@@ -600,13 +591,13 @@ class OrgAgendaFile:
         ----
             spec: A string containing the format specifier.
 
-        Returns:
+        Returns
         -------
             A formatted string.
         """
         return '\n'.join(format(x, spec) for x in self.items)
 
-    @classmethod
+    @ classmethod
     def from_str(cls, items: str) -> 'OrgAgendaFile':
         """
         Creates a new instance of the OrgAgendaFile class from a string
@@ -616,7 +607,7 @@ class OrgAgendaFile:
         ----
             items: A string containing the org file.
 
-        Returns:
+        Returns
         -------
             An instance of the OrgAgendaFile class.
         """

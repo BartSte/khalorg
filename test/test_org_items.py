@@ -66,16 +66,16 @@ class TestOrgAgendaItem(TestCase):
         same.
         """
         org_file_vs_obj: tuple = (
-            # ("body_first.org", BodyFirst),
-            # ("valid.org", Valid),
-            # ("minimal.org", Minimal),
-            # ("multiple_timestamps.org", MultipleTimstampsValid),
+            ("body_first.org", BodyFirst),
+            ("valid.org", Valid),
+            ("minimal.org", Minimal),
+            ("multiple_timestamps.org", MultipleTimstampsValid),
             ("multiple_timestamps_unsorted.org", MultipleTimstampsValid),
-            # ("no_time_stamp.org", NoTimestamp),
-            # ("not_first_level.org", NotFirstLevel),
-            # ("recurring.org", Recurring),
-            # ("all_day.org", AllDay),
-            # ("short_timestamp.org", ShortTimestamp),
+            ("no_time_stamp.org", NoTimestamp),
+            ("not_first_level.org", NotFirstLevel),
+            ("recurring.org", Recurring),
+            ("all_day.org", AllDay),
+            ("short_timestamp.org", ShortTimestamp),
         )
 
         for file_, obj in org_file_vs_obj:
@@ -132,25 +132,6 @@ class TestOrgAgendaItem(TestCase):
             item: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
             self.assertEqual(item.title, "Heading")
             self.assertFalse(item.timestamps)
-
-    @patch.object(sys.stdin, "read")
-    def test_load_from_stdin(self, patch_stdin: Any):
-        """
-        Reading an org file from stdn or from an OrgNode must give the same
-        result.
-
-        Args:
-        ----
-            patch_stdin: stdin's read function is patched
-        """
-        org_file: str = read_org_test_file("valid.org")
-        patch_stdin.return_value = org_file
-        node: OrgNode = loads(org_file)
-
-        actual: OrgAgendaItem = OrgAgendaItem().load_from_stdin()
-        expected: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
-
-        self.assertTrue(actual == expected)
 
     def test_get_attendees(self):
         """

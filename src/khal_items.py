@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from datetime import date, datetime
-from typing import Callable, Generator, Union
+from typing import Callable, Generator, Iterable, TypedDict, Union
 
 from khal.cli import build_collection
 from khal.controllers import Event
@@ -19,6 +19,25 @@ from src.org_items import OrgAgendaItem
 _Time = date | datetime
 
 
+class CalendarProperties(TypedDict):
+    """ Properties of a khal Event. """
+
+    attendees: str
+    calendar: str
+    calendar: str
+    categories: list
+    description: str
+    end: datetime | date
+    location: str
+    organizer: str
+    rrule: str
+    start: datetime | date
+    status: str
+    summary: str
+    uid: str
+    url: str
+
+
 def get_calendar_collection(name: str) -> CalendarCollection:
     """
     Return the calendar collection for a specific calendar `name`.
@@ -27,7 +46,7 @@ def get_calendar_collection(name: str) -> CalendarCollection:
     ----
         name: name of the calendar
 
-    Returns:
+    Returns
     -------
         calendar collection
     """
@@ -47,6 +66,9 @@ class Calendar:
         list: export command (khal list)
         new_item: new command (khal new)
     """
+
+    MESSAGE_EDIT: str = ('When trying to edit an event, the number of events '
+                         'found was not 1 but: {}. The command was aborted.')
 
     def __init__(self, name: str):
         """
@@ -92,13 +114,14 @@ class Calendar:
 
     @property
     def collection(self) -> CalendarCollection:
-        """
-        Todo:
-        ----
-        ----.
+        """Returns the calendar collection of khal.
 
-        Returns:
+        It will be created once, and stored at `_collection`.
+
+
+        Returns
         -------
+            khal calendar collection.
 
         """
         if not hasattr(self, '_collection'):
@@ -106,60 +129,104 @@ class Calendar:
 
         return self._collection
 
-    def edit_item(self, org_item: OrgAgendaItem) -> None:
-        """
-        Todo:
-        ----
-        ----.
+    def edit(self, props: CalendarProperties) -> list[Event]:
+        """Edit an existing event.
+
+        The properties can be supplied through `props`.
+
+        If the UID property is empty, the event will be located using its
+        summary, start time, and end time. This may occur when an event is just
+        created when using, for example, the `khalorg new` command.
+
+        When editing a list of recurring events, khal will update the PROTO
+        event, i.e., the series of events, not the occurence. Therefore, only
+        the first event is send to `update_event`
 
         Args:
-        ----
-            khal_calendar:
-            org_item:
+            props: typed dict
+
+        Returns
+        -------
+            the edited events
+
         """
-        # Only 1 org time stamp per org_item is supported for now
-        events: list[Event] = self.get_events(org_item)
+        events: list[Event]
+        if props['uid']:
+            events = self.get_events(props['uid'])
+        else:
+            events = self.get_events_no_uid(props['summary'],
+                                            props['start'],
+                                            props['end'])
 
-        number_of_events: int = len(events)
-        if number_of_events != 1:
-            logging.warning(
-                f'Number of events found was not 1 but: {number_of_events}'
-            )
+        if len(events) == 0:
+            logging.error(self.MESSAGE_EDIT.format(len(events)))
+        else:
+            self.update_event(events.pop(), props)
 
-        for event in events:
-            # categories is processed as list by khal intenals without needing
-            # to split it based on its delimiters
-            categories: list = [org_item.properties.get('CATEGORIES', '')]
+        return events
 
-            event.update_url(org_item.properties.get('URL'))
-            event.update_summary(org_item.title)
-            event.update_location(org_item.properties.get('LOCATION', ''))
-            event.update_attendees(org_item.split_property('ATTENDEES'))
-            event.update_categories(categories)
-            event.update_description(org_item.description)
-            self.collection.update(event)
-
-    def get_events(self, org_items: OrgAgendaItem) -> list[Event]:
-        """TODO
+    def update_event(self, event: Event, props: CalendarProperties) -> Event:
+        """Update an event with `props`.
 
         Args:
-            org_items: 
+            event: the event
+            props: a typed dict
 
-        Returns:
-            
+        Returns
+        -------
+            the update version of `event`
+
         """
-        summary: str = org_items.title
-        start: datetime | date = org_items.first_timestamp.start
-        end: datetime | date = org_items.first_timestamp.end
-        uid: str = org_items.properties.get('UID', '')
+        event.update_url(props['url'])
+        event.update_summary(props['summary'])
+        event.update_location(props['location'])
+        event.update_attendees(props['attendees'])
+        event.update_categories(props['categories'])
+        event.update_description(props['description'])
 
-        logging.debug(f'Get events on date: {start}')
-        events: Generator = (
+        event.increment_sequence()
+        self.collection.update(event)
+
+        return event
+
+    def get_events(self, uid: str) -> list[Event]:
+        """Returns events that share the same uid.
+
+        Args:
+            uid: unique identifier
+
+        Returns
+        -------
+            a list of events
+        """
+        # For unknown reasons, the CalendarCollection.search method cannot find
+        # uids that are longer than 39 chars. Therefore, they are clipped and
+        # filtered with a list comprehension later on.
+        events: Iterable[Event] = self.collection.search(uid[-39:])
+        return [x for x in events if x.uid == uid or not uid]
+
+    def get_events_no_uid(
+            self,
+            summary: str,
+            start: _Time,
+            end: _Time) -> list[Event]:
+        """Return events that share the same summary, start time and stop time.
+
+        Args:
+            summary: summary/title of the event
+            start: start time
+            end: end time
+
+        Returns
+        -------
+            list of events
+        """
+        logging.info(f'Get events on date: {start}')
+        # TODO implement the timezone correctly
+        return [
             x for x in self.collection.get_events_on(start)
             if x.summary == summary and self._replace(x.end, tzinfo=None) == end
-        )
-
-        return [x for x in events if x.uid == uid or not uid]
+        ]
 
     @staticmethod
     def _replace(obj: _Time, **kwargs) -> _Time:
@@ -169,15 +236,6 @@ class Calendar:
             return obj
 
     def update(self, event: Event) -> None:
-        """
-        Todo:
-        ----
-        ----.
-
-        Args:
-        ----
-            event:
-        """
         self.collection.update(event)
 
 
@@ -290,6 +348,26 @@ class ListArgs(KhalArgs):
     pass
 
 
+class EditArgs(KhalArgs):
+    """ Arguments for the Calendar.edit command. """
+
+    def load_from_org(self, org_item: OrgAgendaItem):
+        self['summary'] = org_item.title
+        self['end'] = org_item.first_timestamp.end
+        self['start'] = org_item.first_timestamp.start
+        self['description'] = org_item.description
+
+        self['url'] = org_item.properties.get('URL' '')
+        self['uid'] = org_item.properties.get('UID' '')
+        self['rrule'] = org_item.properties.get('RRULE' '')
+        self['status'] = org_item.properties.get('STATUS' '')
+        self['calendar'] = org_item.properties.get('CALENDAR' '')
+        self['location'] = org_item.properties.get('LOCATION' '')
+        self['attendees'] = org_item.split_property('ATTENDEES')
+        self['organizer'] = org_item.properties.get('ORGANIZER' '')
+        self['categories'] = [org_item.properties.get('CATEGORIES' '')]
+
+
 class NewArgs(KhalArgs):
     """
     Loads the command line arguments for the `khal new` command
@@ -308,12 +386,11 @@ class NewArgs(KhalArgs):
             item: an OrgAgendaItem object.
             datetime_format: optionally, a timestamp format can be provided.
 
-        Returns:
+        Returns
         -------
             itself
 
         """
-
         if item.first_timestamp.has_time():
             format: str = self.datetime_format
         else:
@@ -351,7 +428,7 @@ class NewArgs(KhalArgs):
             time_stamp: the end time
             format: format
 
-        Returns:
+        Returns
         -------
             timestamp as a str
         """

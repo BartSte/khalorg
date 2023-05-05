@@ -1,7 +1,4 @@
 from datetime import date, datetime, timedelta
-from khal.controllers import Event, re
-
-from orgparse.date import OrgDate
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
     assert_event_created,
@@ -18,8 +15,10 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 from khal.cli import main_khal
+from khal.controllers import Event
 from khal.khalendar import CalendarCollection
 from munch import Munch, munchify
+from orgparse.date import OrgDate
 
 from src.khal_items import (
     Calendar,
@@ -261,12 +260,13 @@ def test_calendar_edit_item_recurring(get_cli_runner: Callable):
     After adding a new event, its addendees are added. When running khal
     list, the attendees should be visible.
     """
+    days = 7
     test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
     runner: CliRunner = get_cli_runner(days=7)
 
     start: datetime = datetime.now()
     end: datetime = datetime.now() + timedelta(hours=1)
-    until = datetime.now() + timedelta(days=7)
+    until = datetime.now() + timedelta(days=days - 1)
 
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)
@@ -284,4 +284,4 @@ def test_calendar_edit_item_recurring(get_cli_runner: Callable):
 
     org_item.properties['UID'] = event.uid
     edit_event('one', org_item)
-    assert_event_edited(runner, 'one', org_item, count=7)
+    assert_event_edited(runner, 'one', org_item, count=days)

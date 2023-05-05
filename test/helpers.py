@@ -1,18 +1,19 @@
 import os
+import re
 from datetime import date, datetime
 from os.path import join
-import re
 from test import static
 from typing import Any, Callable
 
 from click.testing import CliRunner, Result
 from khal.cli import main_khal
 from khal.controllers import Event
-from munch import Munch
 
 from src.helpers import get_module_path
 from src.khal_items import (
     Calendar,
+    CalendarProperties,
+    EditArgs,
     NewArgs,
 )
 from src.org_items import OrgAgendaItem
@@ -32,7 +33,7 @@ def read_org_test_file(org_file: str) -> str:
     ----
         org_file (str): path to an org file.
 
-    Returns:
+    Returns
     -------
         str: org file is converted to a string.
 
@@ -95,7 +96,7 @@ def khal_runner(tmpdir, monkeypatch) -> Callable:
         tmpdir: build-in pytest fixture for temporary directories
         monkeypatch: build-in pytest fixture for patching.
 
-    Returns:
+    Returns
     -------
         a test runner function
 
@@ -252,7 +253,10 @@ def assert_event_created(
       end: start date
     """
     calendar: Calendar = Calendar(calendar_name)
-    events: list[Event] = calendar.get_events(org_item)
+    events: list[Event] = calendar.get_events_no_uid(
+        org_item.title,
+        org_item.first_timestamp.start,
+        org_item.first_timestamp.end)
     assert len(events) == 1, f'Number of events was {len(events)}'
 
     event: Event = events.pop()
@@ -275,8 +279,10 @@ def edit_event(calendar_name: str, org_item: OrgAgendaItem):
         start: start date
         end: end date
     """
+    args: EditArgs = EditArgs()
+    args.load_from_org(org_item)
     calendar: Calendar = Calendar(calendar_name)
-    calendar.edit_item(org_item)
+    calendar.edit(CalendarProperties(**args))
 
 
 def assert_event_edited(runner: Any,
@@ -294,8 +300,8 @@ def assert_event_edited(runner: Any,
         org_item: org agenda item
     """
     calendar: Calendar = Calendar(calendar_name)
-    events: list[Event] = calendar.get_events(org_item)
-    assert len(events) == 1, f'Number of events is {len(events)}'
+    events: list[Event] = calendar.get_events(org_item.properties['UID'])
+    assert len(events) == count, f'Number of events is {len(events)}'
 
     list_fields: tuple = 'attendees', 'categories', 'location', 'url'
     list_cmd: list = [
