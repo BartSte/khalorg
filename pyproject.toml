@@ -2,11 +2,13 @@
 include = ["main.py", "paths.py", "src", "test"]
 exclude = [
     "**/__pycache__",
-    "src/typestubs"
+    ".git",
+    ".pytest_cache",
+    "extras",
 ]
 ignore = []
 defineConstant = {}
-stubPath = "src/stubs"
+stubPath = "stubs"
 venv = ".venv"
 
 reportMissingImports = true
