@@ -74,7 +74,6 @@
    - [-] Delete an existing ~khal~ agenda item.
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
-   - [-] Include timezone information
    - [ ] Is available on PyPI.
 
 * Installation
@@ -224,9 +223,7 @@
     Personally, when I need to create a complex repeat pattern (or when I need
     outlook specific items like a Teams invite), I create the event in outlook
     first. Next, I use ~khalorg edit~ to change the fields that need editing
-    (e.g., the description). For the future, an idea could be to used 
-    ~khal import~ instead of ~khal new~ for creating new event, as is explained
-    at [[Improvements]].
+    (e.g., the description). 
 
 *** Attendees
     Optionally, attendees can be added to the ~ATTENDEES~ property field. The 
@@ -236,22 +233,21 @@
 
 ** Edit
    Existing ~khal~ events can be updates by feeding an org file with the
-   corresponding UID through stdin to the ~khalorg edit~ command. For example, the
-   org agenda item of [[New]] can be altered and used as an input for 
-   ~khalorg edit~, as long as the UID remains untouched!
+   corresponding UID through stdin to the ~khalorg edit~ command. For example,
+   the org agenda item of [[New]] can be altered and used as an input for
+   ~khalorg edit~, as long as the UID remains untouched.
    #+begin_example
-   * Meeting
+   * Edited meeting
    <2023-01-01 Sun 01:00-02:00 +1w>
    :PROPERTIES:
    :UID: 123
-   :LOCATION: Somewhere2
-   :ORGANIZER: Someone2 (someone2@outlook.com)
-   :ATTENDEES: test2@test.com, test3@test.com
-   :URL: www.test2.com
+   :ORGANIZER: Someone (someone@outlook.com)
+   :ATTENDEES: other@test.com
    :END:
    Hello,
 
-   Lets have meeting 2.
+   I edited the meeting by removing the location and url. I also changed the
+   title and the attendees field.
 
    Regards,
 
@@ -308,14 +304,14 @@
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present
     at the bottom.
-  - [ ] After editing, an Overwritten Event error is raised by mycalsync. This
-    happens for recuring events.
 
 * Improvements:
   - [-] ~khalorg new~ only support 1 timestamp per item. It is desired that
     ~khalorg new~ creates an event for each timestamp where all events share
     the same UID. This is not possible through the ~khal new~ command. But can
     (maybe) be achieves by setting a complex RRULE.
+  - [ ] Timezones are not yet suppored, so ~khalorg~ will only work when you
+    agenda remain in the timezone that you specified within your ~khal~ config.
   - [ ] The `--until` flag can be replaced by a property in the org file.
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
