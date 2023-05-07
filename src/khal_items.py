@@ -13,7 +13,11 @@ from khal.settings.settings import (
 )
 from orgparse.date import OrgDate
 
-from src.helpers import get_khalorg_format, subprocess_callback
+from src.helpers import (
+    get_khalorg_format,
+    is_future,
+    subprocess_callback,
+)
 from src.org_items import OrgAgendaItem
 
 _Time = date | datetime
@@ -22,10 +26,10 @@ _Time = date | datetime
 class CalendarProperties(TypedDict):
     """ Properties of a khal Event. """
 
-    attendees: str
+    attendees: list[str]
     calendar: str
     calendar: str
-    categories: list
+    categories: list[str]
     description: str
     end: datetime | date
     location: str
@@ -151,6 +155,7 @@ class Calendar:
 
         """
         events: list[Event]
+
         if props['uid']:
             events = self.get_events(props['uid'])
         else:
@@ -158,12 +163,29 @@ class Calendar:
                                             props['start'],
                                             props['end'])
 
+        events = [x for x in events if is_future(x.end, self.now())]
+
         if len(events) == 0:
             logging.error(self.MESSAGE_EDIT.format(len(events)))
+
         else:
+            # Khal opdates the master/PROTO event (i.e., the series of events),
+            # instead of only the occurence. Therefore, only 1 event needs to
+            # be updated instead of the whole list.
             self.update_event(events.pop(), props)
 
         return events
+
+    def now(self) -> datetime:
+        """Returns datetime.now() for the local_timezone that is specified in
+        the khal config.
+
+        Returns
+        -------
+            now in the local timezone
+
+        """
+        return self.config['locale']['local_timezone'].localize(datetime.now())
 
     def update_event(self, event: Event, props: CalendarProperties) -> Event:
         """Update an event with `props`.
@@ -186,6 +208,7 @@ class Calendar:
 
         event.increment_sequence()
         self.collection.update(event)
+        self.collection.update_db()
 
         return event
 
@@ -352,20 +375,27 @@ class EditArgs(KhalArgs):
     """ Arguments for the Calendar.edit command. """
 
     def load_from_org(self, org_item: OrgAgendaItem):
-        self['summary'] = org_item.title
-        self['end'] = org_item.first_timestamp.end
-        self['start'] = org_item.first_timestamp.start
-        self['description'] = org_item.description
+        """Loads the org file such that it can be used as an input for the
+        Calendar.edit command.
 
-        self['url'] = org_item.properties.get('URL' '')
-        self['uid'] = org_item.properties.get('UID' '')
-        self['rrule'] = org_item.properties.get('RRULE' '')
-        self['status'] = org_item.properties.get('STATUS' '')
-        self['calendar'] = org_item.properties.get('CALENDAR' '')
-        self['location'] = org_item.properties.get('LOCATION' '')
-        self['attendees'] = org_item.split_property('ATTENDEES')
-        self['organizer'] = org_item.properties.get('ORGANIZER' '')
-        self['categories'] = [org_item.properties.get('CATEGORIES' '')]
+        Args:
+        ----
+            org_item: the org agenda item
+        """
+        self.update(CalendarProperties(
+            summary=org_item.title,
+            end=org_item.first_timestamp.end,
+            start=org_item.first_timestamp.start,
+            description=org_item.description,
+            attendees=org_item.split_property('ATTENDEES'),
+            url=str(org_item.properties.get('URL' '')),
+            uid=str(org_item.properties.get('UID' '')),
+            rrule=str(org_item.properties.get('RRULE' '')),
+            status=str(org_item.properties.get('STATUS' '')),
+            calendar=str(org_item.properties.get('CALENDAR' '')),
+            location=str(org_item.properties.get('LOCATION' '')),
+            organizer=str(org_item.properties.get('ORGANIZER' '')),
+            categories=[str(org_item.properties.get('CATEGORIES' ''))]))
 
 
 class NewArgs(KhalArgs):
