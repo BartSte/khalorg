@@ -217,6 +217,9 @@ def test_calendar_edit_item(get_cli_runner: Callable):
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)
 
+    start_new: datetime = start + timedelta(days=1)
+    end_new: datetime = end + timedelta(days=1)
+
     org_item: OrgAgendaItem = OrgAgendaItem(
         title=test_event.summary,
         timestamps=[OrgDate(start, end)],
@@ -226,6 +229,8 @@ def test_calendar_edit_item(get_cli_runner: Callable):
 
     create_event(runner, org_item)
     event = assert_event_created('one', org_item)
+
+    org_item.timestamps = [OrgDate(start_new, end_new)]
     org_item.properties['UID'] = event.uid
     edit_event('one', org_item)
     assert_event_edited(runner, 'one', org_item)
@@ -266,7 +271,7 @@ def test_calendar_edit_item_recurring(get_cli_runner: Callable):
 
     start: datetime = datetime.now()
     end: datetime = datetime.now() + timedelta(hours=1)
-    until = datetime.now() + timedelta(days=days - 1)
+    until = datetime.now() + timedelta(days=days)
 
     start = start.replace(second=0, microsecond=0)
     end = end.replace(second=0, microsecond=0)

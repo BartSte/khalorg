@@ -1,6 +1,5 @@
 import os
-import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from os.path import join
 from test import static
 from typing import Any, Callable
@@ -256,8 +255,8 @@ def assert_event_created(
     args: EditArgs = EditArgs()
     args.load_from_org(org_item)
 
-    events: list[Event] = calendar.get_events_no_uid(args['summary'], 
-                                                     args['start'], 
+    events: list[Event] = calendar.get_events_no_uid(args['summary'],
+                                                     args['start'],
                                                      args['end'])
     assert len(events) == 1, f'Number of events was {len(events)}'
 
@@ -305,15 +304,59 @@ def assert_event_edited(runner: Any,
     events: list[Event] = calendar.get_events(org_item.properties['UID'])
     assert len(events) == count, f'Number of events is {len(events)}'
 
-    list_fields: tuple = 'attendees', 'categories', 'location', 'url'
+    list_fields: list = [
+        'start-long',
+        'end-long',
+        'attendees',
+        'categories',
+        'location',
+        'url']
+
     list_cmd: list = [
         "list",
         "--format", ' '.join([f'{{{x}}}' for x in list_fields])
     ]
 
     result = runner.invoke(main_khal, list_cmd)
-    expected: str = ' '.join([org_item.properties[x.upper()]
-                              for x in list_fields])
+    expected: list[str] = _get_expected_list_command(calendar, org_item,
+                                                     list_fields, count)
+    assert all(x in result.output for x in expected)
 
-    number_of_matches: int = len(re.findall(expected, result.output))
-    assert count == number_of_matches, f'{number_of_matches=} for: \n{result.output}'
+
+def _get_expected_list_command(
+        calendar: Calendar,
+        org_item: OrgAgendaItem,
+        list_fields: list[str],
+        count: int = 1,
+        delta: timedelta = timedelta(0)) -> list[str]:
+    """Returns the expected list command for the "assert_event_edited"
+    function.
+
+    Args:
+        calendar: khal calendar
+        org_item: the org_item used for editing
+        list_fields: the fields used for the --format command
+        count: number of repeats
+        delta: timedelta between recurring events
+
+    Returns
+    -------
+       list with the expected fields.
+    """
+    start: datetime | date = org_item.first_timestamp.start
+    end: datetime | date = org_item.first_timestamp.end
+    if org_item.first_timestamp.has_time():
+        format: str = calendar.datetime_format
+    else:
+        format: str = calendar.date_format
+
+    expected: list = []
+    props: str = ' '.join([org_item.properties[x.upper()]
+                           for x in list_fields[2:]])
+    for _ in range(0, count - 1):
+        value: str = f'{start.strftime(format)} {end.strftime(format)} '
+        expected.append(value + props)
+        start = start + delta
+        end = end + delta
+
+    return expected

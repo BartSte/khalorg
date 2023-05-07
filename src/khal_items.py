@@ -205,6 +205,7 @@ class Calendar:
         event.update_attendees(props['attendees'])
         event.update_categories(props['categories'])
         event.update_description(props['description'])
+        event.update_start_end(props['start'], props['end']) # type: ignore
 
         event.increment_sequence()
         self.collection.update(event)
