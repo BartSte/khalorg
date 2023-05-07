@@ -1,6 +1,6 @@
 import logging
 from collections import OrderedDict
-from datetime import date, datetime
+from datetime import date, datetime, tzinfo
 from typing import Callable, Generator, Iterable, TypedDict, Union
 
 from khal.cli import build_collection
@@ -230,33 +230,34 @@ class Calendar:
 
     def get_events_no_uid(
             self,
-            summary: str,
-            start: _Time,
-            end: _Time) -> list[Event]:
+            summary_wanted: str,
+            start_wanted: _Time,
+            end_wanted: _Time) -> list[Event]:
         """Return events that share the same summary, start time and stop time.
 
+        Timezone information is not supported yet, so it is ignored by setting
+        the Event.end.tzinfo to None.
+
         Args:
-            summary: summary/title of the event
-            start: start time
-            end: end time
+            summary_wanted: summary/title of the event
+            start_wanted: start time
+            end_wanted: end time
 
         Returns
         -------
             list of events
         """
-        logging.info(f'Get events on date: {start}')
-        # TODO implement the timezone correctly
-        return [
-            x for x in self.collection.get_events_on(start)
-            if x.summary == summary and self._replace(x.end, tzinfo=None) == end
-        ]
+        def exists(summary: str, end: _Time) -> bool:
+            if isinstance(end, datetime):
+                logging.info(f'Timezone {end.tzinfo} is set to None.')
+                end = end.replace(tzinfo=None)
+            return end == end_wanted and summary == summary_wanted
 
-    @staticmethod
-    def _replace(obj: _Time, **kwargs) -> _Time:
-        try:
-            return obj.replace(**kwargs)
-        except (AttributeError, TypeError):
-            return obj
+        logging.info(f'Get events on date: {start_wanted}')
+        return [
+            event for event in self.collection.get_events_on(start_wanted)
+            if exists(event.summary, event.end)
+        ]
 
     def update(self, event: Event) -> None:
         self.collection.update(event)
@@ -382,10 +383,12 @@ class EditArgs(KhalArgs):
         ----
             org_item: the org agenda item
         """
+        end=org_item.first_timestamp.end
+        start=org_item.first_timestamp.start
         self.update(CalendarProperties(
             summary=org_item.title,
-            end=org_item.first_timestamp.end,
-            start=org_item.first_timestamp.start,
+            end=end,
+            start=start,
             description=org_item.description,
             attendees=org_item.split_property('ATTENDEES'),
             url=str(org_item.properties.get('URL' '')),

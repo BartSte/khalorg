@@ -253,10 +253,12 @@ def assert_event_created(
       end: start date
     """
     calendar: Calendar = Calendar(calendar_name)
-    events: list[Event] = calendar.get_events_no_uid(
-        org_item.title,
-        org_item.first_timestamp.start,
-        org_item.first_timestamp.end)
+    args: EditArgs = EditArgs()
+    args.load_from_org(org_item)
+
+    events: list[Event] = calendar.get_events_no_uid(args['summary'], 
+                                                     args['start'], 
+                                                     args['end'])
     assert len(events) == 1, f'Number of events was {len(events)}'
 
     event: Event = events.pop()
