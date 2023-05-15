@@ -490,7 +490,7 @@ class OrgAgendaItem:
                 rrule=self.properties['RRULE'],
                 status=self.properties['STATUS'],
                 url=self.properties['URL'],
-                until=self.properties['UNTIL'],
+                until=self.properties.get('UNTIL', ''),
                 description=self.description)
         except KeyError as error:
             message: str = 'Unsupported key encountered in `spec`'
