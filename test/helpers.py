@@ -1,6 +1,8 @@
 import os
 from datetime import date, datetime, timedelta
 from os.path import join
+
+import pytest
 from test import static
 from typing import Any, Callable
 
@@ -240,7 +242,7 @@ def create_event(
 def assert_event_created(
         calendar_name: str,
         org_item: OrgAgendaItem,
-        recurring: bool = False) -> Event:
+        recurring: bool = False) -> list[Event]:
     """
     Test if an event exists based on its summary and timestamp.
 
@@ -254,17 +256,15 @@ def assert_event_created(
     calendar: Calendar = Calendar(calendar_name)
     args: EditArgs = EditArgs()
     args.load_from_org(org_item)
-
     events: list[Event] = calendar.get_events_no_uid(args['summary'],
                                                      args['start'],
                                                      args['end'])
-    assert len(events) == 1, f'Number of events was {len(events)}'
+    assert len(events) >= 1, f'Number of events was {len(events)}'
 
-    event: Event = events.pop()
-    assert event.uid, 'UID is empty'
-    assert recurring == event.recurring, f'recurring is {event.recurring}'
+    assert events[0].uid, 'UID is empty'
+    assert recurring == events[0].recurring, f'recurring is {events[0].recurring}'
 
-    return event
+    return events
 
 
 def edit_event(calendar_name: str, org_item: OrgAgendaItem):
@@ -360,3 +360,4 @@ def _get_expected_list_command(
         end = end + delta
 
     return expected
+

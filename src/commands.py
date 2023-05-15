@@ -32,21 +32,20 @@ def list_command(
         stdout of the `khal list` command after post processing
 
     """
-    khal_calendar: Calendar = Calendar(calendar)
     args: ListArgs = ListArgs()
-
     args['-a'] = calendar
     args['-f'] = get_khal_format()
     args['start'] = start
     args['stop'] = stop
 
+    khal_calendar: Calendar = Calendar(calendar)
     org_items: str = khal_calendar.list_command(args.as_list())
     agenda: OrgAgendaFile = OrgAgendaFile.from_str(org_items)
     agenda.apply_rrules()
     return format(agenda, khalorg_format)
 
 
-def new(calendar: str, until: str = '', org: str = '', **_) -> str:
+def new(calendar: str, **kwargs) -> str:
     """
     Creates a new calendar item in a Khal calendar.
 
@@ -70,31 +69,33 @@ def new(calendar: str, until: str = '', org: str = '', **_) -> str:
         stdout of the `khal new` command
 
     """
-    org = org or sys.stdin.read()
+    org = kwargs.get('org', '') or sys.stdin.read()
+
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item.load_from_str(org)
+    agenda_item.properties['UID'] = ''  # UID must be empty for new item
+
+    stdout: str = _new(calendar, agenda_item, kwargs.get('until', ''))
+    _edit(calendar, agenda_item)
+
+    return stdout
+
+
+def _new(calendar: str,
+         agenda_item: OrgAgendaItem,
+         until: str = '') -> str:
+    khal_calendar: Calendar = Calendar(calendar)
 
     args_new: NewArgs = NewArgs()
-    args_edit: EditArgs = EditArgs()
-    khal_calendar: Calendar = Calendar(calendar)
-    agenda_item: OrgAgendaItem = OrgAgendaItem()
-
     args_new['-u'] = until
     args_new['-a'] = calendar
-
-    agenda_item.load_from_str(org)
     args_new.load_from_org(agenda_item)
-
     logging.debug(f'Khal new args are: {args_new.as_list()}')
-    stdout_khal: str = khal_calendar.new_item(args_new.as_list())
 
-    args_edit.load_from_org(agenda_item)
-    args_edit['uid'] = ''  # new items should not have a uid
-    logging.debug(f'Khal edit args are: {args_edit.as_list()}')
-    khal_calendar.edit(CalendarProperties(**args_edit))
-
-    return stdout_khal
+    return khal_calendar.new_item(args_new.as_list())
 
 
-def edit(calendar: str, org: str = '', **_) -> str:
+def edit(calendar: str, **kwargs) -> str:
     """Edit an existing khal agenda item.
 
     An existing khal agenda item is edited by supplying an org file with the
@@ -113,13 +114,18 @@ def edit(calendar: str, org: str = '', **_) -> str:
         org: omit the stdin and send the input as an argument
         **_:
     """
-    org = org or sys.stdin.read()
+    org = kwargs.get('org', '') or sys.stdin.read()
+
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item.load_from_str(org)
+
+    return _edit(calendar, agenda_item)
+
+
+def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
+    khal_calendar: Calendar = Calendar(calendar)
 
     args: EditArgs = EditArgs()
-    khal_calendar: Calendar = Calendar(calendar)
-    agenda_item: OrgAgendaItem = OrgAgendaItem()
-
-    agenda_item.load_from_str(org)
     args.load_from_org(agenda_item)
     khal_calendar.edit(CalendarProperties(**args))
     return ''

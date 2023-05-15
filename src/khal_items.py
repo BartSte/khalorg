@@ -87,12 +87,23 @@ class Calendar:
 
         new_item_args: list = ['khal', 'new']
         list_args: list = ['khal', 'list', '--format', list_format]
+        self._new_item: Callable = subprocess_callback(new_item_args)
 
         self._collection: CalendarCollection
         self.name: str = name
         self.config: dict = get_config(path_config)
-        self.new_item: Callable = subprocess_callback(new_item_args)
         self.list_command: Callable = subprocess_callback(list_args)
+
+    def new_item(self, *args) -> str:
+        """TODO
+
+        Created to enable patching
+            *args: 
+
+        Returns:
+            
+        """
+        return self._new_item(*args)
 
     @property
     def date_format(self) -> str:

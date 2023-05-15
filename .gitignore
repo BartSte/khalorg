@@ -3,4 +3,5 @@ __pycache__
 *.shada
 *.vim
 *.vscode
+stubs
 davmail.log

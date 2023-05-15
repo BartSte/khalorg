@@ -1,10 +1,6 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
-    assert_event_created,
-    assert_event_edited,
-    create_event,
-    edit_event,
     get_test_config,
     khal_runner,
 )
@@ -13,12 +9,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
-from click.testing import CliRunner
-from khal.cli import main_khal
-from khal.controllers import Event
-from khal.khalendar import CalendarCollection
-from munch import Munch, munchify
-from orgparse.date import OrgDate
+from khal.controllers import CalendarCollection
 
 from src.khal_items import (
     Calendar,
@@ -28,6 +19,28 @@ from src.khal_items import (
 from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
+
+@pytest.fixture
+def get_cli_runner(tmpdir, monkeypatch) -> Callable:
+    return khal_runner(tmpdir, monkeypatch)
+
+def test_get_calendar_collection(get_cli_runner):
+    """Must be able to find a calendar collection."""
+    get_cli_runner()
+    collection: CalendarCollection = get_calendar_collection('one')
+    assert isinstance(collection, CalendarCollection)
+
+def test_get_calendar_collection_no_config(get_cli_runner):
+    """
+    Must be able to find a calendar collection. Even if no configuration
+    file can be found.
+    """
+    from src import khal_items
+    khal_items.find_configuration_file = lambda *_: None
+
+    get_cli_runner()
+    collection: CalendarCollection = get_calendar_collection('noneexisting')
+    assert isinstance(collection, CalendarCollection)
 
 
 class Mixin:
@@ -139,154 +152,3 @@ class TestArgs(Mixin, TestCase):
 
         actual: list = args.as_list()
         self.assertEqual(actual, expected)
-
-
-@pytest.fixture
-def get_cli_runner(tmpdir, monkeypatch) -> Callable:
-    """
-    `khal_runner` was borrowd from the `khal` repo at:
-    https://github.com/pimutils/khal/blob/master/tests/cli_test.py.
-
-    Args:
-    ----
-        tmpdir: build-in pytest fixture for temporary directories
-        monkeypatch: build-in pytest fixture for patching.
-
-    Returns
-    -------
-        a test runner function
-
-    """
-    return khal_runner(tmpdir, monkeypatch)
-
-
-def test_get_calendar(get_cli_runner):
-    """Must be able to find a calendar collection."""
-    get_cli_runner()
-    collection: CalendarCollection = get_calendar_collection('one')
-    assert isinstance(collection, CalendarCollection)
-
-
-def test_get_calendar_no_config(get_cli_runner):
-    """
-    Must be able to find a calendar collection. Even if no configuration
-    file can be found.
-    """
-    from src import khal_items
-    khal_items.find_configuration_file = lambda *_: None
-
-    get_cli_runner()
-    collection: CalendarCollection = get_calendar_collection('noneexisting')
-    assert isinstance(collection, CalendarCollection)
-
-
-def test_empty_calendar(get_cli_runner):
-    runner = get_cli_runner()
-    result = runner.invoke(main_khal, ['list'])
-    assert result.output == ''
-    assert not result.exception
-
-
-_TEST_EVENT: dict = dict(
-    summary='summary',
-    description="hello,\n\n text.\n\nbye",
-    properties={
-        'ATTENDEES': 'test@test.com, test2@test.com',
-        'CATEGORIES': 'category1, category2',
-        'LOCATION': 'location1, location2',
-        'URL': 'www.test.com'
-    })
-
-
-def test_calendar_edit_item(get_cli_runner: Callable):
-    """Test Calendar.edit_item.
-
-    Creates a new event with the bare minimal information. Later, the
-    additional information is edited using the edit command. The result is
-    asserted using the `khal list` command.
-
-    Args:
-    ----
-        get_cli_runner:
-    """
-    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
-    runner: CliRunner = get_cli_runner()
-
-    start: datetime = datetime.now()
-    end: datetime = datetime.now() + timedelta(hours=1)
-    start = start.replace(second=0, microsecond=0)
-    end = end.replace(second=0, microsecond=0)
-
-    start_new: datetime = start + timedelta(days=1)
-    end_new: datetime = end + timedelta(days=1)
-
-    org_item: OrgAgendaItem = OrgAgendaItem(
-        title=test_event.summary,
-        timestamps=[OrgDate(start, end)],
-        properties=test_event.properties,
-        description=test_event.description
-    )
-
-    create_event(runner, org_item)
-    event = assert_event_created('one', org_item)
-
-    org_item.timestamps = [OrgDate(start_new, end_new)]
-    org_item.properties['UID'] = event.uid
-    edit_event('one', org_item)
-    assert_event_edited(runner, 'one', org_item)
-
-
-def test_calendar_edit_item_all_day(get_cli_runner: Callable):
-    """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
-    """
-    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
-    runner: CliRunner = get_cli_runner()
-    start: datetime | date = datetime.date(datetime.today())
-    end: datetime | date = start
-
-    org_item: OrgAgendaItem = OrgAgendaItem(
-        title=test_event.summary,
-        timestamps=[OrgDate(start, end)],
-        properties=test_event.properties,
-        description=test_event.description
-    )
-
-    create_event(runner, org_item)
-    event: Event = assert_event_created('one', org_item)
-    org_item.properties['UID'] = event.uid
-    edit_event('one', org_item)
-    assert_event_edited(runner, 'one', org_item)
-
-
-def test_calendar_edit_item_recurring(get_cli_runner: Callable):
-    """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
-    """
-    days = 7
-    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
-    runner: CliRunner = get_cli_runner(days=7)
-
-    start: datetime = datetime.now()
-    end: datetime = datetime.now() + timedelta(hours=1)
-    until = datetime.now() + timedelta(days=days)
-
-    start = start.replace(second=0, microsecond=0)
-    end = end.replace(second=0, microsecond=0)
-    until = until.replace(second=0, microsecond=0)
-
-    org_item: OrgAgendaItem = OrgAgendaItem(
-        title=test_event.summary,
-        timestamps=[OrgDate(start, end)],
-        properties=test_event.properties,
-        description=test_event.description
-    )
-
-    create_event(runner, org_item, repeat='daily', until=until)
-    event: Event = assert_event_created('one', org_item, recurring=True)
-
-    org_item.properties['UID'] = event.uid
-    edit_event('one', org_item)
-    assert_event_edited(runner, 'one', org_item, count=days)

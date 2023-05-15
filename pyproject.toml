@@ -12,7 +12,7 @@ stubPath = "stubs"
 venv = ".venv"
 
 reportMissingImports = true
-reportMissingTypeStubs = true
+reportMissingTypeStubs = false
 
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
