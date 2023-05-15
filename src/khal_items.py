@@ -1,6 +1,6 @@
 import logging
 from collections import OrderedDict
-from datetime import date, datetime, tzinfo
+from datetime import date, datetime
 from typing import Callable, Generator, Iterable, TypedDict, Union
 
 from khal.cli import build_collection
@@ -94,16 +94,19 @@ class Calendar:
         self.config: dict = get_config(path_config)
         self.list_command: Callable = subprocess_callback(list_args)
 
-    def new_item(self, *args) -> str:
-        """TODO
+    def new_item(self, khal_new_args: list) -> str:
+        """Adds a new event to the calenadar.
 
-        Created to enable patching
-            *args: 
+        Runs `khal new` as a subprocess.
 
-        Returns:
-            
+        Args:
+            khal_new_args: command line args that would follow `khal new`.
+
+        Returns
+        -------
+            stdout of `khal new`
         """
-        return self._new_item(*args)
+        return self._new_item(khal_new_args)
 
     @property
     def date_format(self) -> str:
@@ -216,7 +219,7 @@ class Calendar:
         event.update_attendees(props['attendees'])
         event.update_categories(props['categories'])
         event.update_description(props['description'])
-        event.update_start_end(props['start'], props['end']) # type: ignore
+        event.update_start_end(props['start'], props['end'])  # type: ignore
         # event.update_rrule(props['rrule'])
 
         event.increment_sequence()
@@ -396,8 +399,8 @@ class EditArgs(KhalArgs):
         ----
             org_item: the org agenda item
         """
-        end=org_item.first_timestamp.end
-        start=org_item.first_timestamp.start
+        end = org_item.first_timestamp.end
+        start = org_item.first_timestamp.start
         self.update(CalendarProperties(
             summary=org_item.title,
             end=end,

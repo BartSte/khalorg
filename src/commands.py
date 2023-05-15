@@ -82,15 +82,17 @@ def new(calendar: str, **kwargs) -> str:
 
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
-    """TODO
+    """Adds `agenda_item` as an agenda item in khal `calendar`.
+
+    Calendar.new_item calls `khal new` where its command line argument are
+    extracted from `agenda_item` by NewArgs.
 
     Args:
-        calendar: 
-        agenda_item: 
-        until: 
+        calendar: the name of the khal calendar
+        agenda_item: org agenda item
 
     Returns:
-        
+       stdout of `khal new`. 
     """
     khal_calendar: Calendar = Calendar(calendar)
 
@@ -130,14 +132,17 @@ def edit(calendar: str, **kwargs) -> str:
 
 
 def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
-    """TODO
+    """Edits `agenda_item` that corresponds to an existing agenda item in a
+    khal `calendar`.
+
+    Calendar.edit f
 
     Args:
-        calendar: 
-        agenda_item: 
+        calendar: the name of the khal calendar
+        agenda_item: org agenda item
 
     Returns:
-        
+       stdout of `khal new`. 
     """
     khal_calendar: Calendar = Calendar(calendar)
 
