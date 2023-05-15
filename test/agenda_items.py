@@ -48,6 +48,7 @@ class Valid(OrgArguments):
         "ORGANIZER": 'Someone (someone@outlook.com)',
         "STATUS": 'CONFIRMED',
         'UID': '123',
+        'UNTIL': '2023-01-02 Mon',
         "URL": 'www.test.com',
     }
     time_stamps = [OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]
@@ -65,11 +66,13 @@ class Valid(OrgArguments):
         'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
+        '--until': '2023-01-02 Mon',
     }
 
     khal_new_args = ['-a Some_calendar',
                      '--location Somewhere',
                      '--url www.test.com',
+                     '--until 2023-01-02 Mon',
                      '2023-01-01 Sun 01:00',
                      '2023-01-01 Sun 02:00',
                      'Meeting',
@@ -142,7 +145,8 @@ class Recurring(Valid):
         'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
-        '--repeat': 'weekly'
+        '--repeat': 'weekly',
+        '--until': '2023-01-02 Mon',
     }
 
 
@@ -168,11 +172,13 @@ class AllDay(Valid):
         'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
+        '--until': '2023-01-02 Mon',
     }
 
     khal_new_args = ['-a Some_calendar',
                      '--location Somewhere',
                      '--url www.test.com',
+                     '--until 2023-01-02 Mon',
                      '2023-01-01 Sun',
                      '2023-01-01 Sun',
                      'Meeting',
@@ -196,7 +202,8 @@ class AllDayRecurring(Valid):
         'description': (f':: {_DESCRIPTION}'),
         '--location': 'Somewhere',
         '--url': 'www.test.com',
-        '--repeat': 'weekly'
+        '--repeat': 'weekly',
+        '--until': '2023-01-02 Mon',
     }
 
 

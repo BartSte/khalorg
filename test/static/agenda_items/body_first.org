@@ -17,4 +17,5 @@
   :STATUS: CONFIRMED
   :UID: 123
   :URL: www.test.com
+  :UNTIL: 2023-01-02 Mon
   :END:

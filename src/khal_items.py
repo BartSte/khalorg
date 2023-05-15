@@ -217,6 +217,7 @@ class Calendar:
         event.update_categories(props['categories'])
         event.update_description(props['description'])
         event.update_start_end(props['start'], props['end']) # type: ignore
+        # event.update_rrule(props['rrule'])
 
         event.increment_sequence()
         self.collection.update(event)
@@ -455,7 +456,8 @@ class NewArgs(KhalArgs):
             ('description', f':: {item.description}'),
             ('--location', item.properties.get('LOCATION', '')),
             ('--url', item.properties.get('URL', '')),
-            ('--repeat', self._get_repeat(time_stamp))
+            ('--repeat', self._get_repeat(time_stamp)),
+            ('--until', item.properties.get('UNTIL', ''))
         )
 
         for key, value in key_vs_value:

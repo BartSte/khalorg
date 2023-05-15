@@ -8,6 +8,7 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
+  :UNTIL: 2023-01-02 Mon
   :END:
 
   Hello,

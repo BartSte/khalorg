@@ -75,24 +75,31 @@ def new(calendar: str, **kwargs) -> str:
     agenda_item.load_from_str(org)
     agenda_item.properties['UID'] = ''  # UID must be empty for new item
 
-    stdout: str = _new(calendar, agenda_item, kwargs.get('until', ''))
+    stdout: str = _new(calendar, agenda_item)
     _edit(calendar, agenda_item)
 
     return stdout
 
 
-def _new(calendar: str,
-         agenda_item: OrgAgendaItem,
-         until: str = '') -> str:
+def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
+    """TODO
+
+    Args:
+        calendar: 
+        agenda_item: 
+        until: 
+
+    Returns:
+        
+    """
     khal_calendar: Calendar = Calendar(calendar)
 
-    args_new: NewArgs = NewArgs()
-    args_new['-u'] = until
-    args_new['-a'] = calendar
-    args_new.load_from_org(agenda_item)
-    logging.debug(f'Khal new args are: {args_new.as_list()}')
+    args: NewArgs = NewArgs()
+    args['-a'] = calendar
+    args.load_from_org(agenda_item)
+    logging.debug(f'Khal new args are: {args.as_list()}')
 
-    return khal_calendar.new_item(args_new.as_list())
+    return khal_calendar.new_item(args.as_list())
 
 
 def edit(calendar: str, **kwargs) -> str:
@@ -123,6 +130,15 @@ def edit(calendar: str, **kwargs) -> str:
 
 
 def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
+    """TODO
+
+    Args:
+        calendar: 
+        agenda_item: 
+
+    Returns:
+        
+    """
     khal_calendar: Calendar = Calendar(calendar)
 
     args: EditArgs = EditArgs()

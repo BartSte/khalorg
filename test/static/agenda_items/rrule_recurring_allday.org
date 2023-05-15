@@ -7,6 +7,7 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
+  :UNTIL: 2023-01-02 Mon
   :STATUS: CONFIRMED
   :CATEGORIES: Something
   :RRULE: FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO

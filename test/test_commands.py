@@ -83,6 +83,7 @@ def test_edit(runner):
 
 def get_org_item(delta: timedelta = timedelta(hours=1),
                  all_day: bool = False,
+                 until: str = '',
                  repeater: tuple | None = None) -> OrgAgendaItem:
     """Returns an org_item that is used for testing.
 
@@ -92,6 +93,7 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
     """
     start, end = get_start_end_now(delta=delta, all_day=all_day)
     test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
+    test_event.properties['UNTIL'] = until
     org_item: OrgAgendaItem = OrgAgendaItem(
         title=test_event.summary,
         timestamps=[OrgDate(start, end, repeater=repeater)],
@@ -166,10 +168,10 @@ def test_edit_recurring(runner):
     """
     days = 7
     calendar: Calendar = Calendar('one')
-    org_item: OrgAgendaItem = get_org_item(repeater=('+', 1, 'd'))
     until: date = datetime.today() + timedelta(days=days)
-
-    _new('one', org_item, until=until.strftime(calendar.date_format))
+    org_item: OrgAgendaItem = get_org_item(until=until.strftime(calendar.date_format), 
+                                           repeater=('+', 1, 'd'))
+    _new('one', org_item)
     events: list = assert_event_created('one', org_item, recurring=True)
 
     org_item.properties['UID'] = events[0].uid
