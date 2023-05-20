@@ -20,7 +20,7 @@ from src.helpers import (
 )
 from src.org_items import OrgAgendaItem
 
-_Time = date | datetime
+Time = date | datetime
 
 
 class CalendarProperties(TypedDict):
@@ -86,13 +86,14 @@ class Calendar:
         list_format: str = get_khalorg_format()
 
         new_item_args: list = ['khal', 'new']
-        list_args: list = ['khal', 'list', '--format', list_format]
-        self._new_item: Callable = subprocess_callback(new_item_args)
+        list_args: list = ['khal', 'list', '-df', '', '-f', list_format]
 
         self._collection: CalendarCollection
+        self._new_item: Callable = subprocess_callback(new_item_args)
+        self._list_command: Callable = subprocess_callback(list_args)
+
         self.name: str = name
         self.config: dict = get_config(path_config)
-        self.list_command: Callable = subprocess_callback(list_args)
 
     def new_item(self, khal_new_args: list) -> str:
         """Adds a new event to the calenadar.
@@ -107,6 +108,18 @@ class Calendar:
             stdout of `khal new`
         """
         return self._new_item(khal_new_args)
+
+    def list_command(self, khal_args: list) -> str:
+        """Prints the khal items as org item using the `khalorg_format.txt`.
+
+        Args:
+            khal_args: list containing the command line arg that are send to
+            `khal list`.
+
+        Returns:
+            stdout of the `khal list`
+        """
+        return self._list_command(khal_args)
 
     @property
     def date_format(self) -> str:
@@ -186,7 +199,7 @@ class Calendar:
             # Khal opdates the master/PROTO event (i.e., the series of events),
             # instead of only the occurence. Therefore, only 1 event needs to
             # be updated instead of the whole list.
-            self.update_event(events.pop(), props)
+            self.update_event(events[0], props)
 
         return events
 
@@ -214,13 +227,13 @@ class Calendar:
 
         """
         event.update_url(props['url'])
+        # event.update_rrule(props['rrule'])
         event.update_summary(props['summary'])
         event.update_location(props['location'])
         event.update_attendees(props['attendees'])
         event.update_categories(props['categories'])
         event.update_description(props['description'])
         event.update_start_end(props['start'], props['end'])  # type: ignore
-        # event.update_rrule(props['rrule'])
 
         event.increment_sequence()
         self.collection.update(event)
@@ -247,8 +260,8 @@ class Calendar:
     def get_events_no_uid(
             self,
             summary_wanted: str,
-            start_wanted: _Time,
-            end_wanted: _Time) -> list[Event]:
+            start_wanted: Time,
+            end_wanted: Time) -> list[Event]:
         """Return events that share the same summary, start time and stop time.
 
         Timezone information is not supported yet, so it is ignored by setting
@@ -263,7 +276,7 @@ class Calendar:
         -------
             list of events
         """
-        def exists(summary: str, end: _Time) -> bool:
+        def exists(summary: str, end: Time) -> bool:
             if isinstance(end, datetime):
                 logging.info(f'Timezone {end.tzinfo} is set to None.')
                 end = end.replace(tzinfo=None)
@@ -380,12 +393,6 @@ class KhalArgs(OrderedDict):
             return not self._is_option(key)
 
         return self._filter(condition)
-
-
-class ListArgs(KhalArgs):
-    """ Arguments for het `khal list` command. """
-
-    pass
 
 
 class EditArgs(KhalArgs):

@@ -169,8 +169,9 @@ def test_edit_recurring(runner):
     days = 7
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days)
-    org_item: OrgAgendaItem = get_org_item(until=until.strftime(calendar.date_format), 
-                                           repeater=('+', 1, 'd'))
+    org_item: OrgAgendaItem = get_org_item(
+        until=until.strftime(calendar.date_format), 
+        repeater=('+', 1, 'd'))
     _new('one', org_item)
     events: list = assert_event_created('one', org_item, recurring=True)
 

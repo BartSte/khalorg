@@ -1,3 +1,4 @@
+from datetime import date, datetime
 import logging
 import re
 import sys
@@ -9,7 +10,9 @@ from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.helpers import get_indent
-from src.rrule import get_orgdate, rrulestr_is_supported
+from src.rrule import get_rrule, set_org_repeater, rrulestr_is_supported
+
+Time = date | datetime
 
 
 class OrgAgendaItemError(Exception):
@@ -186,7 +189,7 @@ class OrgDateAgenda:
 
         if (empty_rule and new_timestamp) or (new_rule and supported_rule):
             self.rrules[uid].add(rule)
-            self.dates[uid].append(get_orgdate(timestamp, rule))
+            self.dates[uid].append(set_org_repeater(timestamp, rule))
         elif new_rule and not supported_rule:
             self.dates[uid].append(timestamp)
 
@@ -358,24 +361,19 @@ class OrgAgendaItem:
         self.properties = item.properties
         self.timestamps = item.get_timestamps(**kwargs)
         self.description = remove_timestamps(item.body)
+        # TODO
+        # self.update_rrule()
 
         return self
 
-    @classmethod
-    def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':
+    def update_rrule(self) -> str:
+        """TODO
+
+        Returns:
+            
         """
-        Constructs an OrgAgendaItem object from an OrgNode.
-
-        Args:
-        ----
-            node:
-
-        Returns
-        -------
-
-        """
-        obj = cls()
-        return obj.load_from_org_node(node)
+        self.properties['RRULE'] = get_rrule(self.first_timestamp, self.until)
+        return self.properties.get('RRULE', '')
 
     def get_first_agenda_item(self, node: OrgNode) -> OrgNode:
         """
@@ -395,6 +393,31 @@ class OrgAgendaItem:
             return items[0]
         except IndexError as error:
             raise OrgAgendaItemError(self.MESSAGE_INVALID_NODE) from error
+
+    @property
+    def until(self) -> OrgDate:
+        """TODO
+
+        Returns:
+            
+        """
+        return OrgDate.from_str(self.properties.get('UNTIL', ''))
+
+    @classmethod
+    def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':
+        """
+        Constructs an OrgAgendaItem object from an OrgNode.
+
+        Args:
+        ----
+            node:
+
+        Returns
+        -------
+
+        """
+        obj = cls()
+        return obj.load_from_org_node(node)
 
     def __eq__(self, other) -> bool:
         try:
