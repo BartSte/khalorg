@@ -6,7 +6,7 @@ from src.khal_items import (
     Calendar,
     CalendarProperties,
     EditArgs,
-    ListArgs,
+    KhalArgs,
     NewArgs,
 )
 from src.org_items import OrgAgendaFile, OrgAgendaItem
@@ -32,7 +32,7 @@ def list_command(
         stdout of the `khal list` command after post processing
 
     """
-    args: ListArgs = ListArgs()
+    args: KhalArgs = KhalArgs()
     args['-a'] = calendar
     args['-f'] = get_khal_format()
     args['start'] = start
@@ -91,8 +91,9 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
         calendar: the name of the khal calendar
         agenda_item: org agenda item
 
-    Returns:
-       stdout of `khal new`. 
+    Returns
+    -------
+       stdout of `khal new`.
     """
     khal_calendar: Calendar = Calendar(calendar)
 
@@ -141,8 +142,9 @@ def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
         calendar: the name of the khal calendar
         agenda_item: org agenda item
 
-    Returns:
-       stdout of `khal new`. 
+    Returns
+    -------
+       stdout of `khal new`.
     """
     khal_calendar: Calendar = Calendar(calendar)
 
