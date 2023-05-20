@@ -59,19 +59,17 @@
    - [X] Can be used by org mode for emacs, vim and neovim.
    - [X] Vdirsyncer calendars can be manipulated by using the cli of ~khal~ as
      the interface.
-   - [X] Convert an org agenda item into a ~khal~ agenda item by using the
-     ~khalorg new~ command.
-   - [x] Convert a ~khal~ agenda item into an org agenda item by using the
-     ~khalorg list~ command.
-   - [x] Recurring items are supported by providing an org repeater in the
-     timesstamp (e.g., ~+1w~) when using the ~khalorg new~ command. Note that
-     only hourly, weekly, monthly and yearly are supported. When using
-     ~khalorg list~ the ~RRULE~ information of ~khal~ is converted in de
-     appropriate org repeater. If the ~RRULE~ cannot be expressed easily by an
-     org repeater, the timestamps will be concatenated within 1 org agenda item
-     to achieve the desired recurrence.
-   - [x] Edit an existing ~khal~ agenda item.
-   - [-] Delete an existing ~khal~ agenda item.
+   - [X] ~khalorg new~: convert an org agenda item into a ~khal~ agenda item.
+   - [x] ~khalorg list~: convert a ~khal~ agenda item into an org agenda item.
+   - [x] ~khalorg edit~: edit an existing ~khal~ agenda item with org mode.
+   - [ ] ~khalorg delete~: delete an existing ~khal~ item.
+   - [-] Recurring items are supported by providing an org repeater in the
+     time stamp (e.g., ~+1w~). The following is supported:
+     - the following org repeaters are supported: ~+{integer}{d,w,m,y}~.
+     - ~khalorg new~ and ~khalorg edit --dates~ support 1 time stamp per org
+       agenda item.
+     - ~khalorg list~ concatenates timestamps that cannot be describes by an
+       org repeater, resulting in an org agenda item with multiple timestamps.
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
    - [ ] Is available on PyPI.
@@ -266,6 +264,9 @@
    - Currently, changing the timestamps and the RRULE. Is not yet supported.
    - Only the PROTO event is edited, i.e., the whole series is altered not only
      the occurence.
+   - ~khal edit~ will only update the dates + recurrence if the ~--dates~
+     flag is passed. This avoids unwanted edits to the start-stop date when
+     editing an event that is printed by ~khal list~.
 
 ** Delete: 
    - In progress
@@ -306,11 +307,20 @@
     at the bottom.
 
 * Improvements:
-  - [-] ~khalorg new~ only support 1 timestamp per item. It is desired that
-    ~khalorg new~ creates an event for each timestamp where all events share
-    the same UID. This is not possible through the ~khal new~ command. But can
-    (maybe) be achieves by setting a complex RRULE.
   - [ ] Timezones are not yet suppored, so ~khalorg~ will only work when you
     agenda remain in the timezone that you specified within your ~khal~ config.
   - [ ] Running Khal commands directly from a script in not straightforward.
     Therefore, khal is executed as a subprocess, launching a new interpreter.
+  - [ ] ~khalorg new~ and ~khal edit~ only support 1 timestamp per item.
+    However, it is desired that all timestamps within 1 org agenda item, end up
+    in 1 khal event, as is the case for the ~orgagenda~. To achieve this the
+    following could be build:
+    - [ ] When multiple timestamps without an org repeater are provided, find
+      the ~RRULE~ that describes them. Also, set the ~UNTIL~ date to the last
+      date. If no ~RRULE~ can be found, raise an error.
+    - [ ] When multiple timestamps with an org repeater are presented, try to
+      find the ~RRULE~ that describes them.
+    - [ ] When a mix or timestamps, with and without or repeater, are
+      presented, raise an error. This is not supported.
+
+

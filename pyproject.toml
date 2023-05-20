@@ -1,5 +1,5 @@
 [tool.pyright]
-include = ["main.py", "paths.py", "src", "test"]
+include = ["paths.py", "src", "test"]
 exclude = [
     "**/__pycache__",
     ".git",
@@ -9,7 +9,7 @@ exclude = [
 ignore = []
 defineConstant = {}
 stubPath = "stubs"
-venv = ".venv"
+venvPath = ".venv"
 
 reportMissingImports = true
 reportMissingTypeStubs = false
