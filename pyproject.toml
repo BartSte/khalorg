@@ -39,7 +39,7 @@ aggressive = 3
 experimental = true
 
 [tool.pytest.ini_options]
-addopts = "-rA"
+addopts = "-s -rA"
 testpaths = [
     "test"
 ]
