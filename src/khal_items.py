@@ -19,6 +19,7 @@ from src.helpers import (
     subprocess_callback,
 )
 from src.org_items import OrgAgendaItem
+from src.rrule import get_recurobject
 
 Time = date | datetime
 
@@ -27,16 +28,12 @@ class CalendarProperties(TypedDict):
     """ Properties of a khal Event. """
 
     attendees: list[str]
-    calendar: str
-    calendar: str
     categories: list[str]
     description: str
     end: datetime | date
     location: str
-    organizer: str
-    rrule: str
+    rrule: dict
     start: datetime | date
-    status: str
     summary: str
     uid: str
     url: str
@@ -96,11 +93,13 @@ class Calendar:
         self.config: dict = get_config(path_config)
 
     def new_item(self, khal_new_args: list) -> str:
-        """Adds a new event to the calenadar.
+        """
+        Adds a new event to the calenadar.
 
         Runs `khal new` as a subprocess.
 
         Args:
+        ----
             khal_new_args: command line args that would follow `khal new`.
 
         Returns
@@ -110,13 +109,16 @@ class Calendar:
         return self._new_item(khal_new_args)
 
     def list_command(self, khal_args: list) -> str:
-        """Prints the khal items as org item using the `khalorg_format.txt`.
+        """
+        Prints the khal items as org item using the `khalorg_format.txt`.
 
         Args:
+        ----
             khal_args: list containing the command line arg that are send to
             `khal list`.
 
-        Returns:
+        Returns
+        -------
             stdout of the `khal list`
         """
         return self._list_command(khal_args)
@@ -145,7 +147,8 @@ class Calendar:
 
     @property
     def collection(self) -> CalendarCollection:
-        """Returns the calendar collection of khal.
+        """
+        Returns the calendar collection of khal.
 
         It will be created once, and stored at `_collection`.
 
@@ -160,8 +163,10 @@ class Calendar:
 
         return self._collection
 
-    def edit(self, props: CalendarProperties) -> list[Event]:
-        """Edit an existing event.
+    def edit(self, props: CalendarProperties,
+             edit_dates: bool = False) -> list[Event]:
+        """
+        Edit an existing event.
 
         The properties can be supplied through `props`.
 
@@ -174,7 +179,10 @@ class Calendar:
         the first event is send to `update_event`
 
         Args:
-            props: typed dict
+        ----
+            props: typed dict containing agenda item properties
+            edit_dates: If set to True, the org time stamp and its recurrence are
+            also edited.
 
         Returns
         -------
@@ -199,12 +207,13 @@ class Calendar:
             # Khal opdates the master/PROTO event (i.e., the series of events),
             # instead of only the occurence. Therefore, only 1 event needs to
             # be updated instead of the whole list.
-            self.update_event(events[0], props)
+            self.update_event(events[0], props, edit_dates)
 
         return events
 
     def now(self) -> datetime:
-        """Returns datetime.now() for the local_timezone that is specified in
+        """
+        Returns datetime.now() for the local_timezone that is specified in
         the khal config.
 
         Returns
@@ -214,10 +223,16 @@ class Calendar:
         """
         return self.config['locale']['local_timezone'].localize(datetime.now())
 
-    def update_event(self, event: Event, props: CalendarProperties) -> Event:
-        """Update an event with `props`.
+    def update_event(
+            self,
+            event: Event,
+            props: CalendarProperties,
+            edit_dates: bool = False) -> Event:
+        """
+        Update an event with `props`.
 
         Args:
+        ----
             event: the event
             props: a typed dict
 
@@ -227,13 +242,15 @@ class Calendar:
 
         """
         event.update_url(props['url'])
-        # event.update_rrule(props['rrule'])
         event.update_summary(props['summary'])
         event.update_location(props['location'])
         event.update_attendees(props['attendees'])
         event.update_categories(props['categories'])
         event.update_description(props['description'])
-        event.update_start_end(props['start'], props['end'])  # type: ignore
+
+        if edit_dates:
+            event.update_start_end(props['start'], props['end'])
+            event.update_rrule(props['rrule'])
 
         event.increment_sequence()
         self.collection.update(event)
@@ -242,9 +259,11 @@ class Calendar:
         return event
 
     def get_events(self, uid: str) -> list[Event]:
-        """Returns events that share the same uid.
+        """
+        Returns events that share the same uid.
 
         Args:
+        ----
             uid: unique identifier
 
         Returns
@@ -262,12 +281,14 @@ class Calendar:
             summary_wanted: str,
             start_wanted: Time,
             end_wanted: Time) -> list[Event]:
-        """Return events that share the same summary, start time and stop time.
+        """
+        Return events that share the same summary, start time and stop time.
 
         Timezone information is not supported yet, so it is ignored by setting
         the Event.end.tzinfo to None.
 
         Args:
+        ----
             summary_wanted: summary/title of the event
             start_wanted: start time
             end_wanted: end time
@@ -395,35 +416,6 @@ class KhalArgs(OrderedDict):
         return self._filter(condition)
 
 
-class EditArgs(KhalArgs):
-    """ Arguments for the Calendar.edit command. """
-
-    def load_from_org(self, org_item: OrgAgendaItem):
-        """Loads the org file such that it can be used as an input for the
-        Calendar.edit command.
-
-        Args:
-        ----
-            org_item: the org agenda item
-        """
-        end = org_item.first_timestamp.end
-        start = org_item.first_timestamp.start
-        self.update(CalendarProperties(
-            summary=org_item.title,
-            end=end,
-            start=start,
-            description=org_item.description,
-            attendees=org_item.split_property('ATTENDEES'),
-            url=str(org_item.properties.get('URL' '')),
-            uid=str(org_item.properties.get('UID' '')),
-            rrule=str(org_item.properties.get('RRULE' '')),
-            status=str(org_item.properties.get('STATUS' '')),
-            calendar=str(org_item.properties.get('CALENDAR' '')),
-            location=str(org_item.properties.get('LOCATION' '')),
-            organizer=str(org_item.properties.get('ORGANIZER' '')),
-            categories=[str(org_item.properties.get('CATEGORIES' ''))]))
-
-
 class NewArgs(KhalArgs):
     """
     Loads the command line arguments for the `khal new` command
@@ -496,11 +488,51 @@ class NewArgs(KhalArgs):
             return time_stamp.start.strftime(format)
 
     def _get_repeat(self, time_stamp: OrgDate) -> str:
+        """Return the repeat in the `time_stamp` as an iCal RRULE. NewArgs only
+        supports: daily, weekly, monthly, and yearly.
+
+        Args:
+            time_stamp: an OrgDate time stamp
+
+        Returns
+        -------
+            iCal RRULE
+        """
         try:
             key: str = ''.join([str(x) for x in time_stamp._repeater])
-            return self.REPEAT_ORG_TO_KHAL[key]
-        except KeyError as error:
-            message: str = f'The repeat value of: {key} is not supported.'
-            raise KhalArgsError(message) from error
-        except TypeError:  # no repeater found
+            return self.REPEAT_ORG_TO_KHAL.get(key, '')
+        except TypeError:
+            logging.debug('No repeater found.')
             return ''
+
+
+class EditArgs(KhalArgs):
+    """ Arguments for the Calendar.edit command. """
+
+    def load_from_org(self, org_item: OrgAgendaItem):
+        """
+        Loads the org file such that it can be used as an input for the
+        Calendar.edit command.
+
+        Args:
+        ----
+            org_item: the org agenda item
+        """
+        end: Time = org_item.first_timestamp.end
+        start: Time = org_item.first_timestamp.start
+        rule: dict = get_recurobject(
+            org_item.first_timestamp,
+            org_item.until)
+        self.update(CalendarProperties(
+            start=start,
+            end=end,
+            rrule=rule,
+
+            uid=str(org_item.properties.get('UID')),
+            url=str(org_item.properties.get('URL')),
+            summary=org_item.title,
+            location=str(org_item.properties.get('LOCATION')),
+            attendees=org_item.split_property('ATTENDEES'),
+            categories=[str(org_item.properties.get('CATEGORIES'))],
+            description=org_item.description,
+        ))

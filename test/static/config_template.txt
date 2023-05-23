@@ -15,11 +15,12 @@ local_timezone = Europe/Berlin
 default_timezone = Europe/Berlin
 
 timeformat = %H:%M
-dateformat = %d.%m.
-longdateformat = %d.%m.%Y
-datetimeformat =  %d.%m. %H:%M
-longdatetimeformat = %d.%m.%Y %H:%M
+dateformat = %Y-%m-%d %a
+longdateformat = %Y-%m-%d %a
+datetimeformat = %Y-%m-%d %a %H:%M
+longdatetimeformat = %Y-%m-%d %a %H:%M
 firstweekday = 0
+weeknumbers = right
 
 [default]
 {default_calendar}

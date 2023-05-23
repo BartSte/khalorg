@@ -69,16 +69,6 @@ class Valid(OrgArguments):
         '--until': '2023-01-02 Mon',
     }
 
-    khal_new_args = ['-a Some_calendar',
-                     '--location Somewhere',
-                     '--url www.test.com',
-                     '--until 2023-01-02 Mon',
-                     '2023-01-01 Sun 01:00',
-                     '2023-01-01 Sun 02:00',
-                     'Meeting',
-                     f':: {_DESCRIPTION}\n']
-
-
 class Minimal(OrgArguments):
     """Used to validate agenda item: minimal.org."""
 

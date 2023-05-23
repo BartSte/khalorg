@@ -76,7 +76,7 @@ def new(calendar: str, **kwargs) -> str:
     agenda_item.properties['UID'] = ''  # UID must be empty for new item
 
     stdout: str = _new(calendar, agenda_item)
-    _edit(calendar, agenda_item)
+    _edit(calendar, agenda_item, edit_dates=True)
 
     return stdout
 
@@ -105,7 +105,7 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     return khal_calendar.new_item(args.as_list())
 
 
-def edit(calendar: str, **kwargs) -> str:
+def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
     """Edit an existing khal agenda item.
 
     An existing khal agenda item is edited by supplying an org file with the
@@ -121,7 +121,8 @@ def edit(calendar: str, **kwargs) -> str:
     Args:
     ----
         calendar: the name of the calendar.
-        org: omit the stdin and send the input as an argument
+        edit_dates: If set to True, the org time stamp and its recurrence are
+        also edited. 
         **_:
     """
     org = kwargs.get('org', '') or sys.stdin.read()
@@ -129,10 +130,10 @@ def edit(calendar: str, **kwargs) -> str:
     agenda_item: OrgAgendaItem = OrgAgendaItem()
     agenda_item.load_from_str(org)
 
-    return _edit(calendar, agenda_item)
+    return _edit(calendar, agenda_item, edit_dates)
 
 
-def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
+def _edit(calendar: str, agenda_item: OrgAgendaItem, edit_dates: bool = False) -> str:
     """Edits `agenda_item` that corresponds to an existing agenda item in a
     khal `calendar`.
 
@@ -141,6 +142,8 @@ def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
     Args:
         calendar: the name of the khal calendar
         agenda_item: org agenda item
+        edit_dates: If set to True, the org time stamp and its recurrence are
+        also edited. 
 
     Returns
     -------
@@ -150,5 +153,5 @@ def _edit(calendar: str, agenda_item: OrgAgendaItem) -> str:
 
     args: EditArgs = EditArgs()
     args.load_from_org(agenda_item)
-    khal_calendar.edit(CalendarProperties(**args))
+    khal_calendar.edit(CalendarProperties(**args), edit_dates)
     return ''

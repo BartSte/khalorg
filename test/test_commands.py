@@ -93,13 +93,13 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
     """
     start, end = get_start_end_now(delta=delta, all_day=all_day)
     test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
-    test_event.properties['UNTIL'] = until
     org_item: OrgAgendaItem = OrgAgendaItem(
         title=test_event.summary,
         timestamps=[OrgDate(start, end, repeater=repeater)],
         properties=test_event.properties,
         description=test_event.description
     )
+    org_item.properties['UNTIL'] = until
     return org_item
 
 
@@ -176,5 +176,5 @@ def test_edit_recurring(runner):
     events: list = assert_event_created('one', org_item, recurring=True)
 
     org_item.properties['UID'] = events[0].uid
-    _edit('one', org_item)
+    _edit('one', org_item, edit_dates=True)
     assert_event_edited(runner, 'one', org_item, count=days)

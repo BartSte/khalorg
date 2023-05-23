@@ -3,6 +3,7 @@ from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
     get_test_config,
     khal_runner,
+    read_org_test_file,
 )
 from typing import Callable
 from unittest import TestCase
@@ -13,6 +14,7 @@ from khal.controllers import CalendarCollection
 
 from src.khal_items import (
     Calendar,
+    EditArgs,
     NewArgs,
     get_calendar_collection,
 )
@@ -20,15 +22,18 @@ from src.org_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
 
+
 @pytest.fixture
 def get_cli_runner(tmpdir, monkeypatch) -> Callable:
     return khal_runner(tmpdir, monkeypatch)
+
 
 def test_get_calendar_collection(get_cli_runner):
     """Must be able to find a calendar collection."""
     get_cli_runner()
     collection: CalendarCollection = get_calendar_collection('one')
     assert isinstance(collection, CalendarCollection)
+
 
 def test_get_calendar_collection_no_config(get_cli_runner):
     """
@@ -152,3 +157,32 @@ class TestArgs(Mixin, TestCase):
 
         actual: list = args.as_list()
         self.assertEqual(actual, expected)
+
+
+class TestEditArgs(Mixin, TestCase):
+
+    def test(self):
+        """
+        For the agenda item `/test/static/agenda_items/recurring.org` the
+        EditArgs should be equal to `expected`.
+        """
+        expected: dict = {
+            'attendees': ['test@test.com', 'test2@test.com'],
+            'categories': ['Something'],
+            'description': 'Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone',
+            'end': datetime(2023, 1, 1, 2, 0),
+            'location': 'Somewhere',
+            'rrule': {'FREQ': ['WEEKLY'], 'UNTIL': [datetime(2023, 1, 2, 0, 0)]},
+            'start': datetime(2023, 1, 1, 1, 0),
+            'summary': 'Meeting',
+            'uid': '123',
+            'url': 'www.test.com'}
+
+        org_str: str = read_org_test_file('recurring.org')
+        args: EditArgs = EditArgs()
+        org_item: OrgAgendaItem = OrgAgendaItem()
+
+        org_item.load_from_str(org_str)
+        args.load_from_org(org_item)
+
+        self.assertEqual(dict(args), expected)

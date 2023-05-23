@@ -21,7 +21,6 @@ def get_parser() -> ArgumentParser:
     subparsers = parent.add_subparsers()
 
     child_new: ArgumentParser = subparsers.add_parser('new', **ParserInfo.new)
-    child_new.add_argument('--until', **Args.until)
     child_new.add_argument('calendar', **Args.calendar)
     child_new.set_defaults(func=new)
 
@@ -33,6 +32,7 @@ def get_parser() -> ArgumentParser:
     child_list.set_defaults(func=list_command)
 
     child_list: ArgumentParser = subparsers.add_parser('edit', **ParserInfo.edit)  # noqa
+    child_list.add_argument('--edit_dates', **Args.edit_dates)
     child_list.add_argument('calendar', **Args.calendar)
     child_list.set_defaults(func=edit)
 
@@ -86,13 +86,6 @@ class Args:
               '(default), INFO, DEBUG')
     )
 
-    until: dict = dict(
-        required=False,
-        default='',
-        type=str,
-        help=('Stop an event repeating on this date.')
-    )
-
     start: dict = dict(
         type=str,
         default='today',
@@ -109,4 +102,9 @@ class Args:
         type=str,
         default=get_khalorg_format(),
         help='The format of the events.'
+    )
+
+    edit_dates: dict = dict(
+        action='store_true',
+        help='Add this flag to also edit the date and its recurrence.'
     )

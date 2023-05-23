@@ -1,11 +1,18 @@
+from datetime import datetime
 from unittest import TestCase
 
 from dateutil.rrule import rrule
+from orgparse.date import OrgDate
 
-from src.rrule import rrule_is_supported, rrulestr_to_org, rrulestr_to_rrule
+from src.rrule import (
+    get_rrulestr,
+    rrule_is_supported,
+    rrulestr_to_org,
+    rrulestr_to_rrule,
+)
 
 
-class TestRepeater(TestCase):
+class TestRrulestrToOrg(TestCase):
 
     def test_is_supported_true(self):
         rule: str = (
@@ -35,3 +42,26 @@ class TestRepeater(TestCase):
         )
         repeater: tuple | None = rrulestr_to_org(rule)
         self.assertIsNone(repeater)
+
+
+class TestGetRrule(TestCase):
+
+    def test_not_recurring(self):
+        date: OrgDate = OrgDate(start=datetime.now())
+        result: str = get_rrulestr(date)
+        self.assertFalse(result)
+
+    def test_not_supported(self):
+        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 'x', 'x'))
+        result: str = get_rrulestr(date)
+        self.assertFalse(result)
+
+    def test_weekly(self):
+        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 2, 'w'))
+        result: str = get_rrulestr(date, clip=True)
+        self.assertEqual('FREQ=WEEKLY;INTERVAL=2', str(result))
+
+    def test_monthly(self):
+        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 3, 'm'))
+        result: str = get_rrulestr(date, clip=True)
+        self.assertEqual('FREQ=MONTHLY;INTERVAL=3', str(result))

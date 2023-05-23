@@ -361,19 +361,8 @@ class OrgAgendaItem:
         self.properties = item.properties
         self.timestamps = item.get_timestamps(**kwargs)
         self.description = remove_timestamps(item.body)
-        # TODO
-        # self.update_rrule()
 
         return self
-
-    def update_rrule(self) -> str:
-        """TODO
-
-        Returns:
-            
-        """
-        self.properties['RRULE'] = get_rrule(self.first_timestamp, self.until)
-        return self.properties.get('RRULE', '')
 
     def get_first_agenda_item(self, node: OrgNode) -> OrgNode:
         """
@@ -396,9 +385,10 @@ class OrgAgendaItem:
 
     @property
     def until(self) -> OrgDate:
-        """TODO
+        """Return the UNTIL property as an OrgDate
 
         Returns:
+            end date of recurring items as an OrgDate
             
         """
         return OrgDate.from_str(self.properties.get('UNTIL', ''))
