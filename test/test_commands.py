@@ -28,16 +28,18 @@ def get_cli_runner(tmpdir, monkeypatch) -> Callable:
 
 @pytest.fixture
 def runner(get_cli_runner, monkeypatch) -> Generator:
-    """Returns a test runnen that is created by CliRunner.
+    """
+    Returns a test runnen that is created by CliRunner.
 
     The Calendar.new_item is monkeypatched to enable using the temporarly
     created calendar.
 
     Args:
+    ----
         get_cli_runner: fixture
         monkeypatch: fixture
 
-    Returns
+    Returns:
     -------
         test runner
     """
@@ -62,7 +64,8 @@ _TEST_EVENT: dict = dict(
 
 
 def test_edit(runner):
-    """Test src.commands._new and src.commands._edit.
+    """
+    Test src.commands._new and src.commands._edit.
 
     Creates a new event with the bare minimal information. Later, the
     additional information is edited using the edit command. The result is
@@ -85,7 +88,8 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
                  all_day: bool = False,
                  until: str = '',
                  repeater: tuple | None = None) -> OrgAgendaItem:
-    """Returns an org_item that is used for testing.
+    """
+    Returns an org_item that is used for testing.
 
     Returns
     -------
@@ -96,7 +100,7 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
     org_item: OrgAgendaItem = OrgAgendaItem(
         title=test_event.summary,
         timestamps=[OrgDate(start, end, repeater=repeater)],
-        properties=test_event.properties,
+        properties=dict(**test_event.properties),
         description=test_event.description
     )
     org_item.properties['UNTIL'] = until
@@ -106,12 +110,14 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
 def get_start_end_now(delta: timedelta = timedelta(hours=1),
                       all_day: bool = False
                       ) -> tuple[Time, Time]:
-    """Get start and end datetime with a time difference of `delta`.
+    """
+    Get start and end datetime with a time difference of `delta`.
 
     Args:
+    ----
         delta: timedelta, default is 1 hour
 
-    Returns
+    Returns:
     -------
         the start and end times when planning an even now.
 
@@ -128,7 +134,8 @@ def get_start_end_now(delta: timedelta = timedelta(hours=1),
 
 
 def test_edit_change_time(runner):
-    """Same as `test_edit` but now change the time.
+    """
+    Same as `test_edit` but now change the time.
 
     Args:
     ----
@@ -170,11 +177,23 @@ def test_edit_recurring(runner):
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days)
     org_item: OrgAgendaItem = get_org_item(
-        until=until.strftime(calendar.date_format), 
+        until=until.strftime(calendar.date_format),
         repeater=('+', 1, 'd'))
     _new('one', org_item)
     events: list = assert_event_created('one', org_item, recurring=True)
 
     org_item.properties['UID'] = events[0].uid
+    _edit('one', org_item, edit_dates=True)
+    assert_event_edited(runner, 'one', org_item, count=days)
+    return org_item
+
+
+def test_edit_recurring_twice(runner):
+    """Edit an recurring items twice to ensure no events were corrupted by us."""
+    days = 1
+    calendar: Calendar = Calendar('one')
+    until: date = datetime.today() + timedelta(days=days)
+    org_item: OrgAgendaItem = test_edit_recurring(runner)
+    org_item.properties['UNTIL'] = until.strftime(calendar.date_format)
     _edit('one', org_item, edit_dates=True)
     assert_event_edited(runner, 'one', org_item, count=days)

@@ -1,8 +1,7 @@
-from datetime import date, datetime
 import logging
 import re
-import sys
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Generator
 
 import orgparse
@@ -10,7 +9,7 @@ from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.helpers import get_indent
-from src.rrule import get_rrule, set_org_repeater, rrulestr_is_supported
+from src.rrule import rrulestr_is_supported, set_org_repeater
 
 Time = date | datetime
 
@@ -385,13 +384,28 @@ class OrgAgendaItem:
 
     @property
     def until(self) -> OrgDate:
-        """Return the UNTIL property as an OrgDate
+        """Return the UNTIL property as an OrgDate.
 
-        Returns:
+        If the OrgDateAgenda.first_timestamp has a time component, `until` must
+        also have a time component. If this is not the case, add the time part
+        of `datetime.min`.
+
+        Returns
+        -------
             end date of recurring items as an OrgDate
-            
+
         """
-        return OrgDate.from_str(self.properties.get('UNTIL', ''))
+        until: OrgDate = OrgDate.from_str(self.properties.get('UNTIL', ''))
+        start: datetime | date = until.start
+        has_time = isinstance(start, datetime)
+        
+        if not until or has_time == self.first_timestamp.has_time():
+            return until
+        elif has_time:
+            return OrgDate((start.year, start.month, start.day))
+        else:
+            time: datetime = datetime.combine(start, datetime.min.time())
+            return OrgDate(time)
 
     @classmethod
     def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':

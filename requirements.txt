@@ -1,6 +1,7 @@
 khal
 orgparse
 munch
+pytz
 
 pytest
 vdirsyncer

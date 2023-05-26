@@ -1,4 +1,3 @@
-import sys
 from test.agenda_items import (
     AllDay,
     AllDayRecurring,
@@ -14,9 +13,7 @@ from test.agenda_items import (
 from test.helpers import (
     read_org_test_file,
 )
-from typing import Any
 from unittest import TestCase
-from unittest.mock import patch
 
 from orgparse import loads
 from orgparse.date import OrgDate
@@ -96,7 +93,7 @@ class TestOrgAgendaItem(TestCase):
             org_file: situated in ./test/static/agenda_item/
             expected: the expected OrgAgendaItem.
 
-        Returns:
+        Returns
         -------
            bool represents the comparison, and an optional error message is
            provided as str.
@@ -145,6 +142,38 @@ class TestOrgAgendaItem(TestCase):
         actual: list = item.split_property('ATTENDEES')
         expected: list = ['test@test.com', 'test2@test.com', 'test3@test.com']
         self.assertEqual(actual, expected)
+
+    def test_until_datetime(self):
+        """When until is a datetime, and the start and end are datetime,
+        do nothing.
+        """
+        item: OrgAgendaItem = OrgAgendaItem()
+        text: str = read_org_test_file('valid.org')
+        item.load_from_str(text)
+
+        expected: OrgDate = OrgDate((2023, 1, 2, 0, 0))
+        self.assertEqual(expected, item.until)
+
+    def test_until_date(self):
+        """When until is a date, and the start and end are datetime, converst
+        until to a date time"""
+        item: OrgAgendaItem = OrgAgendaItem()
+        text: str = read_org_test_file('all_day.org')
+        item.load_from_str(text)
+
+        expected: OrgDate = OrgDate((2023, 1, 2))
+        self.assertEqual(expected, item.until)
+
+    def test_until_date_until_with_time(self):
+        """When until is a datetime, and the start and end are date objects,
+        convert unil to a date.
+        """
+        item: OrgAgendaItem = OrgAgendaItem()
+        text: str = read_org_test_file('all_day_until_with_time.org')
+        item.load_from_str(text)
+
+        expected: OrgDate = OrgDate((2023, 1, 2))
+        self.assertEqual(expected, item.until)
 
 
 class TestAgendaOrgDates(TestCase):

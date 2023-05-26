@@ -16,6 +16,7 @@ from orgparse.date import OrgDate
 from src.helpers import (
     get_khalorg_format,
     is_future,
+    remove_tzinfo,
     subprocess_callback,
 )
 from src.org_items import OrgAgendaItem
@@ -47,7 +48,7 @@ def get_calendar_collection(name: str) -> CalendarCollection:
     ----
         name: name of the calendar
 
-    Returns
+    Returns:
     -------
         calendar collection
     """
@@ -102,7 +103,7 @@ class Calendar:
         ----
             khal_new_args: command line args that would follow `khal new`.
 
-        Returns
+        Returns:
         -------
             stdout of `khal new`
         """
@@ -117,7 +118,7 @@ class Calendar:
             khal_args: list containing the command line arg that are send to
             `khal list`.
 
-        Returns
+        Returns:
         -------
             stdout of the `khal list`
         """
@@ -184,7 +185,7 @@ class Calendar:
             edit_dates: If set to True, the org time stamp and its recurrence are
             also edited.
 
-        Returns
+        Returns:
         -------
             the edited events
 
@@ -236,7 +237,7 @@ class Calendar:
             event: the event
             props: a typed dict
 
-        Returns
+        Returns:
         -------
             the update version of `event`
 
@@ -266,7 +267,7 @@ class Calendar:
         ----
             uid: unique identifier
 
-        Returns
+        Returns:
         -------
             a list of events
         """
@@ -293,15 +294,14 @@ class Calendar:
             start_wanted: start time
             end_wanted: end time
 
-        Returns
+        Returns:
         -------
             list of events
         """
         def exists(summary: str, end: Time) -> bool:
-            if isinstance(end, datetime):
-                logging.info(f'Timezone {end.tzinfo} is set to None.')
-                end = end.replace(tzinfo=None)
-            return end == end_wanted and summary == summary_wanted
+            equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)
+            equal_summary: bool = summary == summary_wanted
+            return equal_end and equal_summary
 
         logging.info(f'Get events on date: {start_wanted}')
         return [
@@ -358,6 +358,7 @@ class KhalArgs(OrderedDict):
         super().__init__(*args, **kwargs)
         path_config: str | None = find_configuration_file()
         config: dict = get_config(path_config)
+        self.timezone: str = config['locale']['default_timezone']
         self.date_format: str = config['locale']['longdateformat']
         self.datetime_format: str = config['locale']['longdatetimeformat']
 
@@ -434,7 +435,7 @@ class NewArgs(KhalArgs):
             item: an OrgAgendaItem object.
             datetime_format: optionally, a timestamp format can be provided.
 
-        Returns
+        Returns:
         -------
             itself
 
@@ -477,7 +478,7 @@ class NewArgs(KhalArgs):
             time_stamp: the end time
             format: format
 
-        Returns
+        Returns:
         -------
             timestamp as a str
         """
@@ -488,13 +489,15 @@ class NewArgs(KhalArgs):
             return time_stamp.start.strftime(format)
 
     def _get_repeat(self, time_stamp: OrgDate) -> str:
-        """Return the repeat in the `time_stamp` as an iCal RRULE. NewArgs only
+        """
+        Return the repeat in the `time_stamp` as an iCal RRULE. NewArgs only
         supports: daily, weekly, monthly, and yearly.
 
         Args:
+        ----
             time_stamp: an OrgDate time stamp
 
-        Returns
+        Returns:
         -------
             iCal RRULE
         """
@@ -518,16 +521,16 @@ class EditArgs(KhalArgs):
         ----
             org_item: the org agenda item
         """
-        end: Time = org_item.first_timestamp.end
-        start: Time = org_item.first_timestamp.start
-        rule: dict = get_recurobject(
-            org_item.first_timestamp,
-            org_item.until)
-        self.update(CalendarProperties(
+        start: Time = self.add_tzinfo(org_item.first_timestamp.start)
+        end: Time = self.add_tzinfo(org_item.first_timestamp.end)
+        until: Time = self.add_tzinfo(org_item.until.start)
+        repeater: tuple = org_item.first_timestamp._repeater or tuple()
+        rule: dict = get_recurobject(start, repeater, until)
+
+        props: CalendarProperties = CalendarProperties(
             start=start,
             end=end,
             rrule=rule,
-
             uid=str(org_item.properties.get('UID')),
             url=str(org_item.properties.get('URL')),
             summary=org_item.title,
@@ -535,4 +538,22 @@ class EditArgs(KhalArgs):
             attendees=org_item.split_property('ATTENDEES'),
             categories=[str(org_item.properties.get('CATEGORIES'))],
             description=org_item.description,
-        ))
+        )
+        self.update(props)
+
+    def add_tzinfo(self, time: Time) -> Time:
+        """Add tzinfo if possible.
+
+        Args:
+        ----
+            time: a date of a datetime object
+
+        Returns:
+        -------
+            `time` with an updated tzinfo if possible
+
+        """
+        try:
+            return time.replace(tzinfo=self.timezone)  # type: ignore
+        except (AttributeError, TypeError):
+            return time

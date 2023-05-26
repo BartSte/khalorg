@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest import TestCase
 
 from dateutil.rrule import rrule
-from orgparse.date import OrgDate
 
 from src.rrule import (
     get_rrulestr,
@@ -47,21 +46,17 @@ class TestRrulestrToOrg(TestCase):
 class TestGetRrule(TestCase):
 
     def test_not_recurring(self):
-        date: OrgDate = OrgDate(start=datetime.now())
-        result: str = get_rrulestr(date)
+        result: str = get_rrulestr(datetime.now(), tuple())
         self.assertFalse(result)
 
     def test_not_supported(self):
-        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 'x', 'x'))
-        result: str = get_rrulestr(date)
+        result: str = get_rrulestr(datetime.now(), ('+', 'x', 'x'))
         self.assertFalse(result)
 
     def test_weekly(self):
-        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 2, 'w'))
-        result: str = get_rrulestr(date, clip=True)
+        result: str = get_rrulestr(datetime.now(), ('+', 2, 'w'), clip=True)
         self.assertEqual('FREQ=WEEKLY;INTERVAL=2', str(result))
 
     def test_monthly(self):
-        date: OrgDate = OrgDate(start=datetime.now(), repeater=('+', 3, 'm'))
-        result: str = get_rrulestr(date, clip=True)
+        result: str = get_rrulestr(datetime.now(), ('+', 3, 'm'), clip=True)
         self.assertEqual('FREQ=MONTHLY;INTERVAL=3', str(result))

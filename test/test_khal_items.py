@@ -10,6 +10,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
+import pytz
 from khal.controllers import CalendarCollection
 
 from src.khal_items import (
@@ -166,14 +167,15 @@ class TestEditArgs(Mixin, TestCase):
         For the agenda item `/test/static/agenda_items/recurring.org` the
         EditArgs should be equal to `expected`.
         """
+        timezone = self.calendar.config['locale']['local_timezone']
         expected: dict = {
             'attendees': ['test@test.com', 'test2@test.com'],
             'categories': ['Something'],
             'description': 'Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone',
-            'end': datetime(2023, 1, 1, 2, 0),
+            'end': datetime(2023, 1, 1, 2, 0, tzinfo=timezone),
             'location': 'Somewhere',
             'rrule': {'FREQ': ['WEEKLY'], 'UNTIL': [datetime(2023, 1, 2, 0, 0)]},
-            'start': datetime(2023, 1, 1, 1, 0),
+            'start': datetime(2023, 1, 1, 1, 0, tzinfo=timezone),
             'summary': 'Meeting',
             'uid': '123',
             'url': 'www.test.com'}
@@ -185,4 +187,4 @@ class TestEditArgs(Mixin, TestCase):
         org_item.load_from_str(org_str)
         args.load_from_org(org_item)
 
-        self.assertEqual(dict(args), expected)
+        self.assertEqual(dict(args), expected, msg=dict(args))

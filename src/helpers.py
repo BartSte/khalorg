@@ -7,11 +7,12 @@ from os.path import dirname, exists
 from subprocess import STDOUT, CalledProcessError, check_output
 from types import ModuleType
 from typing import Callable
-from khal.controllers import Event
 
 from munch import Munch
 
 import paths
+
+Time = date | datetime
 
 
 def get_khal_format():
@@ -64,7 +65,7 @@ def get_module_path(module: ModuleType) -> str:
     ----
         module: a python module
 
-    Returns
+    Returns:
     -------
         str: path to module
 
@@ -81,7 +82,7 @@ def subprocess_callback(cmd: list) -> Callable:
     ----
         cmd: the base command. For example: ['khal', 'new']
 
-    Returns
+    Returns:
     -------
         callback function
 
@@ -136,7 +137,7 @@ def substitude_with_placeholder(text: str, callback: Callable,
         stop_placeholder (str, optional): The ending placeholder string.
             Defaults to 'KHALORG_STOP'.
 
-    Returns
+    Returns:
     -------
         str: The modified string with all substrings replaced.
     """
@@ -154,7 +155,7 @@ def get_indent(text: str, piece: str) -> list:
         text: the text
         piece: the str that needs to be found.
 
-    Returns
+    Returns:
     -------
         the indents that belong to the matches.
 
@@ -163,13 +164,15 @@ def get_indent(text: str, piece: str) -> list:
 
 
 def is_future(timestamp: datetime | date, now: datetime):
-    """Whether the `timestamp` is in the future.
+    """
+    Whether the `timestamp` is in the future.
 
     Args:
+    ----
         timestamp: the time
         now: the current time
 
-    Returns
+    Returns:
     -------
         True if the `timestamp` is in the future
 
@@ -178,3 +181,20 @@ def is_future(timestamp: datetime | date, now: datetime):
         return timestamp >= now
     else:
         return timestamp >= now.date()
+
+def remove_tzinfo(time: Time) -> Time:
+    """Remove tzinfo if possible.
+
+    Args:
+    ----
+        time: a date of a datetime object
+
+    Returns:
+    -------
+        `time` without an updated tzinfo if possible
+
+    """
+    try:
+        return time.replace(tzinfo=None)  # type: ignore
+    except (AttributeError, TypeError):
+        return time
