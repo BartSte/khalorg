@@ -65,7 +65,7 @@ def get_module_path(module: ModuleType) -> str:
     ----
         module: a python module
 
-    Returns:
+    Returns
     -------
         str: path to module
 
@@ -82,7 +82,7 @@ def subprocess_callback(cmd: list) -> Callable:
     ----
         cmd: the base command. For example: ['khal', 'new']
 
-    Returns:
+    Returns
     -------
         callback function
 
@@ -137,7 +137,7 @@ def substitude_with_placeholder(text: str, callback: Callable,
         stop_placeholder (str, optional): The ending placeholder string.
             Defaults to 'KHALORG_STOP'.
 
-    Returns:
+    Returns
     -------
         str: The modified string with all substrings replaced.
     """
@@ -155,7 +155,7 @@ def get_indent(text: str, piece: str) -> list:
         text: the text
         piece: the str that needs to be found.
 
-    Returns:
+    Returns
     -------
         the indents that belong to the matches.
 
@@ -172,20 +172,21 @@ def is_future(timestamp: datetime | date, now: datetime):
         timestamp: the time
         now: the current time
 
-    Returns:
+    Returns
     -------
         True if the `timestamp` is in the future
 
     """
     if isinstance(timestamp, datetime):
-        result:bool =  timestamp >= now
+        result: bool = timestamp >= now
     else:
-        result:bool =   timestamp >= now.date()
+        result: bool = timestamp >= now.date()
 
     if not result:
         logging.warning('Editing past events is not supported.')
 
     return result
+
 
 def remove_tzinfo(time: Time) -> Time:
     """Remove tzinfo if possible.
@@ -194,12 +195,25 @@ def remove_tzinfo(time: Time) -> Time:
     ----
         time: a date of a datetime object
 
-    Returns:
+    Returns
     -------
         `time` without an updated tzinfo if possible
 
     """
-    try:
-        return time.replace(tzinfo=None)  # type: ignore
-    except (AttributeError, TypeError):
-        return time
+    return time.replace(tzinfo=None) if isinstance(time, datetime) else time
+
+
+def set_tzinfo(time: Time, timezone) -> Time:
+    """Add tzinfo if possible.
+
+    Args:
+    ----
+        time: a date of a datetime object
+        tzinfo: timezone as str
+
+    Returns
+    -------
+        `time` with an updated tzinfo if possible
+
+    """
+    return timezone.localize(time) if isinstance(time, datetime) else time

@@ -305,6 +305,75 @@
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present
     at the bottom.
+  - [ ] Encountered the following when running: 
+  #+begin_src bash
+  cat test/static/agenda_items/recurring_allday.org | khalorg new outlook_local
+  #+end_src
+  Resulting in the following error:
+  #+begin_src
+  Traceback (most recent call last):
+  File "/home/barts/code/khalorg/src/helpers.py", line 98, in try_check_output
+  return check_output(args, stderr=STDOUT)
+  File "/usr/lib/python3.10/subprocess.py", line 421, in check_output
+  return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+  raise CalledProcessError(retcode, process.args,
+  subprocess.CalledProcessError: Command '['khal', 'new', '-a', 'outlook_local', '--location', 'Somewhere', '--url', 'www.test.com', '--repeat', 'weekly', '--until', '2023-01-02 Mon', '2023-01-01 Sun', '2023-01-01 Sun', 'Meeting', ':: Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone']' returned non-zero exit status 1.
+
+  The above exception was the direct cause of the following exception:
+
+  Traceback (most recent call last):
+  File "/home/barts/bin/khalorg", line 14, in <module>
+  stdout: str = args.func(**vars(args))
+  File "/home/barts/code/khalorg/src/commands.py", line 78, in new
+  stdout: str = _new(calendar, agenda_item)
+  File "/home/barts/code/khalorg/src/commands.py", line 107, in _new
+  return khal_calendar.new_item(args.as_list())
+  File "/home/barts/code/khalorg/src/khal_items.py", line 111, in new_item
+  return self._new_item(khal_new_args)
+  File "/home/barts/code/khalorg/src/helpers.py", line 91, in callback
+  return try_check_output([*cmd, *args]).decode()
+  File "/home/barts/code/khalorg/src/helpers.py", line 105, in try_check_output
+  raise Exception(error_message) from error
+  Exception: The following arguments were sent to khal:
+
+  khal new -a outlook_local --location Somewhere --url www.test.com --repeat weekly --until 2023-01-02 Mon 2023-01-01 Sun 2023-01-01 Sun Meeting :: Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+
+  Next, the following error was received from khal:
+
+  Traceback (most recent call last):
+  File "/home/barts/code/khalorg/.venv/bin/khal", line 8, in <module>
+  sys.exit(main_khal())
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/core.py", line 1130, in __call__
+  return self.main(*args, **kwargs)
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/core.py", line 1055, in main
+  rv = self.invoke(ctx)
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/core.py", line 1657, in invoke
+  return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/core.py", line 1404, in invoke
+  return ctx.invoke(self.callback, **ctx.params)
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/core.py", line 760, in invoke
+  return __callback(*args, **kwargs)
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/click/decorators.py", line 26, in new_func
+  return f(get_current_context(), *args, **kwargs)
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/khal/cli.py", line 394, in new
+  new_func(
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/khal/controllers.py", line 378, in new_from_string
+  new_from_args(
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/khal/controllers.py", line 393, in new_from_args
+  event = new_vevent(
+  File "/home/barts/code/khalorg/.venv/lib/python3.10/site-packages/khal/icalendar.py", line 132, in new_event
+  rrule = rrulefstr(repeat, until, locale, dtstart.tzinfo)
+  AttributeError: 'datetime.date' object has no attribute 'tzinfo'
+
+  #+end_src
 
 * Improvements:
   - [ ] Timezones are not yet suppored, so ~khalorg~ will only work when you

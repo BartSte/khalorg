@@ -10,9 +10,9 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
-import pytz
 from khal.controllers import CalendarCollection
 
+from src.helpers import set_tzinfo
 from src.khal_items import (
     Calendar,
     EditArgs,
@@ -167,24 +167,36 @@ class TestEditArgs(Mixin, TestCase):
         For the agenda item `/test/static/agenda_items/recurring.org` the
         EditArgs should be equal to `expected`.
         """
-        timezone = self.calendar.config['locale']['local_timezone']
-        expected: dict = {
-            'attendees': ['test@test.com', 'test2@test.com'],
-            'categories': ['Something'],
-            'description': 'Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone',
-            'end': datetime(2023, 1, 1, 2, 0, tzinfo=timezone),
-            'location': 'Somewhere',
-            'rrule': {'FREQ': ['WEEKLY'], 'UNTIL': [datetime(2023, 1, 2, 0, 0)]},
-            'start': datetime(2023, 1, 1, 1, 0, tzinfo=timezone),
-            'summary': 'Meeting',
-            'uid': '123',
-            'url': 'www.test.com'}
+        timezone = self.calendar.config['locale']['default_timezone']
+        start = set_tzinfo(datetime(2023, 1, 1, 1, 0), timezone)
+        end = set_tzinfo(datetime(2023, 1, 1, 2, 0), timezone)
+        until = datetime(2023, 1, 2)
+        expected: EditArgs = EditArgs(
+            start=start,
+            end=end,
+            rrule={
+                'FREQ': ['WEEKLY'],
+                'UNTIL': [until]},
+            uid='123',
+            url='www.test.com',
+            summary='Meeting',
+            location='Somewhere',
+            attendees=[
+                'test@test.com',
+                'test2@test.com'],
+            categories=['Something'],
+            description='Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone',
+        )
 
         org_str: str = read_org_test_file('recurring.org')
-        args: EditArgs = EditArgs()
+        actual: EditArgs = EditArgs()
         org_item: OrgAgendaItem = OrgAgendaItem()
 
         org_item.load_from_str(org_str)
-        args.load_from_org(org_item)
+        actual.load_from_org(org_item)
 
-        self.assertEqual(dict(args), expected, msg=dict(args))
+        message: str = (
+            f"\n\nActual is:\n{actual}"
+            f"\n\nExpected is:\n{expected}"
+        )
+        self.assertTrue(actual == expected, msg=message)

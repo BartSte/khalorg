@@ -8,7 +8,7 @@ import orgparse
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
-from src.helpers import get_indent
+from src.helpers import get_indent, get_khalorg_format
 from src.rrule import rrulestr_is_supported, set_org_repeater
 
 Time = date | datetime
@@ -473,6 +473,15 @@ class OrgAgendaItem:
         else:
             return value.split(delimiter)
 
+    def __str__(self) -> str:
+        """Return the org item as a str.
+
+        Returns:
+            
+        """
+        spec: str = get_khalorg_format()
+        return format(self, spec)
+
     def __format__(self, spec: str) -> str:
         """
         By providing a `spec`, which is a template where values that are
@@ -502,21 +511,21 @@ class OrgAgendaItem:
             the formatted `spec`
 
         """
-        uid: str = str(self.properties['UID'])
+        uid: str = str(self.properties.get('UID', ''))
 
         try:
             return spec.format(
                 title=self.title,
                 timestamps=self.get_timestamps_as_str(spec),
-                attendees=self.properties['ATTENDEES'],
-                calendar=self.properties['CALENDAR'],
-                categories=self.properties['CATEGORIES'],
+                attendees=self.properties.get('ATTENDEES', ''),
+                calendar=self.properties.get('CALENDAR', ''),
+                categories=self.properties.get('CATEGORIES', ''),
                 uid=uid,
-                location=self.properties['LOCATION'],
-                organizer=self.properties['ORGANIZER'],
-                rrule=self.properties['RRULE'],
-                status=self.properties['STATUS'],
-                url=self.properties['URL'],
+                location=self.properties.get('LOCATION', ''),
+                organizer=self.properties.get('ORGANIZER', ''),
+                rrule=self.properties.get('RRULE', ''),
+                status=self.properties.get('STATUS', ''),
+                url=self.properties.get('URL', ''),
                 until=self.properties.get('UNTIL', ''),
                 description=self.description)
         except KeyError as error:

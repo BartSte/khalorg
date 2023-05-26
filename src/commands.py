@@ -27,7 +27,7 @@ def list_command(
         start: start date (default: today)
         stop: end date (default: 1d)
 
-    Returns
+    Returns:
     -------
         stdout of the `khal list` command after post processing
 
@@ -64,7 +64,7 @@ def new(calendar: str, **kwargs) -> str:
         until: Stop an event repeating on this date.
         org: omit the stdin and send the input as an argument
 
-    Returns
+    Returns:
     -------
         stdout of the `khal new` command
 
@@ -82,16 +82,18 @@ def new(calendar: str, **kwargs) -> str:
 
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
-    """Adds `agenda_item` as an agenda item in khal `calendar`.
+    """
+    Adds `agenda_item` as an agenda item in khal `calendar`.
 
     Calendar.new_item calls `khal new` where its command line argument are
     extracted from `agenda_item` by NewArgs.
 
     Args:
+    ----
         calendar: the name of the khal calendar
         agenda_item: org agenda item
 
-    Returns
+    Returns:
     -------
        stdout of `khal new`.
     """
@@ -106,7 +108,8 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
 
 
 def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
-    """Edit an existing khal agenda item.
+    """
+    Edit an existing khal agenda item.
 
     An existing khal agenda item is edited by supplying an org file with the
     desired properties. Empty fields are interpreted as being actuall empty and
@@ -122,7 +125,7 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
     ----
         calendar: the name of the calendar.
         edit_dates: If set to True, the org time stamp and its recurrence are
-        also edited. 
+        also edited.
         **_:
     """
     org = kwargs.get('org', '') or sys.stdin.read()
@@ -130,22 +133,31 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
     agenda_item: OrgAgendaItem = OrgAgendaItem()
     agenda_item.load_from_str(org)
 
-    return _edit(calendar, agenda_item, edit_dates)
+    if agenda_item.properties.get('UID'):
+        return _edit(calendar, agenda_item, edit_dates)
+    else:
+        logging.error('Agenda item has no UID.')
+        return ''
 
 
-def _edit(calendar: str, agenda_item: OrgAgendaItem, edit_dates: bool = False) -> str:
-    """Edits `agenda_item` that corresponds to an existing agenda item in a
+def _edit(
+        calendar: str,
+        agenda_item: OrgAgendaItem,
+        edit_dates: bool = False) -> str:
+    """
+    Edits `agenda_item` that corresponds to an existing agenda item in a
     khal `calendar`.
 
     Calendar.edit f
 
     Args:
+    ----
         calendar: the name of the khal calendar
         agenda_item: org agenda item
         edit_dates: If set to True, the org time stamp and its recurrence are
-        also edited. 
+        also edited.
 
-    Returns
+    Returns:
     -------
        stdout of `khal new`.
     """

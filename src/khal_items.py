@@ -14,6 +14,7 @@ from khal.settings.settings import (
 from orgparse.date import OrgDate
 
 from src.helpers import (
+    set_tzinfo,
     get_khalorg_format,
     is_future,
     remove_tzinfo,
@@ -70,7 +71,8 @@ class Calendar:
     """
 
     MESSAGE_EDIT: str = ('When trying to edit an event, the number of events '
-                         'found was not 1 but: {}. The command was aborted.')
+                         'found in the khal calendar was not 1 but: {}. The '
+                         'command was aborted.')
 
     def __init__(self, name: str):
         """
@@ -359,7 +361,7 @@ class KhalArgs(OrderedDict):
         super().__init__(*args, **kwargs)
         path_config: str | None = find_configuration_file()
         config: dict = get_config(path_config)
-        self.timezone: str = config['locale']['default_timezone']
+        self.timezone = config['locale']['default_timezone']
         self.date_format: str = config['locale']['longdateformat']
         self.datetime_format: str = config['locale']['longdatetimeformat']
 
@@ -522,9 +524,10 @@ class EditArgs(KhalArgs):
         ----
             org_item: the org agenda item
         """
-        start: Time = self.add_tzinfo(org_item.first_timestamp.start)
-        end: Time = self.add_tzinfo(org_item.first_timestamp.end)
-        until: Time = self.add_tzinfo(org_item.until.start)
+        start: Time = set_tzinfo(org_item.first_timestamp.start, self.timezone)
+        end: Time = set_tzinfo(org_item.first_timestamp.end, self.timezone)
+        until: Time = set_tzinfo(org_item.until.start, self.timezone)
+
         repeater: tuple = org_item.first_timestamp._repeater or tuple()
         rule: dict = get_recurobject(start, repeater, until)
 
@@ -542,19 +545,3 @@ class EditArgs(KhalArgs):
         )
         self.update(props)
 
-    def add_tzinfo(self, time: Time) -> Time:
-        """Add tzinfo if possible.
-
-        Args:
-        ----
-            time: a date of a datetime object
-
-        Returns:
-        -------
-            `time` with an updated tzinfo if possible
-
-        """
-        try:
-            return time.replace(tzinfo=self.timezone)  # type: ignore
-        except (AttributeError, TypeError):
-            return time

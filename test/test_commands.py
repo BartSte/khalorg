@@ -39,7 +39,7 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
         get_cli_runner: fixture
         monkeypatch: fixture
 
-    Returns:
+    Returns
     -------
         test runner
     """
@@ -109,7 +109,7 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
 
 def get_start_end_now(delta: timedelta = timedelta(hours=1),
                       all_day: bool = False
-                      ) -> tuple[Time, Time]:
+                      ) -> tuple[Time, Time | None]:
     """
     Get start and end datetime with a time difference of `delta`.
 
@@ -117,7 +117,7 @@ def get_start_end_now(delta: timedelta = timedelta(hours=1),
     ----
         delta: timedelta, default is 1 hour
 
-    Returns:
+    Returns
     -------
         the start and end times when planning an even now.
 
@@ -157,8 +157,7 @@ def test_edit_change_time(runner):
 
 def test_edit_all_day(runner):
     """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
+    Create a new all day event and edit it.
     """
     org_item: OrgAgendaItem = get_org_item(all_day=True)
     _new('one', org_item)
@@ -170,9 +169,11 @@ def test_edit_all_day(runner):
 
 def test_edit_recurring(runner):
     """
-    After adding a new event, its addendees are added. When running khal
-    list, the attendees should be visible.
+    Create a new recurring event and edit it.
     """
+    _edit_recurring(runner)
+
+def _edit_recurring(runner):
     days = 7
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days)
@@ -188,12 +189,47 @@ def test_edit_recurring(runner):
     return org_item
 
 
+def test_edit_all_day_recurring(runner):
+    """
+    Create a new all day recurring event and edit it.
+    """
+    _edit_all_day_recurring(runner)
+
+def _edit_all_day_recurring(runner):
+    days = 7
+    calendar = Calendar('one')
+    until: date = datetime.today() + timedelta(days=days - 1)
+    org_item: OrgAgendaItem = get_org_item(
+        all_day=True, until=until.strftime(
+            calendar.date_format), repeater=(
+            '+', 1, 'd'))
+    _new('one', org_item)
+    event: list = assert_event_created('one', org_item, recurring=True)
+    org_item.properties['UID'] = event[0].uid
+    _edit('one', org_item)
+    assert_event_edited(runner, 'one', org_item, count=7)
+    return org_item
+
+
 def test_edit_recurring_twice(runner):
-    """Edit an recurring items twice to ensure no events were corrupted by us."""
+    """Edit an recurring items twice to ensure no events were corrupted by
+    us."""
     days = 1
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days)
-    org_item: OrgAgendaItem = test_edit_recurring(runner)
+    org_item: OrgAgendaItem = _edit_recurring(runner)
+    org_item.properties['UNTIL'] = until.strftime(calendar.date_format)
+    _edit('one', org_item, edit_dates=True)
+    assert_event_edited(runner, 'one', org_item, count=days)
+
+
+def test_edit_all_day_recurring_twice(runner):
+    """Edit an recurring allday item twice to ensure no events were corrupted
+    by us."""
+    days = 1
+    calendar: Calendar = Calendar('one')
+    until: date = datetime.today() + timedelta(days=days - 1)
+    org_item: OrgAgendaItem = _edit_all_day_recurring(runner)
     org_item.properties['UNTIL'] = until.strftime(calendar.date_format)
     _edit('one', org_item, edit_dates=True)
     assert_event_edited(runner, 'one', org_item, count=days)
