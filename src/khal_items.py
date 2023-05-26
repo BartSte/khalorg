@@ -199,6 +199,7 @@ class Calendar:
                                             props['start'],
                                             props['end'])
 
+        logging.info(f'number of events is {len(events)}')
         events = [x for x in events if is_future(x.end, self.now())]
 
         if len(events) == 0:

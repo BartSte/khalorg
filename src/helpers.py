@@ -178,9 +178,14 @@ def is_future(timestamp: datetime | date, now: datetime):
 
     """
     if isinstance(timestamp, datetime):
-        return timestamp >= now
+        result:bool =  timestamp >= now
     else:
-        return timestamp >= now.date()
+        result:bool =   timestamp >= now.date()
+
+    if not result:
+        logging.warning('Editing past events is not supported.')
+
+    return result
 
 def remove_tzinfo(time: Time) -> Time:
     """Remove tzinfo if possible.
