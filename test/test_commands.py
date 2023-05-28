@@ -11,7 +11,7 @@ from khal.cli import main_khal
 from munch import Munch, munchify
 from orgparse.date import OrgDate
 
-from src.commands import _edit, _new
+from src.commands import _edit, _new, new
 from src.khal_items import (
     Calendar,
 )
@@ -19,6 +19,11 @@ from src.org_items import OrgAgendaItem
 
 Time = datetime | date
 FORMAT = '%Y-%m-%d %a %H:%M'
+
+org_past: str = """
+* Meeting
+  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+"""
 
 
 @pytest.fixture
@@ -95,7 +100,7 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
     -------
         an org agenda item used for test
     """
-    start, end = get_start_end_now(delta=delta, all_day=all_day)
+    start, end = get_start_end(delta=delta, all_day=all_day)
     test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
     org_item: OrgAgendaItem = OrgAgendaItem(
         title=test_event.summary,
@@ -107,9 +112,9 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
     return org_item
 
 
-def get_start_end_now(delta: timedelta = timedelta(hours=1),
-                      all_day: bool = False
-                      ) -> tuple[Time, Time | None]:
+def get_start_end(delta: timedelta = timedelta(hours=1),
+                  all_day: bool = False
+                  ) -> tuple[Time, Time | None]:
     """
     Get start and end datetime with a time difference of `delta`.
 
@@ -122,8 +127,8 @@ def get_start_end_now(delta: timedelta = timedelta(hours=1),
         the start and end times when planning an even now.
 
     """
-    start: datetime = datetime.now()
-    end: datetime = datetime.now() + delta
+    start: datetime = datetime.now() + timedelta(hours=1)
+    end: datetime = start + delta
 
     if all_day:
         return datetime.date(start), datetime.date(end)
@@ -173,6 +178,7 @@ def test_edit_recurring(runner):
     """
     _edit_recurring(runner)
 
+
 def _edit_recurring(runner):
     days = 7
     calendar: Calendar = Calendar('one')
@@ -195,6 +201,7 @@ def test_edit_all_day_recurring(runner):
     """
     _edit_all_day_recurring(runner)
 
+
 def _edit_all_day_recurring(runner):
     days = 7
     calendar = Calendar('one')
@@ -213,7 +220,8 @@ def _edit_all_day_recurring(runner):
 
 def test_edit_recurring_twice(runner):
     """Edit an recurring items twice to ensure no events were corrupted by
-    us."""
+    us.
+    """
     days = 1
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days)
@@ -225,7 +233,8 @@ def test_edit_recurring_twice(runner):
 
 def test_edit_all_day_recurring_twice(runner):
     """Edit an recurring allday item twice to ensure no events were corrupted
-    by us."""
+    by us.
+    """
     days = 1
     calendar: Calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days - 1)
@@ -233,3 +242,18 @@ def test_edit_all_day_recurring_twice(runner):
     org_item.properties['UNTIL'] = until.strftime(calendar.date_format)
     _edit('one', org_item, edit_dates=True)
     assert_event_edited(runner, 'one', org_item, count=days)
+
+
+def test_duplicate(runner, caplog):
+    """When an item is duplicated, log a critical message."""
+    org_item: OrgAgendaItem = get_org_item()
+    new('one', org=str(org_item))
+    assert_event_created('one', org_item)
+    new('one', org=str(org_item))
+    assert 'Agenda item already exists' in caplog.text
+
+
+def test_event_in_past(runner, caplog):
+    """When an item its timestamp is in the past, log a critical message."""
+    new('one', org=org_past)
+    assert 'Agenda item date not in the future' in caplog.text

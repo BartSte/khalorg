@@ -303,7 +303,6 @@
   #+end_example
 
 * Bugs:
-  - [ ] The tests run, but not my personal calendar. Check whats going on..
   - [ ] Org item not recognized by neovim plugin when no blank line is present
     at the bottom.
 

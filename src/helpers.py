@@ -163,15 +163,13 @@ def get_indent(text: str, piece: str) -> list:
     return re.findall(rf'^(\s+){piece}', text, re.MULTILINE)
 
 
-def is_future(timestamp: datetime | date,
-              now: datetime = datetime.now()) -> bool:
+def is_future(timestamp: datetime | date) -> bool:
     """
     Whether the `timestamp` is in the future.
 
     Args:
     ----
         timestamp: the time
-        now: the current time
 
     Returns
     -------
@@ -179,9 +177,10 @@ def is_future(timestamp: datetime | date,
 
     """
     if isinstance(timestamp, datetime):
+        now: datetime = datetime.now(timestamp.tzinfo)
         return timestamp >= now
     else:
-        return timestamp >= now.date()
+        return timestamp >= datetime.now().date()
 
 
 def remove_tzinfo(time: Time) -> Time:

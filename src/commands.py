@@ -75,14 +75,39 @@ def new(calendar: str, **kwargs) -> str:
     agenda_item.load_from_str(org)
     agenda_item.properties['UID'] = ''  # UID must be empty for new item
 
-    if is_future(agenda_item.first_timestamp.start):
+    message: str = _is_valid(calendar, agenda_item)
+    if not message:
         stdout: str = _new(calendar, agenda_item)
         _edit(calendar, agenda_item, edit_dates=True)
         return stdout
     else:
-        logging.critical('Adding past events is not supported.')
+        logging.critical(message)
         return ''
 
+def _is_valid(name: str, item: OrgAgendaItem) -> str:
+    """Check if the `item` can be created in calendar `name`.
+
+    Args:
+        name: name of the Khal calendar
+        item: OrgAgendaItem object
+
+    Returns:
+        True if the item is not a duplicate and exists in the future, else
+        return False
+    """
+    calendar: Calendar = Calendar(name)
+    is_duplicate: bool = calendar.exists(
+        item.title, 
+        item.first_timestamp.start,
+        item.first_timestamp.end
+    )
+    future: bool = is_future(item.first_timestamp.start)
+
+    message: str = ''
+    message += 'Agenda item date not in the future\n' if not future else ''
+    message += 'Agenda item already exists\n' if is_duplicate else ''
+
+    return message
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     """

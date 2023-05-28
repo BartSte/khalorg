@@ -14,10 +14,10 @@ from khal.settings.settings import (
 from orgparse.date import OrgDate
 
 from src.helpers import (
-    set_tzinfo,
     get_khalorg_format,
     is_future,
     remove_tzinfo,
+    set_tzinfo,
     subprocess_callback,
 )
 from src.org_items import OrgAgendaItem
@@ -34,7 +34,7 @@ class CalendarProperties(TypedDict):
     description: str
     end: datetime | date
     location: str
-    rrule: dict
+    rrule: dict | None
     start: datetime | date
     summary: str
     uid: str
@@ -49,7 +49,7 @@ def get_calendar_collection(name: str) -> CalendarCollection:
     ----
         name: name of the calendar
 
-    Returns:
+    Returns
     -------
         calendar collection
     """
@@ -105,7 +105,7 @@ class Calendar:
         ----
             khal_new_args: command line args that would follow `khal new`.
 
-        Returns:
+        Returns
         -------
             stdout of `khal new`
         """
@@ -120,7 +120,7 @@ class Calendar:
             khal_args: list containing the command line arg that are send to
             `khal list`.
 
-        Returns:
+        Returns
         -------
             stdout of the `khal list`
         """
@@ -187,7 +187,7 @@ class Calendar:
             edit_dates: If set to True, the org time stamp and its recurrence are
             also edited.
 
-        Returns:
+        Returns
         -------
             the edited events
 
@@ -240,7 +240,7 @@ class Calendar:
             event: the event
             props: a typed dict
 
-        Returns:
+        Returns
         -------
             the update version of `event`
 
@@ -270,7 +270,7 @@ class Calendar:
         ----
             uid: unique identifier
 
-        Returns:
+        Returns
         -------
             a list of events
         """
@@ -297,7 +297,7 @@ class Calendar:
             start_wanted: start time
             end_wanted: end time
 
-        Returns:
+        Returns
         -------
             list of events
         """
@@ -314,6 +314,20 @@ class Calendar:
 
     def update(self, event: Event) -> None:
         self.collection.update(event)
+
+    def exists(
+            self,
+            summary_wanted: str,
+            start_wanted: Time,
+            end_wanted: Time) -> bool:
+        """Returns True if an item exists at this specific time, with the same
+        title"""
+        events: list = self.get_events_no_uid(
+            summary_wanted,
+            start_wanted,
+            end_wanted
+        )
+        return len(events) > 0
 
 
 class KhalArgsError(Exception):
@@ -438,7 +452,7 @@ class NewArgs(KhalArgs):
             item: an OrgAgendaItem object.
             datetime_format: optionally, a timestamp format can be provided.
 
-        Returns:
+        Returns
         -------
             itself
 
@@ -481,7 +495,7 @@ class NewArgs(KhalArgs):
             time_stamp: the end time
             format: format
 
-        Returns:
+        Returns
         -------
             timestamp as a str
         """
@@ -500,7 +514,7 @@ class NewArgs(KhalArgs):
         ----
             time_stamp: an OrgDate time stamp
 
-        Returns:
+        Returns
         -------
             iCal RRULE
         """
@@ -527,7 +541,7 @@ class EditArgs(KhalArgs):
         timestamp: OrgDate = org_item.first_timestamp
 
         start: Time = set_tzinfo(timestamp.start, self.timezone)
-        end: Time = set_tzinfo(timestamp.end, self.timezone) or start
+        end: Time = set_tzinfo(timestamp.end, self.timezone)
         until: Time = set_tzinfo(org_item.until.start, self.timezone)
 
         repeater: tuple = org_item.first_timestamp._repeater or tuple()
@@ -535,8 +549,8 @@ class EditArgs(KhalArgs):
 
         props: CalendarProperties = CalendarProperties(
             start=start,
-            end=end,
-            rrule=rule,
+            end=end or start,
+            rrule=rule or None,
             uid=str(org_item.properties.get('UID')),
             url=str(org_item.properties.get('URL')),
             summary=org_item.title,
@@ -546,4 +560,3 @@ class EditArgs(KhalArgs):
             description=org_item.description,
         )
         self.update(props)
-
