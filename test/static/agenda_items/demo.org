@@ -1,0 +1,22 @@
+* Meeting                                                                :LABEL:
+  <2024-01-01 Mon>
+  :PROPERTIES:
+  :ATTENDEES: steensmabart@gmail.com 
+  :CALENDAR: 
+  :CATEGORIES: 
+  :LOCATION: Somewhere
+  :ORGANIZER: 
+  :STATUS: 
+  :UID: 
+  :URL: www.test.com
+  :UNTIL: 
+  :END:
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+

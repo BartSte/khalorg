@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from src.helpers import get_khal_format, get_khalorg_format
+from src.helpers import get_khal_format, get_khalorg_format, is_future
 from src.khal_items import (
     Calendar,
     CalendarProperties,
@@ -27,7 +27,7 @@ def list_command(
         start: start date (default: today)
         stop: end date (default: 1d)
 
-    Returns:
+    Returns
     -------
         stdout of the `khal list` command after post processing
 
@@ -64,7 +64,7 @@ def new(calendar: str, **kwargs) -> str:
         until: Stop an event repeating on this date.
         org: omit the stdin and send the input as an argument
 
-    Returns:
+    Returns
     -------
         stdout of the `khal new` command
 
@@ -75,10 +75,13 @@ def new(calendar: str, **kwargs) -> str:
     agenda_item.load_from_str(org)
     agenda_item.properties['UID'] = ''  # UID must be empty for new item
 
-    stdout: str = _new(calendar, agenda_item)
-    _edit(calendar, agenda_item, edit_dates=True)
-
-    return stdout
+    if is_future(agenda_item.first_timestamp.start):
+        stdout: str = _new(calendar, agenda_item)
+        _edit(calendar, agenda_item, edit_dates=True)
+        return stdout
+    else:
+        logging.critical('Adding past events is not supported.')
+        return ''
 
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
@@ -93,7 +96,7 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
         calendar: the name of the khal calendar
         agenda_item: org agenda item
 
-    Returns:
+    Returns
     -------
        stdout of `khal new`.
     """
@@ -140,10 +143,9 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
         return ''
 
 
-def _edit(
-        calendar: str,
-        agenda_item: OrgAgendaItem,
-        edit_dates: bool = False) -> str:
+def _edit(calendar: str,
+          agenda_item: OrgAgendaItem,
+          edit_dates: bool = False) -> str:
     """
     Edits `agenda_item` that corresponds to an existing agenda item in a
     khal `calendar`.
@@ -157,7 +159,7 @@ def _edit(
         edit_dates: If set to True, the org time stamp and its recurrence are
         also edited.
 
-    Returns:
+    Returns
     -------
        stdout of `khal new`.
     """

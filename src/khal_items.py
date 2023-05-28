@@ -202,7 +202,7 @@ class Calendar:
                                             props['end'])
 
         logging.info(f'number of events is {len(events)}')
-        events = [x for x in events if is_future(x.end, self.now())]
+        events = [x for x in events if is_future(x.end)]
 
         if len(events) == 0:
             logging.error(self.MESSAGE_EDIT.format(len(events)))
@@ -524,8 +524,10 @@ class EditArgs(KhalArgs):
         ----
             org_item: the org agenda item
         """
-        start: Time = set_tzinfo(org_item.first_timestamp.start, self.timezone)
-        end: Time = set_tzinfo(org_item.first_timestamp.end, self.timezone)
+        timestamp: OrgDate = org_item.first_timestamp
+
+        start: Time = set_tzinfo(timestamp.start, self.timezone)
+        end: Time = set_tzinfo(timestamp.end, self.timezone) or start
         until: Time = set_tzinfo(org_item.until.start, self.timezone)
 
         repeater: tuple = org_item.first_timestamp._repeater or tuple()
