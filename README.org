@@ -1,6 +1,6 @@
 #+TITLE:     README - khalorg
 #+AUTHOR:    BartSte
-#+DATE:      2023-05-05
+#+DATE:      2023-06-05
 
 * Introduction
   ~khalorg~ is a command line tool that converts agenda items of org mode
@@ -62,14 +62,16 @@
    - [X] ~khalorg new~: convert an org agenda item into a ~khal~ agenda item.
    - [x] ~khalorg list~: convert a ~khal~ agenda item into an org agenda item.
    - [x] ~khalorg edit~: edit an existing ~khal~ agenda item with org mode.
-   - [ ] ~khalorg delete~: delete an existing ~khal~ item.
+   - [X] ~khalorg delete~: delete an existing ~khal~ item.
    - [-] Recurring items are supported by providing an org repeater in the
      time stamp (e.g., ~+1w~). The following is supported:
      - the following org repeaters are supported: ~+{integer}{d,w,m,y}~.
-     - ~khalorg new~ and ~khalorg edit --dates~ support 1 time stamp per org
-       agenda item.
+     - ~khalorg new~ and ~khalorg edit --edit-dates~ support 1 time stamp per
+       org agenda item.
      - ~khalorg list~ concatenates timestamps that cannot be describes by an
        org repeater, resulting in an org agenda item with multiple timestamps.
+   - [-] Supports an ~until~ date for recurring items. The until date can be
+     supplied through an org property.
    - [-] Neovim plugin.
    - [-] Include an Office 365 workflow.
    - [ ] Is available on PyPI.
@@ -120,24 +122,24 @@
     instead of the default one that is shown below.
     #+begin_src txt
     * {title}
-    {timestamps}
-    :PROPERTIES:
-    :ATTENDEES: {attendees}
-    :CALENDAR: {calendar}
-    :CATEGORIES: {categories}
-    :LOCATION: {location}
-    :ORGANIZER: {organizer}
-    :STATUS: {status}
-    :UID: {uid}
-    :URL: {url}
-    :END:
-    {description}
+      {timestamps}
+      :PROPERTIES:
+      :ATTENDEES: {attendees}
+      :CALENDAR: {calendar}
+      :CATEGORIES: {categories}
+      :LOCATION: {location}
+      :ORGANIZER: {organizer}
+      :STATUS: {status}
+      :UID: {uid}
+      :URL: {url}
+      :END:
+      {description}
     #+end_src
     the following keys are supported:
     - attendees
     - calendar
     - categories
-    - description.
+    - description
     - location
     - organizer
     - rrule
@@ -145,6 +147,7 @@
     - timestamps
     - title
     - uid
+    - until
     - url
 
 *** Recurring items
@@ -159,23 +162,23 @@
 
     #+begin_example
     * Meeting
-    <2023-01-05 Thu 01:00-02:00>
-    <2023-01-08 Sun 01:00-02:00 +1w>
-    :PROPERTIES:
-    :UID: 123
-    :LOCATION: Somewhere
-    :ORGANIZER: Someone (someone@outlook.com)
-    :ATTENDEES: test@test.com, test2@test.com
-    :URL: www.test.com
-    :END:
-    Hello,
+      <2023-01-05 Thu 01:00-02:00>
+      <2023-01-08 Sun 01:00-02:00 +1w>
+      :PROPERTIES:
+      :UID: 123
+      :LOCATION: Somewhere
+      :ORGANIZER: Someone (someone@outlook.com)
+      :ATTENDEES: test@test.com, test2@test.com
+      :URL: www.test.com
+      :END:
+      Hello,
 
-    Lets have a meeting.
+      Lets have a meeting.
 
-    Regards,
+      Regards,
 
 
-    Someone
+      Someone
     #+end_example
 
 ** New: from org to khal
@@ -185,22 +188,22 @@
    which is saved as ~meeting.org~.
    #+begin_example
    * Meeting
-   <2023-01-01 Sun 01:00-02:00 +1w>
-   :PROPERTIES:
-   :UID: 123
-   :LOCATION: Somewhere
-   :ORGANIZER: Someone (someone@outlook.com)
-   :ATTENDEES: test@test.com, test2@test.com
-   :URL: www.test.com
-   :END:
-   Hello,
+     <2023-01-01 Sun 01:00-02:00 +1w>
+     :PROPERTIES:
+     :UID: 123
+     :LOCATION: Somewhere
+     :ORGANIZER: Someone (someone@outlook.com)
+     :ATTENDEES: test@test.com, test2@test.com
+     :URL: www.test.com
+     :END:
+     Hello,
 
-   Lets have a meeting.
+     Lets have a meeting.
 
-   Regards,
+     Regards,
 
 
-   Someone
+     Someone
    #+end_example
    This item can be converted to the ~khal~ calendar called "my_calendar" as
    follows:
@@ -211,12 +214,10 @@
    sure "my_calendar" is a calendar that exists on your local file system.
 
 *** Recurring items
-    Note that this meeting is repeated every week (~+1w~). Currently, the
-    following repeats are supported: daily, weekly, monthly or yearly.
-    Bi-weekly (~+2w~) or other derivatives are not supported yet. These
-    events repeat forever, unless you specify an end date using the `UNTIL`
-    property in the org file. This property is passed to ~khal~ its ~--until~
-    command line option.
+    Only 1 timestamp per org item is supported. Note that the meeting above is
+    repeated every week (~+1w~). Only simple org repeaters are supported that
+    have the following form: ~+[number][h,w,m,y]~. These events repeat forever,
+    unless you specify an end date using the `UNTIL` property in the org file.
 
     Personally, when I need to create a complex repeat pattern (or when I need
     outlook specific items like a Teams invite), I create the event in outlook
@@ -236,21 +237,21 @@
    ~khalorg edit~, as long as the UID remains untouched.
    #+begin_example
    * Edited meeting
-   <2023-01-01 Sun 01:00-02:00 +1w>
-   :PROPERTIES:
-   :UID: 123
-   :ORGANIZER: Someone (someone@outlook.com)
-   :ATTENDEES: other@test.com
-   :END:
-   Hello,
+     <2023-01-01 Sun 01:00-02:00 +1w>
+     :PROPERTIES:
+     :UID: 123
+     :ORGANIZER: Someone (someone@outlook.com)
+     :ATTENDEES: other@test.com
+     :END:
+     Hello,
 
-   I edited the meeting by removing the location and url. I also changed the
-   title and the attendees field.
+     I edited the meeting by removing the location and url. I also changed the
+     title and the attendees field.
 
-   Regards,
+     Regards,
 
 
-   Someone
+     Someone
    #+end_example
    Next, run the following command:
    #+begin_src bash
@@ -258,19 +259,29 @@
    #+end_src
    When using ~khalorg edit~ please consider the following:
    - Editing an existing event is different from creating a new one as the
-     original icalendar file is retained. Only parts of it are altered. This is
-     convienent when the icalendar file contains information that cannot be
+     original ~icalendar~ file is retained. Only parts of it are altered. This
+     is convienent when the icalendar file contains information that cannot be
      generated by ~khalorg~. For example, a Microsoft Team meeting.
-   - Currently, changing the timestamps and the RRULE. Is not yet supported.
    - Only the PROTO event is edited, i.e., the whole series is altered not only
      the occurence.
    - ~khal edit~ will only update the dates + recurrence if the ~--dates~
-     flag is passed. This avoids unwanted edits to the start-stop date when
-     editing an event that is printed by ~khal list~.
+     flag is passed. This avoids editing the start-stop date when editing an
+     event that contains multiple timestamps (which are not supported).
 
 ** Delete: 
-   - In progress
+   - An event can be deleted from a khal calendar by feeding an org file to the
+     ~khalorg delete~ command through stdin. The org file must contain an
+     agenda item with a non-empty UID property. For example, the khal event
+     that was created using the [[New]] command above can be removed by feeding
+     the same file to ~khalorg delete~:
+     #+begin_src bash
+     cat meeting.org | khalorg delete my_calendar
+     #+end_src
 
+*** Recurring items
+    When deleting recurring items the whole series will be removed. Removing
+    occurrences is not supported.
+ 
 ** Neovim plugin
    Work in progress. The plugin works for the ~khalorg new~ command but some
    settings ars still hard-coded. The plugin is called [[https://github.com/BartSte/nvim-khalorg][nvim-khalorg]].
@@ -307,23 +318,22 @@
     at the bottom.
   - [ ] When running on my own calendar, the until property does not have any
     effect.
-  - [-] The RRULE is not always displayed for recurring items
+  - [-] The RRULE is not always displayed for recurring items when using
+    ~khalorg list~.
 
 * Improvements:
   - [ ] Timezones are not yet supported, so ~khalorg~ will only work when you
     agenda remain in the timezone that you specified within your ~khal~ config.
-  - [ ] Running Khal commands directly from a script in not straightforward.
-    Therefore, khal is executed as a subprocess, launching a new interpreter.
+  - [ ] Running khal commands directly from a script in not straightforward.
+    Therefore, khal is executed as a subprocess, by using its command line
+    interface.
   - [ ] ~khalorg new~ and ~khal edit~ only support 1 timestamp per item.
     However, it is desired that all timestamps within 1 org agenda item, end up
     in 1 khal event, as is the case for the ~orgagenda~. To achieve this the
     following could be build:
     - [ ] When multiple timestamps without an org repeater are provided, find
       the ~RRULE~ that describes them. Also, set the ~UNTIL~ date to the last
-      date. If no ~RRULE~ can be found, raise an error.
+      date. If no ~RRULE~ can be found, raise an error. Another option could be
+      to use the ~RDATE~ option of ICal.
     - [ ] When multiple timestamps with an org repeater are presented, try to
       find the ~RRULE~ that describes them.
-    - [ ] When a mix or timestamps, with and without or repeater, are
-      presented, raise an error. This is not supported.
-
-
