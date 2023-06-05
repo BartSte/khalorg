@@ -1,6 +1,4 @@
 import logging
-import re
-from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Generator
 
@@ -8,64 +6,19 @@ import orgparse
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
-from src.helpers import get_indent, get_khalorg_format
+from src.helpers import get_khalorg_format
+from src.org.helpers import get_indent, remove_timestamps
 from src.rrule import rrulestr_is_supported, set_org_repeater
 
 Time = date | datetime
 
 
-class OrgAgendaItemError(Exception):
+class InvalidOrgItemError(Exception):
     """Raised for an error in OrgAgendaItem."""
 
 
-def remove_timestamps(text: str) -> str:
-    """
-    Removes active range timestamps from `text` that are not inline with the
-    text. If a timestamp is the only entity on a line, it will be removed.
-
-    If a line only contains a time stamp and spaces, the whole line is
-    deleted. If it is surrounded by characters, it is only removed.
-
-    Args:
-    ----
-        text: str containing time stamps
-
-    Returns
-    -------
-        text without active ranr timestamps
-
-    """
-    '^(?:\\s*<foo>\\s*)+$'
-    result: str = text
-    head: str = r'(^|\n)\s*'
-    tail: str = r'\s*(\n|$)'
-    timestamps: str = (
-        f'(?:{OrgRegex.timestamp_long})|'
-        f'(?:{OrgRegex.timestamp_short})|'
-        f'(?:{OrgRegex.timestamp_short_alt})|'
-        f'(?:{OrgRegex.timestamp})'
-    )
-    regex: str = f'({head}{timestamps}{tail})+'
-    result: str = re.sub(regex, '', result)
-
-    # Remove indent first line.
-    result = re.sub(r'^\s+', '', result)
-
-    return result
-
-
-@dataclass
-class OrgRegex:
-    """ Regex used for org timestamps. """
-
-    day: str = '[A-Z]{1}[a-z]{2}'
-    time: str = '[0-9]{2}:[0-9]{2}'
-    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    repeater: str = '[-+]{1,2}[0-9]+[a-z]+'
-    timestamp: str = f'<{date}( {day})?( {time})?( {repeater})?>'
-    timestamp_short: str = f'<{date}( {day})? {time}--{time}( {repeater})?>'
-    timestamp_short_alt: str = f'<{date}( {day})? {time}-{time}( {repeater})?>'
-    timestamp_long: str = f'{timestamp}--{timestamp}'
+class EmptyOrgItemError(Exception):
+    """ The org agenda is empty. """
 
 
 class OrgDateAgenda:
@@ -106,7 +59,7 @@ class OrgDateAgenda:
         ----
             nodes (OrgNode | None): An OrgNode object or None. Defaults to None.
 
-        Returns
+        Returns:
         -------
             None.
         """
@@ -124,7 +77,7 @@ class OrgDateAgenda:
         ----
             org_file (str): The Org file contents as a string.
 
-        Returns
+        Returns:
         -------
             OrgDateAgenda: A new instance of the OrgDateAgenda class.
         """
@@ -139,7 +92,7 @@ class OrgDateAgenda:
         ----
             nodes (OrgNode): An OrgNode object.
 
-        Returns
+        Returns:
         -------
             None.
         """
@@ -157,7 +110,7 @@ class OrgDateAgenda:
         ----
             uid (str): The UID to create.
 
-        Returns
+        Returns:
         -------
             None.
         """
@@ -174,7 +127,7 @@ class OrgDateAgenda:
             timestamp (OrgDate): The date to add.
             rule (str): The recurrence rule to add.
 
-        Returns
+        Returns:
         -------
             None.
         """
@@ -215,7 +168,7 @@ class OrgDateAgenda:
             node: object that represents an org file
             allow_short_range: see OrgDate._allow_short_range
 
-        Returns
+        Returns:
         -------
             the UID, timestamp, and RRULE property of an OrgNode.
 
@@ -235,7 +188,7 @@ class OrgDateAgenda:
         ----
             uid:  the UID
 
-        Returns
+        Returns:
         -------
             item as a str
         """
@@ -259,7 +212,7 @@ class OrgAgendaItem:
         body: all text that is not part of PROPERTIES
     """
 
-    MESSAGE_INVALID_NODE: str = 'Invalid org node. No child node exists.'
+    MESSAGE_INVALID_NODE: str = 'No agenda item was found.'
 
     def __init__(self,
                  title: str = '',
@@ -296,16 +249,20 @@ class OrgAgendaItem:
         return self._timestamps
 
     @timestamps.setter
-    def timestamps(self, value: list[OrgDate]):
+    def timestamps(self, timestamps: list[OrgDate]):
         """
-        Ensures the timestamps are sorted by start date.
+        Ensures the timestamps are sorted by start date, and the short range
+        notation is disabled.
 
         Args:
         ----
             value: list of OrgDate objects
         """
-        value.sort(key=lambda x: x.start)
-        self._timestamps = value
+        timestamps.sort(key=lambda x: x.start)
+        for timestamp in timestamps:
+            timestamp._allow_short_range = False
+
+        self._timestamps = timestamps
 
     @property
     def first_timestamp(self) -> OrgDate:
@@ -322,7 +279,7 @@ class OrgAgendaItem:
             return self.timestamps[0]
         except IndexError as error:
             message: str = 'Timestamp missing in agenda item'
-            raise OrgAgendaItemError(message) from error
+            raise InvalidOrgItemError(message) from error
 
     def load_from_str(self, text: str) -> 'OrgAgendaItem':
         """
@@ -332,7 +289,7 @@ class OrgAgendaItem:
         ----
             text: org agenda item as a str
 
-        Returns
+        Returns:
         -------
             the agenda item
 
@@ -348,13 +305,17 @@ class OrgAgendaItem:
         ----
             node: an org file that is parsed as `OrgNode`
 
-        Returns
+        Returns:
         -------
             OrgAgendaItem: returns itself.
 
         """
         item: OrgNode = self.get_first_agenda_item(node)
-        kwargs: dict = dict(active=True, inactive=False, range=True, point=True)  # noqa
+        kwargs: dict[str, bool] = dict(
+            active=True,
+            inactive=False,
+            range=True,
+            point=True)
 
         self.title = item.heading
         self.properties = item.properties
@@ -371,7 +332,7 @@ class OrgAgendaItem:
         ----
             node: the agenda item as `OrgNode`
 
-        Returns
+        Returns:
         -------
             OrgNode: the agenda item.
 
@@ -380,11 +341,12 @@ class OrgAgendaItem:
         try:
             return items[0]
         except IndexError as error:
-            raise OrgAgendaItemError(self.MESSAGE_INVALID_NODE) from error
+            raise EmptyOrgItemError(self.MESSAGE_INVALID_NODE) from error
 
     @property
     def until(self) -> OrgDate:
-        """Return the UNTIL property as an OrgDate.
+        """
+        Return the UNTIL property as an OrgDate.
 
         If the OrgDateAgenda.first_timestamp has a time component, `until` must
         also have a time component. If this is not the case, add the time part
@@ -398,7 +360,7 @@ class OrgAgendaItem:
         until: OrgDate = OrgDate.from_str(self.properties.get('UNTIL', ''))
         start: datetime | date = until.start
         has_time = isinstance(start, datetime)
-        
+
         if not until or has_time == self.first_timestamp.has_time():
             return until
         elif has_time:
@@ -416,7 +378,7 @@ class OrgAgendaItem:
         ----
             node:
 
-        Returns
+        Returns:
         -------
 
         """
@@ -440,7 +402,7 @@ class OrgAgendaItem:
             a: agenda item
             b: agenda item
 
-        Returns
+        Returns:
         -------
             bool: True if the items are equal.
 
@@ -461,7 +423,7 @@ class OrgAgendaItem:
         ----
             delimiter: str that separates attendees
 
-        Returns
+        Returns:
         -------
             value split by `delimiter` and retuned as a list
         """
@@ -474,10 +436,12 @@ class OrgAgendaItem:
             return value.split(delimiter)
 
     def __str__(self) -> str:
-        """Return the org item as a str.
+        """
+        Return the org item as a str.
 
-        Returns:
-            
+        Returns
+        -------
+
         """
         spec: str = get_khalorg_format()
         return format(self, spec)
@@ -506,7 +470,7 @@ class OrgAgendaItem:
         ----
             spec: a template where keys surrounded by "{}" will be formatted.
 
-        Returns
+        Returns:
         -------
             the formatted `spec`
 
@@ -530,7 +494,7 @@ class OrgAgendaItem:
                 description=self.description)
         except KeyError as error:
             message: str = 'Unsupported key encountered in `spec`'
-            raise OrgAgendaItemError(message) from error
+            raise KeyError(message) from error
 
     def get_timestamps_as_str(self, spec: str) -> str:
         """
@@ -541,7 +505,7 @@ class OrgAgendaItem:
         ----
             spec: the used spec is needed to determine the indent.
 
-        Returns
+        Returns:
         -------
             the indented timestamps
 
@@ -588,7 +552,7 @@ class OrgAgendaFile:
         ----
             nodes: An OrgNode object representing the parsed org file.
 
-        Returns
+        Returns:
         -------
             None.
         """
@@ -628,7 +592,7 @@ class OrgAgendaFile:
         ----
             spec: A string containing the format specifier.
 
-        Returns
+        Returns:
         -------
             A formatted string.
         """
@@ -640,13 +604,15 @@ class OrgAgendaFile:
         Creates a new instance of the OrgAgendaFile class from a string
         representation of the org file.
 
+        If `items` is an empty str it is replaced by '\n'
+
         Args:
         ----
             items: A string containing the org file.
 
-        Returns
+        Returns:
         -------
             An instance of the OrgAgendaFile class.
         """
-        nodes: OrgNode = orgparse.loads(items)
-        return cls(nodes)
+        items = items or '\n'
+        return cls(orgparse.loads(items))

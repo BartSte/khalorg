@@ -1,70 +1,16 @@
 from datetime import datetime
 from test.agenda_items import AllDay, Recurring, Valid
 from test.helpers import (
-    get_test_config,
-    khal_runner,
     read_org_test_file,
 )
-from typing import Callable
+from test.test_khal.helpers import Mixin
 from unittest import TestCase
-from unittest.mock import patch
 
-import pytest
-from khal.controllers import CalendarCollection
-
-from src.helpers import set_tzinfo
-from src.khal_items import (
-    Calendar,
-    EditArgs,
-    NewArgs,
-    get_calendar_collection,
-)
-from src.org_items import OrgAgendaItem
+from src.khal.args import EditArgs, NewArgs
+from src.khal.helpers import set_tzinfo
+from src.org.agenda_items import OrgAgendaItem
 
 FORMAT = '%Y-%m-%d %a %H:%M'
-
-
-@pytest.fixture
-def get_cli_runner(tmpdir, monkeypatch) -> Callable:
-    return khal_runner(tmpdir, monkeypatch)
-
-
-def test_get_calendar_collection(get_cli_runner):
-    """Must be able to find a calendar collection."""
-    get_cli_runner()
-    collection: CalendarCollection = get_calendar_collection('one')
-    assert isinstance(collection, CalendarCollection)
-
-
-def test_get_calendar_collection_no_config(get_cli_runner):
-    """
-    Must be able to find a calendar collection. Even if no configuration
-    file can be found.
-    """
-    from src import khal_items
-    khal_items.find_configuration_file = lambda *_: None
-
-    get_cli_runner()
-    collection: CalendarCollection = get_calendar_collection('noneexisting')
-    assert isinstance(collection, CalendarCollection)
-
-
-class Mixin:
-
-    def setUp(self) -> None:
-        args: list = Valid.get_args()
-        self.agenda_item: OrgAgendaItem = OrgAgendaItem(*args)
-        self.calendar = Calendar('test_calendar')
-
-
-class TestCalendar(Mixin, TestCase):
-
-    module: str = 'src.khal_items.find_configuration_file'
-
-    @patch(module, return_value=get_test_config())
-    def test_datetime_format(self, _):
-        """The `datetime_format` must coincide. """
-        self.assertEqual(self.calendar.datetime_format, '%Y-%m-%d %a %H:%M')
 
 
 class TestArgs(Mixin, TestCase):

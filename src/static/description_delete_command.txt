@@ -1,0 +1,5 @@
+Delete a khal item, using an org item as an input.
+
+A khal item can be deleted by feeding an org item through stdin. Khalorg finds
+its khal equivalent, using the UID property, and tries to delete it. The khal
+calendar name must be specifyed by adding it as the first positional argument.

@@ -4,7 +4,8 @@ from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
 
-from src.helpers import get_default_khalorg_format, get_module_path
+from src.helpers import get_default_khalorg_format
+from test.helpers import get_module_path
 
 
 def khalorg_tester(args: list) -> str:
@@ -121,3 +122,23 @@ class TestList(TestCase):
             "'stop': '1d'"
         )
         self.assertTrue(expected in actual, msg=actual)
+
+class TestDelete(TestCase):
+
+    def test(self):
+        """
+        When feeding a set of command line args, an expected set of
+        function arguments for src.cli.delete is expected.
+        """
+        args: list = [
+            '--loglevel',
+            'CRITICAL',
+            'delete',
+            'calendar',
+        ]
+        actual = khalorg_tester(args)
+        expected: str = (
+            "'loglevel': 'CRITICAL', "
+            "'calendar': 'calendar'"
+        )
+        self.assertTrue(expected in actual)

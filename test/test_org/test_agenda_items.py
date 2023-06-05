@@ -1,3 +1,4 @@
+from src.org.helpers import remove_timestamps
 from test.agenda_items import (
     AllDay,
     AllDayRecurring,
@@ -20,14 +21,12 @@ from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 import paths
-from src.org_items import (
+from src.org.agenda_items import (
+    EmptyOrgItemError,
     OrgAgendaFile,
     OrgAgendaItem,
-    OrgAgendaItemError,
     OrgDateAgenda,
-    remove_timestamps,
 )
-
 
 class TestOrgAgendaItem(TestCase):
     """Test for OrgAgendaItem."""
@@ -93,7 +92,7 @@ class TestOrgAgendaItem(TestCase):
             org_file: situated in ./test/static/agenda_item/
             expected: the expected OrgAgendaItem.
 
-        Returns
+        Returns:
         -------
            bool represents the comparison, and an optional error message is
            provided as str.
@@ -114,7 +113,7 @@ class TestOrgAgendaItem(TestCase):
         An agenda item generated from 'no_heading.org' must raise an error as
         the OrgNode does not have a child node.
         """
-        with self.assertRaises(OrgAgendaItemError):
+        with self.assertRaises(EmptyOrgItemError):
             node: OrgNode = loads(read_org_test_file("no_heading.org"))
             OrgAgendaItem().load_from_org_node(node)
 
@@ -144,7 +143,8 @@ class TestOrgAgendaItem(TestCase):
         self.assertEqual(actual, expected)
 
     def test_until_datetime(self):
-        """When until is a datetime, and the start and end are datetime,
+        """
+        When until is a datetime, and the start and end are datetime,
         do nothing.
         """
         item: OrgAgendaItem = OrgAgendaItem()
@@ -155,8 +155,10 @@ class TestOrgAgendaItem(TestCase):
         self.assertEqual(expected, item.until)
 
     def test_until_date(self):
-        """When until is a date, and the start and end are datetime, converst
-        until to a date time"""
+        """
+        When until is a date, and the start and end are datetime, converst
+        until to a date time.
+        """
         item: OrgAgendaItem = OrgAgendaItem()
         text: str = read_org_test_file('all_day.org')
         item.load_from_str(text)
@@ -165,7 +167,8 @@ class TestOrgAgendaItem(TestCase):
         self.assertEqual(expected, item.until)
 
     def test_until_date_until_with_time(self):
-        """When until is a datetime, and the start and end are date objects,
+        """
+        When until is a datetime, and the start and end are date objects,
         convert unil to a date.
         """
         item: OrgAgendaItem = OrgAgendaItem()
@@ -227,3 +230,4 @@ class TestOrgAgendaFile(TestCase):
                 f"\n\nExpected is:\n{expected}"
             )
             self.assertEqual(actual, expected, msg=message)
+

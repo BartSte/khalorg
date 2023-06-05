@@ -3,7 +3,7 @@ from functools import partial
 from os.path import join
 
 import paths
-from src.commands import edit, list_command, new
+from src.commands import delete, edit, list_command, new
 from src.helpers import get_khalorg_format
 
 
@@ -35,6 +35,10 @@ def get_parser() -> ArgumentParser:
     child_list.add_argument('--edit_dates', **Args.edit_dates)
     child_list.add_argument('calendar', **Args.calendar)
     child_list.set_defaults(func=edit)
+
+    child_list: ArgumentParser = subparsers.add_parser('delete', **ParserInfo.delete)  # noqa
+    child_list.add_argument('calendar', **Args.calendar)
+    child_list.set_defaults(func=delete)
 
     return parent
 
@@ -70,6 +74,10 @@ class ParserInfo:
         description=_read_static_txt('description_edit_command.txt')
     )
 
+    delete: dict = dict(
+        prog='khalorg delete',
+        description=_read_static_txt('description_delete_command.txt')
+    )
 
 class Args:
     """ Arguments for the ArgumentParser.add_argument methods."""

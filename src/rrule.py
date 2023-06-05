@@ -1,4 +1,5 @@
 import re
+from datetime import date, datetime
 
 from dateutil.rrule import (
     DAILY,
@@ -13,12 +14,11 @@ from dateutil.rrule import (
 from icalendar.prop import vRecur
 from orgparse.date import OrgDate
 
-from src.helpers import Time
+Time = datetime | date
 
 MAX_WEEKDAYS: int = 2
 NOT_SUPPORTED: tuple = (
     '_byeaster',
-    '_bymonthday',
     '_bynmonthday',
     '_bynweekday',
     '_bysetpos',
@@ -27,7 +27,7 @@ NOT_SUPPORTED: tuple = (
 
 
 def get_recurobject(date: Time,
-                    repeater: tuple,
+                    repeater: tuple[str, int, str],
                     until: Time | None = None) -> dict:
     """
     Retruns the RRULE as an iCal vRecur object.
@@ -46,7 +46,7 @@ def get_recurobject(date: Time,
 
 
 def get_rrulestr(date: Time,
-                 repeater: tuple,
+                 repeater: tuple[str, int, str] | None,
                  until: Time | None = None,
                  clip: bool = False) -> str:
     """
@@ -72,7 +72,7 @@ def get_rrulestr(date: Time,
 
 
 def _get_rrulestr(date: Time,
-                  repeater: tuple,
+                  repeater: tuple[str, int, str] | None,
                   until: Time | None = None,
                   clip: bool = False) -> str:
     """
@@ -93,7 +93,9 @@ def _get_rrulestr(date: Time,
     return re.sub(r'^DTSTART:.*\nRRULE:', '', result) if clip else result
 
 
-def get_rrule(time: Time, repeater: tuple, until: Time | None = None) -> rrule:
+def get_rrule(time: Time,
+              repeater: tuple[str, int, str] | None,
+              until: Time | None = None) -> rrule:
     """
     Retruns the RRULE as an rrule of the dateutils module.
 
@@ -115,7 +117,7 @@ def get_rrule(time: Time, repeater: tuple, until: Time | None = None) -> rrule:
     return result
 
 
-def get_rrule_freq(repeater: tuple) -> int:
+def get_rrule_freq(repeater: tuple[str, int, str]) -> int:
     """
     Converst the OrgDate repeater to an RRULE frequency.
 
@@ -127,7 +129,7 @@ def get_rrule_freq(repeater: tuple) -> int:
     -------
         the RRULE frequency.
     """
-    freq_map: dict = {
+    freq_map: dict[str, int] = {
         'y': YEARLY,
         'm': MONTHLY,
         'w': WEEKLY,
@@ -234,7 +236,7 @@ def _rrule_to_org(obj: rrule) -> tuple[str, int, str] | None:
     -------
         str: The original repeater string.
     """
-    freq_map: tuple = ('y', 'm', 'w', 'h')
+    freq_map: tuple = ('y', 'm', 'w', 'd', 'h')
     interval: int = obj._interval
     frequency: str = freq_map[obj._freq]
     return '+', interval, frequency
@@ -288,7 +290,7 @@ def rrulestr_is_supported(value: str) -> bool:
         return rrule_is_supported(obj)
 
 
-def rrule_is_supported(rrule_obj: rrule,
+def rrule_is_supported(rule: rrule,
                        max_days: int = MAX_WEEKDAYS,
                        unsupported: tuple = NOT_SUPPORTED) -> bool:
     """
@@ -311,14 +313,25 @@ def rrule_is_supported(rrule_obj: rrule,
     -------
         bool: True if the rrule object is supported, False otherwise.
     """
+    if not rule:
+        return True  # empty rule is supported
+
     rrule_is_supported: bool = all(
-        bool(getattr(rrule_obj, x, None)) is False
-        for x in unsupported
+        bool(getattr(rule, x, None)) is False for x in unsupported
     )
 
-    if rrule_obj._byweekday is None:
-        weekday_is_supported: bool = True
-    else:
-        weekday_is_supported: bool = len(rrule_obj._byweekday) < max_days
+    weeks_exceeded: bool = _get_weeks_exceeded(rule)
+    weekday_is_supported: bool = _get_weekday_is_supported(rule, max_days)
 
-    return rrule_is_supported and weekday_is_supported
+    return all([rrule_is_supported, weekday_is_supported, not weeks_exceeded])
+
+
+def _get_weekday_is_supported(rule: rrule, max_days: int) -> bool:
+    try:
+        return len(rule._byweekday) < max_days
+    except TypeError:
+        return True
+
+
+def _get_weeks_exceeded(rule: rrule) -> bool:
+    return rule._freq == WEEKLY and rule._interval > 52 and rule._interval > 0

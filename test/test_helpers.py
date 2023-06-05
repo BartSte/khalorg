@@ -7,7 +7,8 @@ import pytz
 from test import static
 from unittest import TestCase
 
-from src.helpers import set_tzinfo, get_config, get_module_path
+from test.helpers import get_config, get_module_path
+from src.khal.helpers import set_tzinfo
 
 
 class TestGetConfig(TestCase):

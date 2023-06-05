@@ -1,15 +1,14 @@
 import logging
 import sys
 
-from src.helpers import get_khal_format, get_khalorg_format, is_future
-from src.khal_items import (
-    Calendar,
-    CalendarProperties,
-    EditArgs,
-    KhalArgs,
-    NewArgs,
+from src.helpers import (
+    get_khalorg_format,
 )
-from src.org_items import OrgAgendaFile, OrgAgendaItem
+from src.khal.args import DeleteArgs, EditArgs, KhalArgs, NewArgs
+from src.khal.calendar import Calendar, CalendarProperties
+from src.khal.checker import EventChecker, EventChecks
+from src.khal.helpers import get_khal_format
+from src.org.agenda_items import OrgAgendaFile, OrgAgendaItem
 
 
 def list_command(
@@ -71,11 +70,14 @@ def new(calendar: str, **kwargs) -> str:
     """
     org = kwargs.get('org', '') or sys.stdin.read()
 
+    checker: EventChecker = EventChecker()
+    checker.remove(EventChecks.UID)
+
     agenda_item: OrgAgendaItem = OrgAgendaItem()
     agenda_item.load_from_str(org)
     agenda_item.properties['UID'] = ''  # UID must be empty for new item
 
-    message: str = _is_valid(calendar, agenda_item)
+    message: str = checker.is_valid(calendar, agenda_item)
     if not message:
         stdout: str = _new(calendar, agenda_item)
         _edit(calendar, agenda_item, edit_dates=True)
@@ -84,30 +86,6 @@ def new(calendar: str, **kwargs) -> str:
         logging.critical(message)
         return ''
 
-def _is_valid(name: str, item: OrgAgendaItem) -> str:
-    """Check if the `item` can be created in calendar `name`.
-
-    Args:
-        name: name of the Khal calendar
-        item: OrgAgendaItem object
-
-    Returns:
-        True if the item is not a duplicate and exists in the future, else
-        return False
-    """
-    calendar: Calendar = Calendar(name)
-    is_duplicate: bool = calendar.exists(
-        item.title, 
-        item.first_timestamp.start,
-        item.first_timestamp.end
-    )
-    future: bool = is_future(item.first_timestamp.start)
-
-    message: str = ''
-    message += 'Agenda item date not in the future\n' if not future else ''
-    message += 'Agenda item already exists\n' if is_duplicate else ''
-
-    return message
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     """
@@ -130,7 +108,7 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     args: NewArgs = NewArgs()
     args['-a'] = calendar
     args.load_from_org(agenda_item)
-    logging.debug(f'Khal new args are: {args.as_list()}')
+    logging.info(f'Khal new args are: {args.as_list()}')
 
     return khal_calendar.new_item(args.as_list())
 
@@ -158,13 +136,17 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
     """
     org = kwargs.get('org', '') or sys.stdin.read()
 
+    checker: EventChecker = EventChecker()
+    checker.remove(EventChecks.DUPLICATE)
+
     agenda_item: OrgAgendaItem = OrgAgendaItem()
     agenda_item.load_from_str(org)
 
-    if agenda_item.properties.get('UID'):
+    message: str = checker.is_valid(calendar, agenda_item)
+    if not message:
         return _edit(calendar, agenda_item, edit_dates)
     else:
-        logging.error('Agenda item has no UID.')
+        logging.critical(message)
         return ''
 
 
@@ -194,3 +176,44 @@ def _edit(calendar: str,
     args.load_from_org(agenda_item)
     khal_calendar.edit(CalendarProperties(**args), edit_dates)
     return ''
+
+
+def delete(calendar: str, **kwargs) -> str:
+    """TODO
+
+    Args:
+        calendar: 
+        **kwargs: 
+
+    Returns:
+        
+    """
+    org = kwargs.get('org', '') or sys.stdin.read()
+
+    checker: EventChecker = EventChecker([EventChecks.UID])
+    agenda_item: OrgAgendaItem = OrgAgendaItem()
+    agenda_item.load_from_str(org)
+
+    message: str = checker.is_valid(calendar, agenda_item)
+    if not message:
+        return _delete(calendar, agenda_item)
+    else:
+        logging.critical(message)
+        return ''
+
+
+def _delete(calendar: str, agenda_item: OrgAgendaItem) -> str:
+    """TODO.
+
+    Args:
+        calendar:
+        agenda_item:
+
+    Returns
+    -------
+
+    """
+    args: DeleteArgs = DeleteArgs()
+    args.load_from_org(agenda_item)
+    khal_calendar: Calendar = Calendar(calendar)
+    return khal_calendar.delete(CalendarProperties(**args))

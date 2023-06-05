@@ -1,29 +1,23 @@
 from datetime import date, datetime, timedelta
 from test.helpers import (
     assert_event_created,
+    assert_event_deleted,
     assert_event_edited,
+    get_org_item,
     khal_runner,
 )
 from typing import Callable, Generator
 
 import pytest
 from khal.cli import main_khal
-from munch import Munch, munchify
 from orgparse.date import OrgDate
 
-from src.commands import _edit, _new, new
-from src.khal_items import (
-    Calendar,
-)
-from src.org_items import OrgAgendaItem
+from src.commands import _delete, _edit, _new, delete, list_command, new
+from src.khal.calendar import Calendar
+from src.org.agenda_items import OrgAgendaItem
 
 Time = datetime | date
 FORMAT = '%Y-%m-%d %a %H:%M'
-
-org_past: str = """
-* Meeting
-  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
-"""
 
 
 @pytest.fixture
@@ -50,22 +44,71 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
     """
     runner = get_cli_runner()
 
-    def khal_new(_, args: list):
-        runner.invoke(main_khal, ['new'] + args)
+    def khal_new(_, args: list) -> str:
+        result = runner.invoke(main_khal, ['new'] + args)
+        return result.output
+
+    def khal_list(_, args: list):
+        result = runner.invoke(main_khal, ['list', '-df', ''] + args)
+        return result.output
 
     monkeypatch.setattr(Calendar, 'new_item', khal_new)
+    monkeypatch.setattr(Calendar, 'list_command', khal_list)
+
     yield runner
 
 
-_TEST_EVENT: dict = dict(
-    summary='summary',
-    description="hello,\n\n text.\n\nbye",
-    properties={
-        'ATTENDEES': 'test@test.com, test2@test.com',
-        'CATEGORIES': 'category1, category2',
-        'LOCATION': 'location1, location2',
-        'URL': 'www.test.com'
-    })
+def test_list(runner):
+    """
+
+    Args:
+    ----
+        runner ():
+    """
+    expected: OrgAgendaItem = get_org_item()
+    _list_test(runner, expected)
+
+
+def _list_test(runner, expected: OrgAgendaItem):
+    actual: OrgAgendaItem = OrgAgendaItem()
+    new('one', org=str(expected))
+    stdout: str = list_command('one')
+    actual.load_from_str(stdout)
+
+    # UID and CALENDAR are changed in the process.
+    expected.properties['UID'] = actual.properties['UID']
+    expected.properties['CALENDAR'] = actual.properties['CALENDAR']
+    assert str(expected) == str(actual), f'Org item: {expected}'
+
+
+def test_list_recurring(runner):
+    """ List supported recurring items. """
+    daily = [(1, 'd'), (2, 'd')]
+    weekly = [(1, 'w'), (2, 'w')]
+    monthly = [(1, 'm'), (2, 'm')]
+    yearly = [(1, 'y'), (2, 'y')]
+    for interval, freq in daily + weekly + monthly + yearly:
+        expected: OrgAgendaItem = get_org_item(repeater=('+', interval, freq))
+        _list_test(runner, expected)
+        _delete('one', expected)
+
+
+def test_list_rrule(runner):
+    """TODO: test if the RRULE is printed properly for recurring items."""
+    pass
+
+
+def test_list_allday(runner):
+    """An all day event must be listed."""
+    expected: OrgAgendaItem = get_org_item(all_day=True)
+    _list_test(runner, expected)
+
+
+def test_list_allday_recurring(runner):
+    """All day recurring events must also be listed."""
+    expected: OrgAgendaItem = get_org_item(all_day=True,
+                                           repeater=('+', 1, 'm'))
+    _list_test(runner, expected)
 
 
 def test_edit(runner):
@@ -78,7 +121,7 @@ def test_edit(runner):
 
     Args:
     ----
-        get_cli_runner: from the pytest fixture
+        runner: from the pytest fixture
     """
     org_item: OrgAgendaItem = get_org_item()
 
@@ -87,55 +130,6 @@ def test_edit(runner):
     org_item.properties['UID'] = event[0].uid  # UID needed for editing
     _edit('one', org_item)
     assert_event_edited(runner, 'one', org_item)
-
-
-def get_org_item(delta: timedelta = timedelta(hours=1),
-                 all_day: bool = False,
-                 until: str = '',
-                 repeater: tuple | None = None) -> OrgAgendaItem:
-    """
-    Returns an org_item that is used for testing.
-
-    Returns
-    -------
-        an org agenda item used for test
-    """
-    start, end = get_start_end(delta=delta, all_day=all_day)
-    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
-    org_item: OrgAgendaItem = OrgAgendaItem(
-        title=test_event.summary,
-        timestamps=[OrgDate(start, end, repeater=repeater)],
-        properties=dict(**test_event.properties),
-        description=test_event.description
-    )
-    org_item.properties['UNTIL'] = until
-    return org_item
-
-
-def get_start_end(delta: timedelta = timedelta(hours=1),
-                  all_day: bool = False
-                  ) -> tuple[Time, Time | None]:
-    """
-    Get start and end datetime with a time difference of `delta`.
-
-    Args:
-    ----
-        delta: timedelta, default is 1 hour
-
-    Returns
-    -------
-        the start and end times when planning an even now.
-
-    """
-    start: datetime = datetime.now() + timedelta(hours=1)
-    end: datetime = start + delta
-
-    if all_day:
-        return datetime.date(start), datetime.date(end)
-    else:
-        start = start.replace(second=0, microsecond=0)
-        end = end.replace(second=0, microsecond=0)
-        return start, end
 
 
 def test_edit_change_time(runner):
@@ -161,9 +155,7 @@ def test_edit_change_time(runner):
 
 
 def test_edit_all_day(runner):
-    """
-    Create a new all day event and edit it.
-    """
+    """Create a new all day event and edit it."""
     org_item: OrgAgendaItem = get_org_item(all_day=True)
     _new('one', org_item)
     event: list = assert_event_created('one', org_item)
@@ -173,9 +165,7 @@ def test_edit_all_day(runner):
 
 
 def test_edit_recurring(runner):
-    """
-    Create a new recurring event and edit it.
-    """
+    """Create a new recurring event and edit it."""
     _edit_recurring(runner)
 
 
@@ -196,9 +186,7 @@ def _edit_recurring(runner):
 
 
 def test_edit_all_day_recurring(runner):
-    """
-    Create a new all day recurring event and edit it.
-    """
+    """Create a new all day recurring event and edit it."""
     _edit_all_day_recurring(runner)
 
 
@@ -207,9 +195,9 @@ def _edit_all_day_recurring(runner):
     calendar = Calendar('one')
     until: date = datetime.today() + timedelta(days=days - 1)
     org_item: OrgAgendaItem = get_org_item(
-        all_day=True, until=until.strftime(
-            calendar.date_format), repeater=(
-            '+', 1, 'd'))
+        all_day=True,
+        until=until.strftime(calendar.date_format),
+        repeater=('+', 1, 'd'))
     _new('one', org_item)
     event: list = assert_event_created('one', org_item, recurring=True)
     org_item.properties['UID'] = event[0].uid
@@ -219,7 +207,8 @@ def _edit_all_day_recurring(runner):
 
 
 def test_edit_recurring_twice(runner):
-    """Edit an recurring items twice to ensure no events were corrupted by
+    """
+    Edit an recurring items twice to ensure no events were corrupted by
     us.
     """
     days = 1
@@ -232,7 +221,8 @@ def test_edit_recurring_twice(runner):
 
 
 def test_edit_all_day_recurring_twice(runner):
-    """Edit an recurring allday item twice to ensure no events were corrupted
+    """
+    Edit an recurring allday item twice to ensure no events were corrupted
     by us.
     """
     days = 1
@@ -244,16 +234,11 @@ def test_edit_all_day_recurring_twice(runner):
     assert_event_edited(runner, 'one', org_item, count=days)
 
 
-def test_duplicate(runner, caplog):
-    """When an item is duplicated, log a critical message."""
-    org_item: OrgAgendaItem = get_org_item()
-    new('one', org=str(org_item))
-    assert_event_created('one', org_item)
-    new('one', org=str(org_item))
-    assert 'Agenda item already exists' in caplog.text
-
-
-def test_event_in_past(runner, caplog):
-    """When an item its timestamp is in the past, log a critical message."""
-    new('one', org=org_past)
-    assert 'Agenda item date not in the future' in caplog.text
+def test_delete(runner):
+    """After creating an event, the `delete` command should delete it."""
+    expected: OrgAgendaItem = get_org_item()
+    new('one', org=str(expected))
+    events = assert_event_created('one', expected)
+    expected.properties['UID'] = str(events[0].uid)
+    delete('one', org=str(expected))
+    assert_event_deleted('one', expected)

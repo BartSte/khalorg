@@ -39,7 +39,10 @@ aggressive = 3
 experimental = true
 
 [tool.pytest.ini_options]
-addopts = "-s -rA"
+addopts = "-s -rA --log-level INFO"
 testpaths = [
     "test"
 ]
+
+[tool.ipdb]
+context = 9

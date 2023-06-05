@@ -17,6 +17,7 @@ def echo(**kwargs):
 
 @patch('src.cli.edit', echo)
 @patch('src.cli.new', echo)
+@patch('src.cli.delete', echo)
 @patch('src.cli.list_command', echo)
 def main():
     parser: ArgumentParser = cli.get_parser()
