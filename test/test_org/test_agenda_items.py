@@ -1,4 +1,5 @@
 from src.org.helpers import remove_timestamps
+from test import static
 from test.agenda_items import (
     AllDay,
     AllDayRecurring,
@@ -12,6 +13,7 @@ from test.agenda_items import (
     Valid,
 )
 from test.helpers import (
+    get_module_path,
     read_org_test_file,
 )
 from unittest import TestCase
@@ -205,6 +207,8 @@ class TestAgendaOrgDates(TestCase):
 class TestOrgAgendaFile(TestCase):
 
     def test(self):
+        """Test the OrgDateAgendaFile for the default format, (without the
+        RRULE property)."""
         with open(paths.default_format) as f:
             khalorg_format: str = f.read()
 
@@ -231,3 +235,24 @@ class TestOrgAgendaFile(TestCase):
             )
             self.assertEqual(actual, expected, msg=message)
 
+class TestOrgDateAgenda(TestCase):
+
+    def test_get_rrulestr_supported(self):
+        """ The RRULE of the rrule_recurring.org should be the same as the
+        OrgDateAgenda.get_rrulestr method returns"""
+        org_file: str = read_org_test_file('rrule_recurring.org')
+        self._test_get_rrulestr(org_file)
+
+    def _test_get_rrulestr(self, org_file: str):
+        node: OrgNode = loads(org_file).children[0]
+        dates: OrgDateAgenda = OrgDateAgenda(node)
+
+        expected: str = node.properties['RRULE'] 
+        actual: str = dates.get_rrulestr(node.properties['UID'])
+        assert expected == actual
+
+    def test_get_rrulestr_unsupported(self):
+        """ The RRULE of the rrule_recurring_not_supported.org should be the
+        same as the OrgDateAgenda.get_rrulestr method returns"""
+        org_file: str = read_org_test_file('rrule_recurring_not_supported.org')
+        self._test_get_rrulestr(org_file)

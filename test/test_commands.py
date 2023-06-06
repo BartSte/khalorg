@@ -1,8 +1,11 @@
 from datetime import date, datetime, timedelta
+from os.path import join
+from test import static
 from test.helpers import (
     assert_event_created,
     assert_event_deleted,
     assert_event_edited,
+    get_module_path,
     get_org_item,
     khal_runner,
 )
@@ -70,15 +73,22 @@ def test_list(runner):
 
 
 def _list_test(runner, expected: OrgAgendaItem):
+    format_file: str = join(get_module_path(static), 'khalorg_format_full.txt')
+    with open(format_file) as f:
+        khalorg_format:str = f.read()
+
     actual: OrgAgendaItem = OrgAgendaItem()
     new('one', org=str(expected))
-    stdout: str = list_command('one')
+    stdout: str = list_command('one', khalorg_format)
     actual.load_from_str(stdout)
 
     # UID and CALENDAR are changed in the process.
     expected.properties['UID'] = actual.properties['UID']
     expected.properties['CALENDAR'] = actual.properties['CALENDAR']
     assert str(expected) == str(actual), f'Org item: {expected}'
+
+    # A recurring item should have a non empty rrule
+    assert bool(actual.properties['RRULE']) == bool(expected.first_timestamp._repeater)
 
 
 def test_list_recurring(runner):
@@ -91,11 +101,6 @@ def test_list_recurring(runner):
         expected: OrgAgendaItem = get_org_item(repeater=('+', interval, freq))
         _list_test(runner, expected)
         _delete('one', expected)
-
-
-def test_list_rrule(runner):
-    """TODO: test if the RRULE is printed properly for recurring items."""
-    pass
 
 
 def test_list_allday(runner):

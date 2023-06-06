@@ -21,183 +21,6 @@ class EmptyOrgItemError(Exception):
     """ The org agenda is empty. """
 
 
-class OrgDateAgenda:
-    """
-    An object or this class groups all date together based on their UID value,
-    by feeding it an OrgNode (python representation of an org file). For this,
-    a value for the property "UID" is needed.
-
-    Additionally, py providing an RRULE property, the appropriate org repeaters
-    will be created.
-
-    By calling OrgDateAgenda.as_str all OrgDate objects belonging to a UID wil
-    be concatinated and separated by a newline. As such, 1 OrgAgendaItem can
-    have multiple (recurring) OrgDate objects.
-
-    Attributes
-    ----------
-        TIME_STAMPS_TYPES (dict): A dictionary defining the types of timestamps
-            that can be processed by the class.
-        dates (dict): A dictionary containing the dates associated with each UID.
-        rrules (dict): A dictionary containing the recurrence rules associated
-            with each UID.
-
-    """
-
-    TIME_STAMPS_TYPES: dict = dict(
-        active=True,
-        inactive=False,
-        range=True,
-        point=True
-    )
-
-    def __init__(self, nodes: OrgNode | None = None) -> None:
-        """
-        Initializes a new instance of the OrgDateAgenda class.
-
-        Args:
-        ----
-            nodes (OrgNode | None): An OrgNode object or None. Defaults to None.
-
-        Returns:
-        -------
-            None.
-        """
-        self.dates: dict[str, list[OrgDate]] = {}
-        self.rrules: dict[str, set[str]] = {}
-        if nodes:
-            self.add_node(nodes)
-
-    @classmethod
-    def from_str(cls, org_file: str) -> 'OrgDateAgenda':
-        """
-        Creates a new instance of the OrgDateAgenda class from a string.
-
-        Args:
-        ----
-            org_file (str): The Org file contents as a string.
-
-        Returns:
-        -------
-            OrgDateAgenda: A new instance of the OrgDateAgenda class.
-        """
-        node: OrgNode = orgparse.loads(org_file)
-        return cls(node)
-
-    def add_node(self, nodes: OrgNode) -> None:
-        """
-        Adds nodes to the OrgDateAgenda object.
-
-        Args:
-        ----
-            nodes (OrgNode): An OrgNode object.
-
-        Returns:
-        -------
-            None.
-        """
-        agenda_items: Generator = (x for x in nodes if x.is_root() is False)
-
-        for item in agenda_items:
-            uid, timestamp, rule = self._parse_node(item)
-            self.add(uid, timestamp, rule)
-
-    def new(self, uid: str) -> None:
-        """
-        Creates a new UID in the OrgDateAgenda object.
-
-        Args:
-        ----
-            uid (str): The UID to create.
-
-        Returns:
-        -------
-            None.
-        """
-        self.rrules[uid] = set()
-        self.dates[uid] = []
-
-    def add(self, uid: str, timestamp: OrgDate, rule: str) -> None:
-        """
-        Adds a date and/or recurrence rule to a UID in the OrgDateAgenda object.
-
-        Args:
-        ----
-            uid (str): The UID to add the date and/or rule to.
-            timestamp (OrgDate): The date to add.
-            rule (str): The recurrence rule to add.
-
-        Returns:
-        -------
-            None.
-        """
-        if uid not in self.uids:
-            self.new(uid)
-
-        supported_rule: bool = rrulestr_is_supported(rule)
-        empty_rule: bool = bool(rule) is False
-        new_rule: bool = all(rule != x for x in self.rrules[uid])
-        new_timestamp: bool = all(timestamp != x for x in self.dates[uid])
-
-        if (empty_rule and new_timestamp) or (new_rule and supported_rule):
-            self.rrules[uid].add(rule)
-            self.dates[uid].append(set_org_repeater(timestamp, rule))
-        elif new_rule and not supported_rule:
-            self.dates[uid].append(timestamp)
-
-    @property
-    def uids(self):
-        """
-        The UID value that exist in the agenda.
-
-        Returns
-        -------
-
-        """
-        return list(self.dates.keys())
-
-    def _parse_node(
-            self,
-            node: OrgNode,
-            allow_short_range: bool = False) -> tuple:
-        """
-        Returns the UID, the timestamp, and the RRULE from an OrgNode.
-
-        Args:
-        ----
-            node: object that represents an org file
-            allow_short_range: see OrgDate._allow_short_range
-
-        Returns:
-        -------
-            the UID, timestamp, and RRULE property of an OrgNode.
-
-        """
-        uid: str = str(node.properties.get('UID', ''))
-        rule: str = str(node.properties.get('RRULE', ''))
-        timestamp: OrgDate = node.get_timestamps(**self.TIME_STAMPS_TYPES)[0]
-        timestamp._allow_short_range = allow_short_range
-
-        return uid, timestamp, rule
-
-    def as_str(self, uid: str) -> str:
-        """
-        The agenda is returned as a str.
-
-        Args:
-        ----
-            uid:  the UID
-
-        Returns:
-        -------
-            item as a str
-        """
-        return '\n'.join([str(x) for x in self.dates[uid]])
-
-    def rrules_as_str(self, uid: str) -> str:
-        return ';'.join(str(x) for x in self.rrules[uid])
-
-
 class OrgAgendaItem:
     """
     Represents 1 org agenda item that may consist of multiple OrgDate object,
@@ -451,18 +274,19 @@ class OrgAgendaItem:
         By providing a `spec`, which is a template where values that are
         surrounded by curly-braces will be formatted. The following keys are
         avauilable:
-            - title
-            - timestamps
             - attendees
             - calendar
             - categories
-            - uid
+            - description
             - location
             - organizer
             - rrule
             - status
-            - url
-            - description.
+            - timestamps
+            - title
+            - uid
+            - until
+            - url.
 
         Using other keys will result in an error.
 
@@ -577,7 +401,7 @@ class OrgAgendaFile:
             uid: str = item.properties['UID']
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
-                item.properties['RRULE'] = agenda_timestamps.rrules_as_str(uid)
+                item.properties['RRULE'] = agenda_timestamps.get_rrulestr(uid)
                 uids.add(uid)
                 items.append(item)
 
@@ -616,3 +440,198 @@ class OrgAgendaFile:
         """
         items = items or '\n'
         return cls(orgparse.loads(items))
+
+
+class OrgDateAgenda:
+    """
+    An object or this class groups all date together based on their UID value,
+    by feeding it an OrgNode (python representation of an org file). For this,
+    a value for the property "UID" is needed.
+
+    Additionally, py providing an RRULE property, the appropriate org repeaters
+    will be created.
+
+    By calling OrgDateAgenda.as_str all OrgDate objects belonging to a UID wil
+    be concatinated and separated by a newline. As such, 1 OrgAgendaItem can
+    have multiple (recurring) OrgDate objects.
+
+    Attributes
+    ----------
+        TIME_STAMPS_TYPES (dict): A dictionary defining the types of timestamps
+            that can be processed by the class.
+        dates (dict): A dictionary containing the dates associated with each UID.
+        rrules (dict): A dictionary containing the recurrence rules associated
+            with each UID.
+
+    """
+
+    TIME_STAMPS_TYPES: dict = dict(
+        active=True,
+        inactive=False,
+        range=True,
+        point=True
+    )
+
+    def __init__(self, nodes: OrgNode | None = None) -> None:
+        """
+        Initializes a new instance of the OrgDateAgenda class.
+
+        Args:
+        ----
+            nodes (OrgNode | None): An OrgNode object or None. Defaults to None.
+
+        Returns:
+        -------
+            None.
+        """
+        self.dates: dict[str, list[OrgDate]] = {}
+        self.rrules: dict[str, set[str]] = {}
+        self.unsupported_rrules: dict[str, set[str]] = {}
+        if nodes:
+            self.add_node(nodes)
+
+    @classmethod
+    def from_str(cls, org_file: str) -> 'OrgDateAgenda':
+        """
+        Creates a new instance of the OrgDateAgenda class from a string.
+
+        Args:
+        ----
+            org_file (str): The Org file contents as a string.
+
+        Returns:
+        -------
+            OrgDateAgenda: A new instance of the OrgDateAgenda class.
+        """
+        node: OrgNode = orgparse.loads(org_file)
+        return cls(node)
+
+    def add_node(self, nodes: OrgNode) -> None:
+        """
+        Adds nodes to the OrgDateAgenda object.
+
+        Args:
+        ----
+            nodes (OrgNode): An OrgNode object.
+
+        Returns:
+        -------
+            None.
+        """
+        agenda_items: Generator = (x for x in nodes if x.is_root() is False)
+
+        for item in agenda_items:
+            uid, timestamp, rule = self._parse_node(item)
+            self.add(uid, timestamp, rule)
+
+    def new(self, uid: str) -> None:
+        """
+        Creates a new UID in the OrgDateAgenda object.
+
+        Args:
+        ----
+            uid (str): The UID to create.
+
+        Returns:
+        -------
+            None.
+        """
+        self.rrules[uid] = set()
+        self.unsupported_rrules[uid] = set()
+        self.dates[uid] = []
+
+    def add(self, uid: str, timestamp: OrgDate, rule: str) -> None:
+        """
+        Adds a date and/or recurrence rule to a UID in the OrgDateAgenda object.
+
+        Args:
+        ----
+            uid (str): The UID to add the date and/or rule to.
+            timestamp (OrgDate): The date to add.
+            rule (str): The recurrence rule to add.
+
+        Returns:
+        -------
+            None.
+        """
+        if uid not in self.uids:
+            self.new(uid)
+
+        supported_rule: bool = rrulestr_is_supported(rule)
+        empty_rule: bool = bool(rule) is False
+        new_rule: bool = all(rule != x for x in self.rrules[uid])
+        new_timestamp: bool = all(timestamp != x for x in self.dates[uid])
+
+        if (empty_rule and new_timestamp) or (new_rule and supported_rule):
+            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)  # noqa
+            self.rrules[uid].add(rule)
+            self.dates[uid].append(timestamp_with_repeater)
+        elif new_rule and not supported_rule:
+            self.dates[uid].append(timestamp)
+            self.unsupported_rrules[uid].add(rule)
+
+    @property
+    def uids(self):
+        """
+        The UID value that exist in the agenda.
+
+        Returns
+        -------
+
+        """
+        return list(self.dates.keys())
+
+    def _parse_node(
+            self,
+            node: OrgNode,
+            allow_short_range: bool = False) -> tuple:
+        """
+        Returns the UID, the timestamp, and the RRULE from an OrgNode.
+
+        Args:
+        ----
+            node: object that represents an org file
+            allow_short_range: see OrgDate._allow_short_range
+
+        Returns:
+        -------
+            the UID, timestamp, and RRULE property of an OrgNode.
+
+        """
+        uid: str = str(node.properties.get('UID', ''))
+        rule: str = str(node.properties.get('RRULE', ''))
+        timestamp: OrgDate = node.get_timestamps(**self.TIME_STAMPS_TYPES)[0]
+        timestamp._allow_short_range = allow_short_range
+
+        return uid, timestamp, rule
+
+    def as_str(self, uid: str) -> str:
+        """
+        The agenda is returned as a str.
+
+        Args:
+        ----
+            uid:  the UID
+
+        Returns:
+        -------
+            item as a str
+        """
+        return '\n'.join([str(x) for x in self.dates[uid]])
+
+    def get_rrulestr(self, uid: str) -> str:
+        """
+        Return the rrule that describes the recurrence of the OrgDateAgenda
+        object, whether the rule is supported or not.
+
+        Args:
+        ----
+            uid: the identifier of the rrule.
+
+        Returns:
+        -------
+            the RRULE as a str
+
+        """
+        rules: set = self.rrules[uid] | self.unsupported_rrules[uid]
+        return ';'.join([x for x in rules if x])
