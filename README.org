@@ -316,10 +316,8 @@
 * Bugs:
   - [ ] Org item not recognized by neovim plugin when no blank line is present
     at the bottom.
-  - [ ] When running on my own calendar, the until property does not have any
+  - [-] When running on my own calendar, the until property does not have any
     effect.
-  - [-] The RRULE is not always displayed for recurring items when using
-    ~khalorg list~.
 
 * Improvements:
   - [ ] Timezones are not yet supported, so ~khalorg~ will only work when you
