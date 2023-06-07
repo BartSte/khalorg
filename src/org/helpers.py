@@ -1,6 +1,8 @@
 import re
 from dataclasses import dataclass
 
+from orgparse.date import OrgDate
+
 
 def remove_timestamps(text: str) -> str:
     """
@@ -68,3 +70,17 @@ class OrgRegex:
     timestamp_short: str = f'<{date}( {day})? {time}--{time}( {repeater})?>'
     timestamp_short_alt: str = f'<{date}( {day})? {time}-{time}( {repeater})?>'
     timestamp_long: str = f'{timestamp}--{timestamp}'
+
+def timestamp_to_orgdate(timestamp: str) -> OrgDate:
+    """Returns the OrgDate equivalent of `timestamp`. It extends
+    `OrgDate.from_str` by also accepting inactive and plain org timestamps as a
+    string.
+
+    Args:
+        timestamp: a timestamp, an inactive timestamp, or a plain timestamp
+
+    Returns:
+        the corresponding OrgDate object.
+    """
+    datestr: str = re.sub(r'[\[\<](.*)[\]\>]', r'\1', timestamp)
+    return OrgDate.from_str(datestr)

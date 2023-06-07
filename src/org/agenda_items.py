@@ -1,5 +1,6 @@
 import logging
 from datetime import date, datetime
+import re
 from typing import Generator
 
 import orgparse
@@ -7,7 +8,7 @@ from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.helpers import get_khalorg_format
-from src.org.helpers import get_indent, remove_timestamps
+from src.org.helpers import get_indent, remove_timestamps, timestamp_to_orgdate
 from src.rrule import rrulestr_is_supported, set_org_repeater
 
 Time = date | datetime
@@ -180,7 +181,7 @@ class OrgAgendaItem:
             end date of recurring items as an OrgDate
 
         """
-        until: OrgDate = OrgDate.from_str(self.properties.get('UNTIL', ''))
+        until: OrgDate = timestamp_to_orgdate(self.properties.get('UNTIL', ''))
         start: datetime | date = until.start
         has_time = isinstance(start, datetime)
 

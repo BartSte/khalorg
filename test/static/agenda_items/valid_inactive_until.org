@@ -1,0 +1,22 @@
+* Meeting
+  <2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>
+  :PROPERTIES:
+  :ATTENDEES: test@test.com, test2@test.com
+  :CALENDAR: outlook
+  :CATEGORIES: Something
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :STATUS: CONFIRMED
+  :UID: 123
+  :URL: www.test.com
+  :UNTIL: [2023-01-02 Mon]
+  :END:
+  Hello,
+
+  Lets have a meeting.
+
+  Regards,
+
+
+  Someone
+
