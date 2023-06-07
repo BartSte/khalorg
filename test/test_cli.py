@@ -4,7 +4,7 @@ from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
 
-from src.helpers import get_default_khalorg_format
+from src.helpers import get_default_khalorg_format, get_khalorg_format
 from test.helpers import get_module_path
 
 
@@ -108,7 +108,7 @@ class TestList(TestCase):
         When feeding a set of command line args, an expected set of
         function arguments for src.cli.list is expected.
         """
-        default_format: str = get_default_khalorg_format()
+        default_format: str = get_khalorg_format()
         args: list = [
             'list',
             'calendar',

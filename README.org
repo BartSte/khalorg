@@ -136,19 +136,23 @@
       {description}
     #+end_src
     the following keys are supported:
-    - attendees
-    - calendar
-    - categories
-    - description
-    - location
-    - organizer
-    - rrule
-    - status
-    - timestamps
-    - title
-    - uid
-    - until
-    - url
+    - ~{attendees}~: a comma separated list of email addresses of attendees
+    - ~{calendar}~: the name of the khal calendar
+    - ~{categories}~: the categories property of the item
+    - ~{description}~: the description of the item
+    - ~{location}~: the location of the item
+    - ~{organizer}~: the email of the organizer
+    - ~{status}~: the status of the item, e.g., TENTATIVE or ACCEPTED
+    - ~{timestamps}~: the timestamp of the item
+    - ~{title}~: the summary of the item
+    - ~{uid}~: the UID of the item
+    - ~{rrule_until}~: the until value of the RRULE.
+    - ~{url}~: the url property
+
+    the following keys are supported but are typically reserved for internal
+    use and are therefore less informative:
+    - ~{until}~: the until property value. Is empty when using `khalorg list`.
+    - ~{rrule}~: the ICal RRULE of the item.
 
 *** Recurring items
     The ~khalorg list~ command relies on the ~khal list~ command. Using this

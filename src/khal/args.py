@@ -160,7 +160,7 @@ class NewArgs(KhalArgs):
             ('--location', item.properties.get('LOCATION', '')),
             ('--url', item.properties.get('URL', '')),
             ('--repeat', self._get_repeat(time_stamp)),
-            ('--until', item.properties.get('UNTIL', ''))
+            ('--until', self._get_until(item.until))
         )
 
         for key, value in key_vs_value:
@@ -207,6 +207,19 @@ class NewArgs(KhalArgs):
         except TypeError:
             logging.debug('No repeater found.')
             return ''
+
+    def _get_until(self, until: OrgDate) -> str:
+        """Returns the `until` date as a str.
+
+        Args:
+            until: an orgdate
+
+        Returns:
+            until as str 
+        """
+        return until.start.strftime(self.date_format) if until else ''
+        
+        
 
 
 class EditArgs(KhalArgs):

@@ -48,7 +48,7 @@ class Valid(OrgArguments):
         "ORGANIZER": 'Someone (someone@outlook.com)',
         "STATUS": 'CONFIRMED',
         'UID': '123',
-        'UNTIL': '2023-01-02 Mon',
+        'UNTIL': '[2023-01-02 Mon 00:00]',
         "URL": 'www.test.com',
     }
     time_stamps = [OrgDate((2023, 1, 1, 1, 0, 0), (2023, 1, 1, 2, 0, 0))]

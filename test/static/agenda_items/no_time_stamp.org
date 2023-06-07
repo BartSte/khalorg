@@ -8,7 +8,7 @@
   :STATUS: CONFIRMED
   :UID: 123
   :URL: www.test.com
-  :UNTIL: 2023-01-02 Mon
+  :UNTIL: [2023-01-02 Mon 00:00]
   :END:
   Hello,
 

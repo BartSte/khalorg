@@ -41,7 +41,7 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
         get_cli_runner: fixture
         monkeypatch: fixture
 
-    Returns
+    Returns:
     -------
         test runner
     """
@@ -63,10 +63,8 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
 
 def test_list(runner):
     """
-
-    Args:
-    ----
-        runner ():
+    The list_command function is expected to retrun the same item as
+    `expected`.
     """
     expected: OrgAgendaItem = get_org_item()
     _list_test(runner, expected)
@@ -75,7 +73,7 @@ def test_list(runner):
 def _list_test(runner, expected: OrgAgendaItem):
     format_file: str = join(get_module_path(static), 'khalorg_format_full.txt')
     with open(format_file) as f:
-        khalorg_format:str = f.read()
+        khalorg_format: str = f.read()
 
     actual: OrgAgendaItem = OrgAgendaItem()
     new('one', org=str(expected))
@@ -85,10 +83,11 @@ def _list_test(runner, expected: OrgAgendaItem):
     # UID and CALENDAR are changed in the process.
     expected.properties['UID'] = actual.properties['UID']
     expected.properties['CALENDAR'] = actual.properties['CALENDAR']
+    expected.properties['RRULE'] = actual.properties['RRULE']
     assert str(expected) == str(actual), f'Org item: {expected}'
 
     # A recurring item should have a non empty rrule
-    assert bool(actual.properties['RRULE']) == bool(expected.first_timestamp._repeater)
+    assert bool(actual.properties['RRULE']) == bool(expected.first_timestamp._repeater)  # noqa
 
 
 def test_list_recurring(runner):

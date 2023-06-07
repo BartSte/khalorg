@@ -9,6 +9,6 @@
   :STATUS: {status}
   :UID: {uid}
   :URL: {url}
-  :UNTIL: {until}
+  :UNTIL: {until_rrule}
   :END:
   {description}

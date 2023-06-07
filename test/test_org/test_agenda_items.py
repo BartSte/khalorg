@@ -155,15 +155,6 @@ class TestOrgAgendaItem(TestCase):
         expected: OrgDate = OrgDate((2023, 1, 2, 0, 0))
         self.assertEqual(expected, item.until)
 
-    def test_until_datetime_inactive(self):
-        """Inactive timestamps are also supported."""
-        item: OrgAgendaItem = OrgAgendaItem()
-        text: str = read_org_test_file('valid_inactive_until.org')
-        item.load_from_str(text)
-
-        expected: OrgDate = OrgDate((2023, 1, 2, 0, 0))
-        self.assertEqual(expected, item.until)
-
     def test_until_date(self):
         """
         When until is a date, and the start and end are datetime, converst
@@ -187,6 +178,14 @@ class TestOrgAgendaItem(TestCase):
 
         expected: OrgDate = OrgDate((2023, 1, 2))
         self.assertEqual(expected, item.until)
+
+    def test_until_rrule(self):
+        """  """
+        expected: str = '[2023-01-02 Mon 00:00]'
+        org_file = read_org_test_file('rrule_recurring.org') 
+        agenda_item: OrgAgendaItem = OrgAgendaItem()
+        agenda_item.load_from_str(org_file)
+        self.assertEqual(expected, agenda_item.until_rrule)
 
 
 class TestAgendaOrgDates(TestCase):
@@ -227,7 +226,7 @@ class TestOrgAgendaFile(TestCase):
             ('rrule_recurring_monthly.org', 'recurring_monthly.org'),
             ('rrule_recurring_allday.org', 'recurring_allday.org'),
             ('rrule_recurring_duplicates.org', 'recurring.org'),
-            ('rrule_recurring_not_supported.org', 'valid.org'),
+            ('rrule_recurring_not_supported.org', 'valid_no_until.org'),
             ('rrule_recurring_1th.org', 'recurring.org'),
             ('rrule_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
         )

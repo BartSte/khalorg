@@ -7,10 +7,10 @@
   :ORGANIZER: Someone (someone@outlook.com)
   :ATTENDEES: test@test.com, test2@test.com
   :URL: www.test.com
-  :UNTIL: 2023-01-02 Mon
+  :UNTIL: 
   :STATUS: CONFIRMED
   :CATEGORIES: Something
-  :RRULE: FREQ=WEEKLY;INTERVAL=1;BYDAY=1TH
+  :RRULE: FREQ=WEEKLY;UNTIL=20230102T000000Z;INTERVAL=1;BYDAY=1TH
   :END:
   Hello,
 

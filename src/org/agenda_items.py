@@ -1,15 +1,20 @@
 import logging
 from datetime import date, datetime
-import re
 from typing import Generator
 
 import orgparse
+from dateutil.rrule import rrule
 from orgparse.date import OrgDate
 from orgparse.node import OrgNode
 
 from src.helpers import get_khalorg_format
+from src.khal.helpers import remove_tzinfo
 from src.org.helpers import get_indent, remove_timestamps, timestamp_to_orgdate
-from src.rrule import rrulestr_is_supported, set_org_repeater
+from src.rrule import (
+    rrulestr_is_supported,
+    rrulestr_to_rrule,
+    set_org_repeater,
+)
 
 Time = date | datetime
 
@@ -193,6 +198,32 @@ class OrgAgendaItem:
             time: datetime = datetime.combine(start, datetime.min.time())
             return OrgDate(time)
 
+    @property
+    def until_rrule(self) -> str:
+        """
+        Returns the `until` date of the RRULE. This is different from
+        OrgAgendaItem.until:
+        - OrgAgendaItem.until -> the value that is present in the UNTIL
+          property.
+        - OrgAgendaItem.until_rrule -> the until value that is part of the
+          RRULE.
+
+        Most of the time, the values are equal to eacother. Except when the
+        user changes the UNTIL property by hand when using the `khalorg edit`
+        command, for example.
+
+        Returns
+        -------
+            the until part of the RRULE property
+        """
+        rrulestr: str = self.properties.get('RRULE', '')
+        try:
+            rule: rrule = rrulestr_to_rrule(rrulestr)
+            until: Time = remove_tzinfo(rule._until)
+            return str(OrgDate(until, active=False))
+        except (AttributeError, ValueError):
+            return ''  # No RRULE or until date found
+
     @classmethod
     def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':
         """
@@ -316,6 +347,7 @@ class OrgAgendaItem:
                 status=self.properties.get('STATUS', ''),
                 url=self.properties.get('URL', ''),
                 until=self.properties.get('UNTIL', ''),
+                until_rrule=self.until_rrule,
                 description=self.description)
         except KeyError as error:
             message: str = 'Unsupported key encountered in `spec`'
