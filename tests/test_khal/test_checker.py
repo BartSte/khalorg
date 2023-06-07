@@ -1,4 +1,4 @@
-from test.helpers import (
+from tests.helpers import (
     assert_event_created,
     get_org_item,
     khal_runner,

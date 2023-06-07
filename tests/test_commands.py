@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from os.path import join
-from test import static
-from test.helpers import (
+from tests import static
+from tests.helpers import (
     assert_event_created,
     assert_event_deleted,
     assert_event_edited,

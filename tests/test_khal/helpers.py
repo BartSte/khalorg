@@ -1,4 +1,4 @@
-from test.agenda_items import Valid
+from tests.agenda_items import Valid
 
 from khalorg.khal.calendar import Calendar
 from khalorg.org.agenda_items import OrgAgendaItem

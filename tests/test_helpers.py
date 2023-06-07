@@ -1,8 +1,8 @@
 from configparser import ConfigParser
 from datetime import date, datetime
 from os.path import join
-from test import static
-from test.helpers import get_config, get_module_path
+from tests import static
+from tests.helpers import get_config, get_module_path
 from unittest import TestCase
 
 import pytz

@@ -1,4 +1,4 @@
-from test.agenda_items import (
+from tests.agenda_items import (
     AllDay,
     AllDayRecurring,
     BodyFirst,
@@ -10,7 +10,7 @@ from test.agenda_items import (
     ShortTimestamp,
     Valid,
 )
-from test.helpers import (
+from tests.helpers import (
     read_org_test_file,
 )
 from unittest import TestCase

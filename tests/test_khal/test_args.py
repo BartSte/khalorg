@@ -1,9 +1,9 @@
 from datetime import datetime
-from test.agenda_items import AllDay, Recurring, Valid
-from test.helpers import (
+from tests.agenda_items import AllDay, Recurring, Valid
+from tests.helpers import (
     read_org_test_file,
 )
-from test.test_khal.helpers import Mixin
+from tests.test_khal.helpers import Mixin
 from unittest import TestCase
 
 from khalorg.khal.args import EditArgs, NewArgs

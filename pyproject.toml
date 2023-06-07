@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "khalorg"
 authors = [ {name = "BartSte"} ]
-description = "Khalorg is a command line tool that converts org mode agenda items into khal calendar items, and vice versa.  "
+description = "Khalorg is a command line tool that converts org mode agenda items into khal calendar items, and vice versa."
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = ["khal", "org mode", "vdirsyncre", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
+keywords = ["khal", "org mode", "vdirsyncer", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
 license = {text = "MIT License"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -19,7 +19,7 @@ dependencies = [
     "orgparse",
     "munch",
 ]
-version = "0.0.0b0"
+version = "0.0.0b1"
 
 [project.optional-dependencies]
 debug = ["ipdb"]
@@ -31,10 +31,9 @@ khalorg = "khalorg:main"
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["khalorg"]  # package names should match these glob patterns (["*"] by default)
-exclude = ["test"]  # exclude packages matching these glob patterns (empty by default)
 
 [tool.pyright]
-include = ["src.khalorg", "src.test"]
+include = ["khalorg", "tests"]
 exclude = [
     "**/__pycache__",
     ".git",
@@ -76,7 +75,7 @@ experimental = true
 [tool.pytest.ini_options]
 addopts = "-s -rA --log-level INFO"
 testpaths = [
-    "src.test"
+    "tests"
 ]
 
 [tool.ipdb]

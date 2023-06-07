@@ -1,16 +1,16 @@
 import logging
-import test
+import tests
 from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
 
 from khalorg.helpers import get_default_khalorg_format, get_khalorg_format
-from test.helpers import get_module_path
+from tests.helpers import get_module_path
 
 
 def khalorg_tester(args: list) -> str:
     """Runs `/test/khalorg_tester` with `args` as command line arguments."""
-    test_dir: str = get_module_path(test)
+    test_dir: str = get_module_path(tests)
     cli_tester: list = [join(test_dir, 'khalorg_tester')]
 
     try:

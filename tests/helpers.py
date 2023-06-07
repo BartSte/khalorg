@@ -3,7 +3,7 @@ from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from inspect import getfile
 from os.path import dirname, join
-from test import static
+from tests import static
 from types import ModuleType
 from typing import Any, Callable
 

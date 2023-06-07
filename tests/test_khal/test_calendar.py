@@ -1,8 +1,8 @@
-from test.helpers import (
+from tests.helpers import (
     get_test_config,
     khal_runner,
 )
-from test.test_khal.helpers import Mixin
+from tests.test_khal.helpers import Mixin
 from typing import Callable
 from unittest import TestCase
 from unittest.mock import patch
