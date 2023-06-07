@@ -116,7 +116,7 @@
 
 *** --format
     If ~khalorg list --format~ option is not defined, the default one is used
-    which can be found at ~./src/static/khalorg_format.txt~. If you want to
+    which can be found at ~./khalorg/static/khalorg_format.txt~. If you want to
     define your own format, you have 2 options: you can use the 
     ~khalorg list --format~ option, or you can place your custom format at
     ~$HOME/.config/khalorg/khalorg_format.txt~ this format will then be used

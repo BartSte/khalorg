@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+"""Same as `khalorg` but now the commands are patched by `echo` for testing."""
+
+import sys
+from argparse import ArgumentParser, Namespace
+from os.path import dirname
+from unittest.mock import patch
+
+root: str = dirname(dirname(__file__))
+sys.path.append(root)
+from khalorg import cli  # noqa
+
+
+def echo(**kwargs):
+    return kwargs
+
+
+@patch('khalorg.cli.edit', echo)
+@patch('khalorg.cli.new', echo)
+@patch('khalorg.cli.delete', echo)
+@patch('khalorg.cli.list_command', echo)
+def main():
+    parser: ArgumentParser = cli.get_parser()
+    args: Namespace = parser.parse_args()
+    stdout: str = args.func(**vars(args))
+    print(stdout)
+
+
+if __name__ == '__main__':
+    main()

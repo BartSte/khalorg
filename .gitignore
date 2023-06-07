@@ -5,3 +5,5 @@ __pycache__
 *.vscode
 stubs
 davmail.log
+dist
+*.egg-info

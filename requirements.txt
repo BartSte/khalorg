@@ -1,6 +1,0 @@
-khal>=0.11
-orgparse
-munch
-
-pytest
-vdirsyncer
