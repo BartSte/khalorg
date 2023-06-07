@@ -51,7 +51,11 @@ def new(calendar: str, **kwargs) -> str:
     It does this, by parsing an org agenda item, that is supplied through
     stdin, into a list of command line arguments. These arguments are used to
     invoke the `khal new` command by calling Calendar.new_item. Alternatively,
-    the org item can be supplied through the keyword arg `org`.
+    the org item can be supplied through the keyword arg `org`. The command
+    line interface of khal (i.e., `khal new`) was used instead of using the
+    underlying functions, because these functions are not readily exposed.
+    Furthermore, by using the command line interface, the `khalorg new` command
+    is more resiliant againts changes in the khal api.
 
     After running the `khal new` command, properties are added to the event
     using the Calendar.edit command. These properties cannot be added through
