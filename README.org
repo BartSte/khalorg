@@ -60,10 +60,10 @@
    - [X] Vdirsyncer calendars can be manipulated by using the cli of ~khal~ as
      the interface.
    - [X] ~khalorg new~: convert an org agenda item into a ~khal~ agenda item.
-   - [x] ~khalorg list~: convert a ~khal~ agenda item into an org agenda item.
-   - [x] ~khalorg edit~: edit an existing ~khal~ agenda item with org mode.
+   - [X] ~khalorg list~: convert a ~khal~ agenda item into an org agenda item.
+   - [X] ~khalorg edit~: edit an existing ~khal~ agenda item with org mode.
    - [X] ~khalorg delete~: delete an existing ~khal~ item.
-   - [x] Recurring items are supported by providing an org repeater in the
+   - [X] Recurring items are supported by providing an org repeater in the
      time stamp (e.g., ~+1w~). The following is supported:
      - the follow org repeaters: ~+{integer}{d,w,m,y}~
      - ~khalorg new~ and ~khalorg edit --edit-dates~ support 1 time stamp per
@@ -72,10 +72,11 @@
        org repeater, resulting in an org agenda item with multiple timestamps.
      - Supports an ~until~ date for recurring items. The until date can be
        supplied through an org property ~UNTIL~.
-   - [ ] Semantic versioning
+   - [X] Has unittests
+   - [-] Semantic versioning
    - [-] Neovim plugin
    - [-] Include an Office 365 workflow
-   - [ ] Is available on PyPI
+   - [-] Is available on PyPI
 
 * Installation
   - For now, you need to clone this repository and run:
