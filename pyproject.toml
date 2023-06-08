@@ -74,6 +74,9 @@ experimental = true
 
 [tool.pytest.ini_options]
 addopts = "-s -rA --log-level INFO"
+pythonpath = [
+  "src"
+]
 testpaths = [
     "tests"
 ]

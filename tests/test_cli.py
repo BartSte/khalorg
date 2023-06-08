@@ -11,7 +11,7 @@ from tests.helpers import get_module_path
 def khalorg_tester(args: list) -> str:
     """Runs `/test/khalorg_tester` with `args` as command line arguments."""
     test_dir: str = get_module_path(tests)
-    cli_tester: list = [join(test_dir, 'khalorg_tester')]
+    cli_tester: list = ['python', join(test_dir, 'khalorg_tester')]
 
     try:
         return check_output(cli_tester + args).decode()
