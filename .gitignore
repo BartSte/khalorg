@@ -7,3 +7,4 @@ stubs
 davmail.log
 dist
 *.egg-info
+build

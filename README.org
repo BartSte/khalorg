@@ -79,14 +79,9 @@
    - [-] Is available on PyPI
 
 * Installation
-  - For now, you need to clone this repository and run:
-    #+begin_src bash
-  pip install -r requirements.txt
-  #+end_src
-  Next, you can use the executable ~khalorg~ to import and list org agenda
-  items. Make sure your ~khal~ date format is compatible with org, otherwise
-  it will not work. When running ~khal printformats~ you should get:
 
+  Make sure your ~khal~ date format is compatible with org, otherwise
+  it will not work. When running ~khal printformats~ you should get:
   #+begin_src
   longdatetimeformat: 2013-12-21 Sat 21:45
   datetimeformat: 2013-12-21 Sat 21:45
@@ -94,8 +89,23 @@
   dateformat: 2013-12-21 Sat
   timeformat: 21:45
   #+end_src
+  If not, check the documentation of ~khal~ on how to change this.
 
-  Checkout section [[Usage]] for more info.
+** PyPi
+
+** From source
+   Set your current working directory to the root directory, i.e, the directory
+   containing the ~pyproject.toml~ file. Next, run:
+   #+begin_src bash
+   pip install .
+   #+end_src
+   After this, the executable ~khalorg~ will be available.
+
+   If you want to debug the code and/or run the test you can run:
+   #+begin_src bash
+   pip install '.[test,debug]'
+   #+end_src
+
 
 * Usage
   Use ~khalorg --help~ to get information about the cli of ~khalorg~. The
@@ -124,18 +134,18 @@
     instead of the default one that is shown below.
     #+begin_src txt
     * {title}
-      {timestamps}
-      :PROPERTIES:
-      :ATTENDEES: {attendees}
-      :CALENDAR: {calendar}
-      :CATEGORIES: {categories}
-      :LOCATION: {location}
-      :ORGANIZER: {organizer}
-      :STATUS: {status}
-      :UID: {uid}
-      :URL: {url}
-      :END:
-      {description}
+    {timestamps}
+    :PROPERTIES:
+    :ATTENDEES: {attendees}
+    :CALENDAR: {calendar}
+    :CATEGORIES: {categories}
+    :LOCATION: {location}
+    :ORGANIZER: {organizer}
+    :STATUS: {status}
+    :UID: {uid}
+    :URL: {url}
+    :END:
+    {description}
     #+end_src
     the following keys are supported:
     - ~{attendees}~: a comma separated list of email addresses of attendees
@@ -151,7 +161,7 @@
     - ~{rrule_until}~: the until value of the RRULE.
     - ~{url}~: the url property
 
-    the following keys are supported but are typically reserved for internal
+      the following keys are supported but are typically reserved for internal
     use and are therefore less informative:
     - ~{until}~: the until property value. Is empty when using `khalorg list`.
     - ~{rrule}~: the ICal RRULE of the item.
@@ -168,23 +178,23 @@
 
     #+begin_example
     * Meeting
-      <2023-01-05 Thu 01:00-02:00>
-      <2023-01-08 Sun 01:00-02:00 +1w>
-      :PROPERTIES:
-      :UID: 123
-      :LOCATION: Somewhere
-      :ORGANIZER: Someone (someone@outlook.com)
-      :ATTENDEES: test@test.com, test2@test.com
-      :URL: www.test.com
-      :END:
-      Hello,
+    <2023-01-05 Thu 01:00-02:00>
+    <2023-01-08 Sun 01:00-02:00 +1w>
+    :PROPERTIES:
+    :UID: 123
+    :LOCATION: Somewhere
+    :ORGANIZER: Someone (someone@outlook.com)
+    :ATTENDEES: test@test.com, test2@test.com
+    :URL: www.test.com
+    :END:
+    Hello,
 
-      Lets have a meeting.
+    Lets have a meeting.
 
-      Regards,
+    Regards,
 
 
-      Someone
+    Someone
     #+end_example
 
 ** New: from org to khal
@@ -194,22 +204,22 @@
    which is saved as ~meeting.org~.
    #+begin_example
    * Meeting
-     <2023-01-01 Sun 01:00-02:00 +1w>
-     :PROPERTIES:
-     :UID: 123
-     :LOCATION: Somewhere
-     :ORGANIZER: Someone (someone@outlook.com)
-     :ATTENDEES: test@test.com, test2@test.com
-     :URL: www.test.com
-     :END:
-     Hello,
+   <2023-01-01 Sun 01:00-02:00 +1w>
+   :PROPERTIES:
+   :UID: 123
+   :LOCATION: Somewhere
+   :ORGANIZER: Someone (someone@outlook.com)
+   :ATTENDEES: test@test.com, test2@test.com
+   :URL: www.test.com
+   :END:
+   Hello,
 
-     Lets have a meeting.
+   Lets have a meeting.
 
-     Regards,
+   Regards,
 
 
-     Someone
+   Someone
    #+end_example
    This item can be converted to the ~khal~ calendar called "my_calendar" as
    follows:
@@ -243,21 +253,21 @@
    ~khalorg edit~, as long as the UID remains untouched.
    #+begin_example
    * Edited meeting
-     <2023-01-01 Sun 01:00-02:00 +1w>
-     :PROPERTIES:
-     :UID: 123
-     :ORGANIZER: Someone (someone@outlook.com)
-     :ATTENDEES: other@test.com
-     :END:
-     Hello,
+   <2023-01-01 Sun 01:00-02:00 +1w>
+   :PROPERTIES:
+   :UID: 123
+   :ORGANIZER: Someone (someone@outlook.com)
+   :ATTENDEES: other@test.com
+   :END:
+   Hello,
 
-     I edited the meeting by removing the location and url. I also changed the
-     title and the attendees field.
+   I edited the meeting by removing the location and url. I also changed the
+   title and the attendees field.
 
-     Regards,
+   Regards,
 
 
-     Someone
+   Someone
    #+end_example
    Next, run the following command:
    #+begin_src bash
@@ -280,14 +290,14 @@
      agenda item with a non-empty UID property. For example, the khal event
      that was created using the [[New]] command above can be removed by feeding
      the same file to ~khalorg delete~:
-     #+begin_src bash
-     cat meeting.org | khalorg delete my_calendar
-     #+end_src
+   #+begin_src bash
+   cat meeting.org | khalorg delete my_calendar
+   #+end_src
 
 *** Recurring items
     When deleting recurring items the whole series will be removed. Removing
     occurrences is not supported.
- 
+
 ** Neovim plugin
    Work in progress. The plugin works for the ~khalorg new~ command but some
    settings ars still hard-coded. The plugin is called [[https://github.com/BartSte/nvim-khalorg][nvim-khalorg]].
