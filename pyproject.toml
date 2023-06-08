@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "khalorg"
 authors = [ {name = "BartSte"} ]
-description = "Khalorg is a command line tool that converts org mode agenda items into khal calendar items, and vice versa."
-readme = "README.md"
+description = "An interface between Org mode and Khal cli calendar."
+readme = "README.org"
 requires-python = ">=3.10"
 keywords = ["khal", "org mode", "vdirsyncer", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
 license = {text = "MIT License"}
@@ -19,11 +19,12 @@ dependencies = [
     "orgparse",
     "munch",
 ]
-version = "0.0.0b3"
+version = "0.0.0b4"
 
 [project.optional-dependencies]
-debug = ["ipdb"]
+debug = ["ipdb", "ipython"]
 test = ["pytest"]
+build = ["build", "twine"]
 
 [project.scripts]
 khalorg = "khalorg:main"
