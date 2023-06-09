@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "khalorg"
 authors = [ {name = "BartSte"} ]
 description = "An interface between Org mode and Khal cli calendar."
-readme = "README.org"
+readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["khal", "org mode", "vdirsyncer", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
 license = {text = "MIT License"}
@@ -16,8 +16,7 @@ classifiers = [
 dependencies = [
     "khal>=0.11",
     "vdirsyncer",
-    "orgparse",
-    "munch",
+    "orgparse"
 ]
 version = "0.0.0b4"
 

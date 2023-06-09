@@ -1,47 +1,33 @@
 import os
-from configparser import ConfigParser
 from datetime import date, datetime, timedelta
 from inspect import getfile
 from os.path import dirname, join
-from tests import static
 from types import ModuleType
 from typing import Any, Callable
 
 from click.testing import CliRunner, Result
 from khal.cli import main_khal
 from khal.controllers import Event
-from munch import Munch, munchify
+from khalorg.khal.args import DeleteArgs, EditArgs, NewArgs
+from khalorg.khal.calendar import Calendar
+from khalorg.org.agenda_items import OrgAgendaItem
 from orgparse.date import OrgDate
 
-from khalorg.khal.args import DeleteArgs, EditArgs, NewArgs
-from khalorg.khal.calendar import Calendar, CalendarProperties
-from khalorg.org.agenda_items import OrgAgendaItem
+from tests import static
 
-_TEST_EVENT: dict = dict(
-    summary='summary',
-    description="description\n",
-    properties={
+
+class TestEvent:
+    summary: str = 'summary'
+    description: str = "description\n"
+    properties: dict = {
         'ATTENDEES': 'test@test.com, test2@test.com',
         'CATEGORIES': 'category1, category2',
         'LOCATION': 'location1, location2',
         'URL': 'www.test.com'
-    })
+    }
 
 
 Time = date | datetime
-
-
-def get_config(sources: list) -> Munch:
-    """
-    Reads the config files in `sources` and converts them to a Munch object.
-
-    Returns
-    -------
-        ConfigParser object as Munch
-    """
-    config: ConfigParser = ConfigParser()
-    config.read(sources)
-    return Munch.fromDict(config)  # pyright: ignore
 
 
 def get_test_config() -> str:
@@ -58,7 +44,7 @@ def read_org_test_file(org_file: str) -> str:
     ----
         org_file (str): path to an org file.
 
-    Returns:
+    Returns
     -------
         str: org file is converted to a string.
 
@@ -121,7 +107,7 @@ def khal_runner(tmpdir, monkeypatch) -> Callable:
         tmpdir: build-in pytest fixture for temporary directories
         monkeypatch: build-in pytest fixture for patching.
 
-    Returns:
+    Returns
     -------
         a test runner function
 
@@ -290,11 +276,12 @@ def assert_event_created(
 
     return events
 
+
 def assert_event_deleted(
         calendar_name: str,
         org_item: OrgAgendaItem) -> list[Event]:
     """
-    Test if an event is deleted
+    Test if an event is deleted.
 
     Args:
     ----
@@ -308,6 +295,7 @@ def assert_event_deleted(
     assert len(events) == 0, f'Number of events was {len(events)}'
 
     return events
+
 
 def assert_event_edited(runner: Any,
                         calendar_name: str,
@@ -364,7 +352,7 @@ def _get_expected_list_command(
         count: number of repeats
         delta: timedelta between recurring events
 
-    Returns:
+    Returns
     -------
        list with the expected fields.
     """
@@ -399,12 +387,11 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
         an org agenda item used for test
     """
     start, end = get_start_end(delta=delta, all_day=all_day)
-    test_event: Munch = munchify(_TEST_EVENT)  # type: ignore
     org_item: OrgAgendaItem = OrgAgendaItem(
-        title=test_event.summary,
+        title=TestEvent.summary,
         timestamps=[OrgDate(start, end, repeater=repeater)],
-        properties=dict(**test_event.properties),
-        description=test_event.description
+        properties=TestEvent.properties,
+        description=TestEvent.description
     )
     org_item.properties['UNTIL'] = until
     return org_item
@@ -420,7 +407,7 @@ def get_start_end(delta: timedelta = timedelta(hours=1),
     ----
         delta: timedelta, default is 1 hour
 
-    Returns:
+    Returns
     -------
         the start and end times when planning an even now.
 
@@ -445,7 +432,7 @@ def get_module_path(module: ModuleType) -> str:
     ----
         module: a python module
 
-    Returns:
+    Returns
     -------
         str: path to module
 
