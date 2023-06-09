@@ -72,9 +72,9 @@ Based on the above, the following workflow is desired:
   - Supports an `until` date for recurring items. The until date can be
     supplied through an org property `UNTIL`.
 - [x] Has unittests
+- [x] Includes an Office 365 workflow with a bash script
 - [ ] Semantic versioning
 - [ ] Neovim plugin
-- [ ] Include an Office 365 workflow
 - [ ] Is available on PyPI
 
 # Installation
