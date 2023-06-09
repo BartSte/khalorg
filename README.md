@@ -63,7 +63,8 @@ Based on the above, the following workflow is desired:
     supplied through an org property `UNTIL`.
 - [x] Has unittests
 - [x] Includes an Office 365 workflow with a bash script
-- [ ] Semantic versioning
+- [x] Semantic versioning
+- [x] Gifs with demos
 - [ ] Neovim plugin
 - [ ] Is available on PyPI
 
@@ -87,7 +88,7 @@ will not work. When running `khal printformats` you should get:
 ```
 If not, check the documentation of `khal` on how to change this.
 
-## PyPi
+## PyPi (in progress)
 ``` bash
 pip install khalorg
 ```

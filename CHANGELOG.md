@@ -31,5 +31,5 @@ time stamp (e.g., `+1w`). The following is supported:
 
 ## Task
 - An Office 365 workflow with a [bash script](./extras/calsync) is added which
-synchronizes all ~vdirsyncer~ calendars and exports them to org with ~khalorg~.
+synchronizes all `vdirsyncer` calendars and exports them to org with `khalorg`.
 Davmail is used as the CalDav server. 
