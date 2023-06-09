@@ -1,15 +1,7 @@
 # Introduction
-
-`khalorg` is a command line tool that converts agenda items of org mode
-into khal calendar items, and vice versa.
-
-Warning: this program is still experimental, under development, and open
-for change. Before use, make sure you make a back-up of your calendar.
-Check the requirements for the features that are currently finished and
-under development.
+`khalorg` is an interface between Org mode and Khal cli calendar.
 
 ## Definitions
-
 - [CalDav](<https://en.wikipedia.org/wiki/CalDAV>): internet standard for client access to calendars
 - [Davmail](<https://davmail.sourceforge.net/e>): CalDav exchange gateway
 - [khal](<https://github.com/pimutils/khal>): command line calendar app 
@@ -19,7 +11,6 @@ under development.
 - [vdirsyncer](<https://github.com/pimutils/vdirsyncer>): synchronizes calendars and addressbooks between servers and the local file system
 
 ## Motivation
-
 I use org mode to manage my agenda and my notes. However, in a
 professional setting, you are often required to use proprietary software
 for your agenda, like Office 365. Luckily, programs exist that can
@@ -51,7 +42,6 @@ Based on the above, the following workflow is desired:
 └────────┘    
 ```
 ## Features
-
 - [x] Can be used by org mode for emacs, vim and neovim.
 - [x] Vdirsyncer calendars can be manipulated by using the cli of `khal`
   as the interface.
@@ -77,46 +67,51 @@ Based on the above, the following workflow is desired:
 - [ ] Neovim plugin
 - [ ] Is available on PyPI
 
+# Dependencies
+- khal>=0.11
+- vdirsyncer
+- orgparse
+
 # Installation
+For safety, always make a back-up of your calendar before installing software
+that is new to you.
 
 Make sure your `khal` date format is compatible with org, otherwise it
 will not work. When running `khal printformats` you should get:
-
+```
     longdatetimeformat: 2013-12-21 Sat 21:45
     datetimeformat: 2013-12-21 Sat 21:45
     longdateformat: 2013-12-21 Sat
     dateformat: 2013-12-21 Sat
     timeformat: 21:45
-
+```
 If not, check the documentation of `khal` on how to change this.
 
 ## PyPi
-TODO
+``` bash
+pip install khalorg
+```
 
 ## From source
-
 Set your current working directory to the root directory, i.e, the
 directory containing the `pyproject.toml` file. Next, run:
 
 ``` bash
 pip install .
 ```
-
 After this, the executable `khalorg` will be available.
 
-If you want to debug the code and/or run the test you can run:
-
+## For development
+If you want to develop the code, debug it, and test it, run:
 ``` bash
-pip install '.[test,debug]'
+pip install -e '.[test,debug]'
 ```
 
 # Usage
-
 Use `khalorg --help` to get information about the cli of `khalorg`. The
 following section discuss the `khalorg` commands that are available.
 
 ## List: from khal to org
-
 Agenda items from `khal` can be converted to org items using the
 `khalorg list` command. For examples:
 
@@ -133,7 +128,6 @@ that the `khal` calendar called `my_calendar` exists. Make sure
 `my_calendar` is a calendar that exists on your local file system.
 
 ### –format
-
 If `khalorg list --format` option is not defined, the default one is
 used which can be found at `./khalorg/static/khalorg_format.txt`. If you
 want to define your own format, you have 2 options: you can use the
@@ -158,7 +152,6 @@ instead of the default one that is shown below.
 ```
 
 the following keys are supported:
-
 - `{attendees}`: a comma separated list of email addresses of attendees
 - `{calendar}`: the name of the khal calendar
 - `{categories}`: the categories property of the item
@@ -212,7 +205,6 @@ Someone
 ```
 
 ## New: from org to khal
-
 An org agenda item can be converted to a new `khal` agenda item by
 feeding the org item through stdin to `khalorg new` and specifying the
 khal calendar name as a positional argument. For example, the consider
@@ -250,7 +242,6 @@ exists. Make sure "my<sub>calendar</sub>" is a calendar that exists on
 your local file system.
 
 ### Recurring items
-
 Only 1 timestamp per org item is supported. Note that the meeting above
 is repeated every week (`+1w`). Only simple org repeaters are supported
 that have the following form: `+[number][h,w,m,y]`. These events repeat
@@ -263,14 +254,12 @@ outlook first. Next, I use `khalorg edit` to change the fields that need
 editing (e.g., the description).
 
 ### Attendees
-
 Optionally, attendees can be added to the `ATTENDEES` property field.
 The attendees will be added to the `Attendees` field of `khal`. Once you
 synchronize `khal` with a server (e.g., outlook) an invitation will be
 send to the attendees.
 
 ## Edit
-
 Existing `khal` events can be updates by feeding an org file with the
 corresponding UID through stdin to the `khalorg edit` command. For
 example, the org agenda item of <span class="spurious-link"
@@ -317,7 +306,6 @@ When using `khalorg edit` please consider the following:
   supported).
 
 ## Delete:
-
 - An event can be deleted from a khal calendar by feeding an org file to
   the `khalorg delete` command through stdin. The org file must contain
   an agenda item with a non-empty UID property. For example, the khal
@@ -330,18 +318,15 @@ cat meeting.org | khalorg delete my_calendar
 ```
 
 ### Recurring items
-
 When deleting recurring items the whole series will be removed. Removing
 occurrences is not supported.
 
 ## Neovim plugin
-
 Work in progress. The plugin works for the `khalorg new` command but
 some settings ars still hard-coded. The plugin is called
 [nvim-khalorg](https://github.com/BartSte/nvim-khalorg).
 
 # Workflow for Office 365
-
 ``` example
 ┌──────────┐  
 │Office 365│  
@@ -364,12 +349,10 @@ some settings ars still hard-coded. The plugin is called
 ```
 
 # Bugs:
-
 - [ ] Org item not recognized by neovim plugin when no blank line is
   present at the bottom.
 
 # Improvements:
-
 - [ ] Timezones are not yet supported, so `khalorg` will only work when
   you agenda remain in the timezone that you specified within your
   `khal` config.
