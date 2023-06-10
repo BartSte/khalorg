@@ -31,7 +31,7 @@ def get_parser() -> ArgumentParser:
     child_list.set_defaults(func=list_command)
 
     child_list: ArgumentParser = subparsers.add_parser('edit', **ParserInfo.edit)  # noqa
-    child_list.add_argument('--edit_dates', **Args.edit_dates)
+    child_list.add_argument('--edit-dates', **Args.edit_dates)
     child_list.add_argument('calendar', **Args.calendar)
     child_list.set_defaults(func=edit)
 

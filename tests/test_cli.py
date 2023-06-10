@@ -45,7 +45,7 @@ class TestEdit(TestCase):
             'CRITICAL',
             'edit',
             'calendar',
-            '--edit_dates'
+            '--edit-dates'
         ]
         actual = khalorg_tester(args)
         expected: str = (
