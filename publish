@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+version=$(grep -Po '(?<=version = ")[^"]*' pyproject.toml)
+if git rev-parse -q --verify $version >/dev/null; then echo "Version already exists. Aborting."; exit 1; fi
+
+python3 -m build
+python3 -m twine upload --repository testpypi dist/*
+
+git tag $version
+git push --tags

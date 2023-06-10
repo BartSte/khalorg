@@ -116,7 +116,7 @@ following section discuss the `khalorg` commands that are available.
 
 ## List: from khal to org
 
-![khalorg list demo](./demo/list.gif)
+![khalorg list demo](https://github.com/BartSte/khalorg/blob/main/demo/list.gif?raw=true)
 
 Agenda items from `khal` can be converted to org items using the
 `khalorg list` command. For examples:
@@ -212,7 +212,7 @@ Someone
 
 ## New: from org to khal
 
-![khalorg new demo](./demo/new.gif)
+![khalorg new demo](https://github.com/BartSte/khalorg/blob/main/demo/new.gif?raw=true)
 
 An org agenda item can be converted to a new `khal` agenda item by
 feeding the org item through stdin to `khalorg new` and specifying the
@@ -268,9 +268,9 @@ The attendees will be added to the `Attendees` field of `khal`. Once you
 synchronize `khal` with a server (e.g., outlook) an invitation will be
 send to the attendees.
 
-## Edit
+## Edit: from org to khal
 
-![khalorg edit demo](./demo/edit.gif)
+![khalorg edit demo](https://github.com/BartSte/khalorg/blob/main/demo/edit.gif?raw=true)
 
 Existing `khal` events can be updates by feeding an org file with the
 corresponding UID through stdin to the `khalorg edit` command. For
@@ -317,9 +317,9 @@ When using `khalorg edit` please consider the following:
   when editing an event that contains multiple timestamps (which are not
   supported).
 
-## Delete:
+## Delete: from org to khal
  
-![khalorg deleted demo](./demo/delete.gif)
+![khalorg deleted demo](https://github.com/BartSte/khalorg/blob/main/demo/delete.gif?raw=true)
 
 An event can be deleted from a khal calendar by feeding an org file to the
 `khalorg delete` command through stdin. The org file must contain an agenda
