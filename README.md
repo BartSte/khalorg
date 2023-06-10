@@ -1,3 +1,5 @@
+[Click here for the GitHub page.](https://github.com/BartSte/khalorg) 
+
 # Introduction
 `khalorg` is an interface between Org mode and Khal cli calendar.
 
@@ -11,16 +13,15 @@
 - [vdirsyncer](<https://github.com/pimutils/vdirsyncer>): synchronizes calendars and addressbooks between servers and the local file system
 
 ## Motivation
-I use org mode to manage my agenda and my notes. However, in a
-professional setting, you are often required to use proprietary software
-for your agenda, like Office 365. Luckily, programs exist that can
-synchronize agendas from different sources, by implementing the CalDav
-standard. Personally, I like to use vdirsyncer for synchronization my
-agendas, and khal to access and manipulate the agena items. To bridge
-the gap between khal and org mode, only 1 program exists called: khalel.
-However, this program is designed for emacs. Since there are also org
-mode users outside of emacs (e.g. neovim), `khalorg` aims to be a
-general interface between khal and org mode.
+I use org mode to manage my agenda and my notes. However, in a professional
+setting, you are often required to use proprietary software for your agenda,
+like Office 365. Luckily, programs exist that can synchronize agendas from
+different sources, by implementing the CalDav standard. Personally, I like to
+use `vdirsyncer` with `khal` to synchronize my agendas. To bridge the gap
+between `khal` and `org mode`, only 1 program exists called: `khalel`. However,
+this program is designed for `emacs`. Since there are also org mode users
+outside of `emacs` (e.g. `neovim`), `khalorg` aims to be a general interface
+between `vdirsyncer`/`khal` and `org mode`.
 
 Based on the above, the following workflow is desired:
 
@@ -41,6 +42,7 @@ Based on the above, the following workflow is desired:
 │org mode│    
 └────────┘    
 ```
+
 ## Features
 - [x] Can be used by org mode for emacs, vim and neovim.
 - [x] Vdirsyncer calendars can be manipulated by using the cli of `khal`
@@ -65,8 +67,8 @@ Based on the above, the following workflow is desired:
 - [x] Includes an Office 365 workflow with a bash script
 - [x] Semantic versioning
 - [x] Gifs with demos
-- [ ] Neovim plugin
-- [ ] Is available on PyPI
+- [x] Neovim plugin
+- [x] Is available on PyPI
 
 # Dependencies
 - khal>=0.11
@@ -113,6 +115,9 @@ Use `khalorg --help` to get information about the cli of `khalorg`. The
 following section discuss the `khalorg` commands that are available.
 
 ## List: from khal to org
+
+![khalorg list demo](./demo/list.gif)
+
 Agenda items from `khal` can be converted to org items using the
 `khalorg list` command. For examples:
 
@@ -206,6 +211,9 @@ Someone
 ```
 
 ## New: from org to khal
+
+![khalorg new demo](./demo/new.gif)
+
 An org agenda item can be converted to a new `khal` agenda item by
 feeding the org item through stdin to `khalorg new` and specifying the
 khal calendar name as a positional argument. For example, the consider
@@ -261,6 +269,9 @@ synchronize `khal` with a server (e.g., outlook) an invitation will be
 send to the attendees.
 
 ## Edit
+
+![khalorg edit demo](./demo/edit.gif)
+
 Existing `khal` events can be updates by feeding an org file with the
 corresponding UID through stdin to the `khalorg edit` command. For
 example, the org agenda item of <span class="spurious-link"
@@ -307,12 +318,14 @@ When using `khalorg edit` please consider the following:
   supported).
 
 ## Delete:
-- An event can be deleted from a khal calendar by feeding an org file to
-  the `khalorg delete` command through stdin. The org file must contain
-  an agenda item with a non-empty UID property. For example, the khal
-  event that was created using the <span class="spurious-link"
-  target="New">*New*</span> command above can be removed by feeding the
-  same file to `khalorg delete`:
+ 
+![khalorg deleted demo](./demo/delete.gif)
+
+An event can be deleted from a khal calendar by feeding an org file to the
+`khalorg delete` command through stdin. The org file must contain an agenda
+item with a non-empty UID property. For example, the khal event that was
+created using the <span class="spurious-link" target="New">*New*</span> command
+above can be removed by feeding the same file to `khalorg delete`:
 
 ``` bash
 cat meeting.org | khalorg delete my_calendar
@@ -323,11 +336,16 @@ When deleting recurring items the whole series will be removed. Removing
 occurrences is not supported.
 
 ## Neovim plugin
-Work in progress. The plugin works for the `khalorg new` command but
-some settings ars still hard-coded. The plugin is called
-[nvim-khalorg](https://github.com/BartSte/nvim-khalorg).
+The neovim plugin can be found here: [nvim-khalorg](https://github.com/BartSte/nvim-khalorg).
 
 # Workflow for Office 365
+The diagram below illustrates the workflow than can be achieved when using
+`khalorg`. The folder `extras`, on the
+[GitHub](https://github.com/BartSte/khalorg) page, contains a `bash` script
+called `calsync`, that synchronizes `vdirsyncer` calendars and exports them as
+an org file using the `khalorg list` command. Davmail is used as the CalDav
+server in this specific example.
+
 ``` example
 ┌──────────┐  
 │Office 365│  
@@ -348,10 +366,6 @@ some settings ars still hard-coded. The plugin is called
 │org mode│    
 └────────┘    
 ```
-
-# Bugs:
-- [ ] Org item not recognized by neovim plugin when no blank line is
-  present at the bottom.
 
 # Improvements:
 - [ ] Timezones are not yet supported, so `khalorg` will only work when
