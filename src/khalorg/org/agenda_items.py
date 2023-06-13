@@ -4,17 +4,20 @@ from typing import Generator
 
 import orgparse
 from dateutil.rrule import rrule
-from orgparse.date import OrgDate
-from orgparse.node import OrgNode
-
 from khalorg.helpers import get_khalorg_format
 from khalorg.khal.helpers import remove_tzinfo
-from khalorg.org.helpers import get_indent, remove_timestamps, timestamp_to_orgdate
+from khalorg.org.helpers import (
+    get_indent,
+    remove_timestamps,
+    timestamp_to_orgdate,
+)
 from khalorg.rrule import (
     rrulestr_is_supported,
     rrulestr_to_rrule,
     set_org_repeater,
 )
+from orgparse.date import OrgDate
+from orgparse.node import OrgNode
 
 Time = date | datetime
 
