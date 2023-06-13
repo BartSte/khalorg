@@ -96,7 +96,8 @@ timeformat: 21:45
 ```
 If not, check the documentation of `khal` on how to change this.
 
-## PyPi (in progress)
+## PyPi
+Install by running the following command:
 ``` bash
 pip install khalorg
 ```
