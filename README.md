@@ -1,5 +1,16 @@
 [Click here for the GitHub page.](https://github.com/BartSte/khalorg) 
 
+# Contents
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Neovim plugin](#neovim-plugin)
+- [Workflow for Office 365](#workflow-for-office-365)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Improvements](#improvements)
+
 # Introduction
 `khalorg` is an interface between Org mode and Khal cli calendar.
 
@@ -70,23 +81,18 @@ Based on the above, the following workflow is desired:
 - [x] Neovim plugin
 - [x] Is available on PyPI
 
-# Dependencies
-- khal>=0.11
-- vdirsyncer
-- orgparse
-
 # Installation
 For safety, always make a back-up of your calendar before installing software
 that is new to you.
 
 Make sure your `khal` date format is compatible with org, otherwise it
 will not work. When running `khal printformats` you should get:
-```
-    longdatetimeformat: 2013-12-21 Sat 21:45
-    datetimeformat: 2013-12-21 Sat 21:45
-    longdateformat: 2013-12-21 Sat
-    dateformat: 2013-12-21 Sat
-    timeformat: 21:45
+``` example
+longdatetimeformat: 2013-12-21 Sat 21:45
+datetimeformat: 2013-12-21 Sat 21:45
+longdateformat: 2013-12-21 Sat
+dateformat: 2013-12-21 Sat
+timeformat: 21:45
 ```
 If not, check the documentation of `khal` on how to change this.
 
@@ -141,20 +147,20 @@ want to define your own format, you have 2 options: you can use the
 `$HOME/.config/khalorg/khalorg_format.txt` this format will then be used
 instead of the default one that is shown below.
 
-``` txt
+``` org
 * {title}
-{timestamps}
-:PROPERTIES:
-:ATTENDEES: {attendees}
-:CALENDAR: {calendar}
-:CATEGORIES: {categories}
-:LOCATION: {location}
-:ORGANIZER: {organizer}
-:STATUS: {status}
-:UID: {uid}
-:URL: {url}
-:END:
-{description}
+  {timestamps}
+  :PROPERTIES:
+  :ATTENDEES: {attendees}
+  :CALENDAR: {calendar}
+  :CATEGORIES: {categories}
+  :LOCATION: {location}
+  :ORGANIZER: {organizer}
+  :STATUS: {status}
+  :UID: {uid}
+  :URL: {url}
+  :END:
+  {description}
 ```
 
 the following keys are supported:
@@ -189,25 +195,25 @@ represents a weekly recurring event where the first meeting was moved to
 another date, resulting in a timestamp without a repeater, and one with
 a repeater.
 
-``` example
+``` org
 * Meeting
-<2023-01-05 Thu 01:00-02:00>
-<2023-01-08 Sun 01:00-02:00 +1w>
-:PROPERTIES:
-:UID: 123
-:LOCATION: Somewhere
-:ORGANIZER: Someone (someone@outlook.com)
-:ATTENDEES: test@test.com, test2@test.com
-:URL: www.test.com
-:END:
-Hello,
-
-Lets have a meeting.
-
-Regards,
-
-
-Someone
+  <2023-01-05 Thu 01:00-02:00>
+  <2023-01-08 Sun 01:00-02:00 +1w>
+  :PROPERTIES:
+  :UID: 123
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
+  :URL: www.test.com
+  :END:
+  Hello,
+  
+  Lets have a meeting.
+  
+  Regards,
+  
+  
+  Someone
 ```
 
 ## New: from org to khal
@@ -219,24 +225,24 @@ feeding the org item through stdin to `khalorg new` and specifying the
 khal calendar name as a positional argument. For example, the consider
 the org item below, which is saved as `meeting.org`.
 
-``` example
+``` org
 * Meeting
-<2023-01-01 Sun 01:00-02:00 +1w>
-:PROPERTIES:
-:UID: 123
-:LOCATION: Somewhere
-:ORGANIZER: Someone (someone@outlook.com)
-:ATTENDEES: test@test.com, test2@test.com
-:URL: www.test.com
-:END:
-Hello,
-
-Lets have a meeting.
-
-Regards,
-
-
-Someone
+  <2023-01-01 Sun 01:00-02:00 +1w>
+  :PROPERTIES:
+  :UID: 123
+  :LOCATION: Somewhere
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: test@test.com, test2@test.com
+  :URL: www.test.com
+  :END:
+  Hello,
+  
+  Lets have a meeting.
+  
+  Regards,
+  
+  
+  Someone
 ```
 
 This item can be converted to the `khal` calendar called
@@ -278,23 +284,23 @@ example, the org agenda item of <span class="spurious-link"
 target="New">*New*</span> can be altered and used as an input for
 `khalorg edit`, as long as the UID remains untouched.
 
-``` example
+``` org
 * Edited meeting
-<2023-01-01 Sun 01:00-02:00 +1w>
-:PROPERTIES:
-:UID: 123
-:ORGANIZER: Someone (someone@outlook.com)
-:ATTENDEES: other@test.com
-:END:
-Hello,
-
-I edited the meeting by removing the location and url. I also changed the
-title and the attendees field.
-
-Regards,
-
-
-Someone
+  <2023-01-01 Sun 01:00-02:00 +1w>
+  :PROPERTIES:
+  :UID: 123
+  :ORGANIZER: Someone (someone@outlook.com)
+  :ATTENDEES: other@test.com
+  :END:
+  Hello,
+  
+  I edited the meeting by removing the location and url. I also changed the
+  title and the attendees field.
+  
+  Regards,
+  
+  
+  Someone
 ```
 
 Next, run the following command:
@@ -366,6 +372,20 @@ server in this specific example.
 │org mode│    
 └────────┘    
 ```
+
+## Troubleshooting
+
+If you encounter any issues, please report them on the issue tracker at:
+[khalorg issues](https://github.com/BartSte/khalorg/issues)
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING](./CONTRIBUTING.md) for
+more information.
+
+## License
+
+Distributed under the [MIT License](./LICENCE).
 
 # Improvements:
 - [ ] Timezones are not yet supported, so `khalorg` will only work when
