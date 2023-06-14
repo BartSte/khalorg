@@ -8,7 +8,7 @@ called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
 - `khalorg edit`: edit an existing `khal` agenda item with org mode.
 - `khalorg delete`: delete an existing `khal` item.
 
-![neovim-plugin](./demo/neovim-plugin.gif)
+![neovim-plugin](https://github.com/BartSte/khalorg/blob/main/demo/neovim-plugin.gif?raw=true)
 
 # Contents
 - [Introduction](#introduction)
