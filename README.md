@@ -1,5 +1,15 @@
 [Click here for the GitHub page.](https://github.com/BartSte/khalorg) 
 
+# Demo
+The demo below demonstrates the following features using the neovim plugin
+called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
+- `khalorg new`: convert an org agenda item into a `khal` agenda item.
+- `khalorg list`: convert a `khal` agenda item into an org agenda item.
+- `khalorg edit`: edit an existing `khal` agenda item with org mode.
+- `khalorg delete`: delete an existing `khal` item.
+
+![neovim-plugin](./demo/neovim-plugin.gif)
+
 # Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
@@ -343,7 +353,9 @@ When deleting recurring items the whole series will be removed. Removing
 occurrences is not supported.
 
 ## Neovim plugin
-The neovim plugin can be found here: [nvim-khalorg](https://github.com/BartSte/nvim-khalorg).
+The neovim plugin can be found here:
+[nvim-khalorg](https://github.com/BartSte/nvim-khalorg). Check out the demo at
+the top of the [page](#demo).
 
 # Workflow for Office 365
 The diagram below illustrates the workflow than can be achieved when using
