@@ -1,38 +1,35 @@
 #!/bin/bash
 
-usage="Usage: $(basename "$0") [-h | --help] <davmail-config> <org file> <khalorg list arg> 
+usage="Usage: $(basename "$0") [-q | --quiet] [-h | --help] <davmail-config> <org file> <khalorg list arg>
 
-Sychronize all \`vdirsyncer\` calendars and export them to org with \`khalorg\`. 
-Davmail is used as the CalDav server. If it is not already running, it will be 
+Sychronize all \`vdirsyncer\` calendars and export them to org with \`khalorg\`.
+Davmail is used as the CalDav server. If it is not already running, it will be
 activated temporarly.
 
 where:
-    options
-    -h --help   shows this help messages
+options
+-q --quiet  suppresses the /dev/stderr messages
+-h --help   shows this help messages
 
-    positional
-    <davmail-config>        your davmailconfig
-    <org file>              the output file
-    <khalorg list arg>    see \`khalorg export -h\`
-    "
-
-options=$(getopt -o h --long help -- "$@")
+positional
+<davmail-config>        your davmailconfig
+<org file>              the output file
+<khalorg list arg>    see \`khalorg list -h\`
+"
+error=/dev/stderr
+output=/dev/stdout
+options=$(getopt -o qh --long quiet,help -- "$@")
 
 [ $? -eq 0 ] || { echo "Incorrect options provided"; exit 1; }
 
 eval set -- "$options"
 while true; do
     case "$1" in
-    -h | --help)
-        echo "$usage"
-        exit
-        ;;
-    --)
-        shift
-        break
-        ;;
+        -q|--quiet) output=/dev/null; error=/dev/null; shift ;;
+        -h|--help) echo "$usage"; exit ;;
+        --) shift; break ;;
+        *) echo "Internal error"; exit 1 ;;
     esac
-    shift
 done
 
 [ $# -eq 0 ] && { echo "$usage"; exit ;}
@@ -43,6 +40,11 @@ orgfile=$2
 shift 2
 khalorg=$@
 
+##############################################################################
+# This function is the main function of the script. It checks if the user is
+# logged in, if there is an internet connection, starts davmail, runs the 
+# synchronization and kills davmail afterwards.
+##############################################################################
 main(){
     is_logged_in || { echo "$USER not logged in; sync will not run."; exit ;}
     has_internet || { echo "No internet connection detected."; exit ;}
@@ -53,34 +55,57 @@ main(){
     echo 'Calendar sync done.'
 }
 
+##############################################################################
+# This function checks if the user is logged in. It does so by checking if the
+# user has a process with the same name as the user id.
+##############################################################################
 is_logged_in() {
-    pgrep -u "${USER:=$LOGNAME}" >/dev/null
+    pgrep -u "${USER:=$LOGNAME}" 1> $output 2> $error
 }
 
+##############################################################################
+# This function checks if the user has an internet connection. It does so by
+# pinging a known ip address.
+##############################################################################
 has_internet() {
-    ping -q -c 1 1.1.1.1 > /dev/null
+    ping -q -c 1 1.1.1.1 1> $output 2> $error
 }
 
+##############################################################################
+# This function starts davmail if it is not already running. It does so by
+# checking if there is a process with the name 'davmail.jar'.
+##############################################################################
 start_davmail() {
-    pgrep -f davmail\.jar >/dev/null && return
-    davmail $davmailconfig &
+    pgrep -f davmail\.jar 1> $output 2> $error && return
+    davmail $davmailconfig 1> $output 2> $error & 
     pid_davmail=$!
     sleep 0.5
 }
 
+##############################################################################
+# This function kills davmail if it is running. It does so by checking if there
+# is a process with the name 'davmail.jar'.
+##############################################################################
 kill_davmail() {
     [[ $pid_davmail ]] && kill $pid_davmail
 }
 
+##############################################################################
+# This function runs khalorg list. 
+##############################################################################
 khalorg_list() {
     khalorg list $khalorg > $orgfile
 }
 
+##############################################################################
+# Execute the main function. If the script is run in a tmux session, the output
+# will be displayed in a tmux message.
+##############################################################################
 start_message='Calendar sync started'
 if [[ $TMUX ]]; then
     tmux display -d 1000 "$start_message"
     tmux display -d 2000 "$(main)"
 else
     echo "$start_message"
-    main 
+    main
 fi
