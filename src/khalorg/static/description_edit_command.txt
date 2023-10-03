@@ -1,1 +1,3 @@
-Edit and existing khal event.
+Edit and existing khal event. The edited org agenda item should be send to this
+command through stdin. The org agenda item must already exist and have a valid
+UID.
