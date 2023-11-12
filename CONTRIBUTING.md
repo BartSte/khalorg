@@ -5,7 +5,7 @@ Thank you for considering contributing to the `khalorg` project! We welcome cont
 ## Getting Started
 
 1. Fork the repository on GitHub.
-2. Clone your forked repository (`git clone https://github.com/your_username/khalorg.git`).
+2. Clone your forked repository (`git clone https://github.com/BartSte/khalorg.git`).
 3. Create a new branch (`git checkout -b my_branch_name`).
 4. Make your changes.
 5. Commit your changes (`git commit -am "Add some feature"`).
@@ -20,7 +20,7 @@ Please note that this project is released with a Contributor Code of Conduct. By
 
 If you encounter any bugs or issues, please report them on the issue tracker at:
 
-[Issues](https://github.com/username/khalorg/issues)
+[Issues](https://github.com/BartSte/khalorg/issues)
 
 ## License
 
