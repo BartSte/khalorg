@@ -1,18 +1,28 @@
 from datetime import datetime
-from tests.agenda_items import AllDay, Recurring, Valid
-from tests.helpers import (
-    read_org_test_file,
-)
-from tests.test_khal.helpers import Mixin
+from os.path import join
 from unittest import TestCase
+from unittest.mock import patch
 
 from khalorg.khal.args import EditArgs, NewArgs
 from khalorg.khal.helpers import set_tzinfo
 from khalorg.org.agenda_items import OrgAgendaItem
 
+from tests import static
+from tests.agenda_items import AllDay, Recurring, Valid
+from tests.helpers import (
+    get_module_path,
+    read_org_test_file,
+)
+from tests.test_khal.helpers import Mixin
+
 FORMAT = '%Y-%m-%d %a %H:%M'
 
 
+def test_config_khal():
+    return join(get_module_path(static), 'test_config_khal')
+
+
+@patch('khalorg.khal.args.find_configuration_file', new=test_config_khal)
 class TestArgs(Mixin, TestCase):
 
     def test_load_from_org(self):
@@ -106,6 +116,7 @@ class TestArgs(Mixin, TestCase):
         self.assertEqual(actual, expected)
 
 
+@patch('khalorg.khal.args.find_configuration_file', new=test_config_khal)
 class TestEditArgs(Mixin, TestCase):
 
     def test(self):
