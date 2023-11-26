@@ -1,5 +1,7 @@
 [Click here for the GitHub page.](https://github.com/BartSte/khalorg)
 
+<img src="./demo/logo.jpg" width=50%>
+
 # Demo
 
 The demo below demonstrates the following features using the neovim plugin
