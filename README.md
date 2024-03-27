@@ -1,8 +1,10 @@
+# Khalorg
+
 [Click here for the GitHub page.](https://github.com/BartSte/khalorg)
 
 <img src="./demo/logo.jpg" width=50%>
 
-# Demo
+## Demo
 
 The demo below demonstrates the following features using the neovim plugin
 called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
@@ -14,23 +16,44 @@ called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
 
 ![neovim-plugin](https://github.com/BartSte/khalorg/blob/main/demo/neovim-plugin.gif?raw=true)
 
-# Contents
+## Contents
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Neovim plugin](#neovim-plugin)
-- [Workflow for Office 365](#workflow-for-office-365)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-- [Improvements](#improvements)
+<!--toc:start-->
 
-# Introduction
+- [Khalorg](#khalorg)
+  - [Demo](#demo)
+  - [Contents](#contents)
+  - [Introduction](#introduction)
+    - [Definitions](#definitions)
+    - [Motivation](#motivation)
+    - [Features](#features)
+  - [Installation](#installation)
+    - [PyPi](#pypi)
+    - [From source](#from-source)
+    - [For development](#for-development)
+  - [Usage](#usage)
+    - [List: from khal to org](#list-from-khal-to-org)
+      - [–format](#format)
+      - [Recurring items](#recurring-items)
+    - [New: from org to khal](#new-from-org-to-khal)
+      - [Recurring items](#recurring-items)
+      - [Attendees](#attendees)
+    - [Edit: from org to khal](#edit-from-org-to-khal)
+    - [Delete: from org to khal](#delete-from-org-to-khal)
+      - [Recurring items](#recurring-items)
+  - [Neovim plugin](#neovim-plugin)
+  - [Workflow for Office 365](#workflow-for-office-365)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Improvements:](#improvements)
+  <!--toc:end-->
+
+## Introduction
 
 `khalorg` is an interface between Org mode and Khal cli calendar.
 
-## Definitions
+### Definitions
 
 - [CalDav](https://en.wikipedia.org/wiki/CalDAV): internet standard for client access to calendars
 - [Davmail](https://davmail.sourceforge.net/e): CalDav exchange gateway
@@ -40,7 +63,7 @@ called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
 - [org](https://orgmode.org): plain text system for keeping notes, agendas and more
 - [vdirsyncer](https://github.com/pimutils/vdirsyncer): synchronizes calendars and addressbooks between servers and the local file system
 
-## Motivation
+### Motivation
 
 I use org mode to manage my agenda and my notes. However, in a professional
 setting, you are often required to use proprietary software for your agenda,
@@ -72,7 +95,7 @@ Based on the above, the following workflow is desired:
 └────────┘
 ```
 
-## Features
+### Features
 
 - [x] Can be used by org mode for emacs, vim and neovim.
 - [x] Vdirsyncer calendars can be manipulated by using the cli of `khal`
@@ -100,7 +123,7 @@ Based on the above, the following workflow is desired:
 - [x] Neovim plugin
 - [x] Is available on PyPI
 
-# Installation
+## Installation
 
 For safety, always make a back-up of your calendar before installing software
 that is new to you.
@@ -118,7 +141,7 @@ timeformat: 21:45
 
 If not, check the documentation of `khal` on how to change this.
 
-## PyPi
+### PyPi
 
 Install by running the following command:
 
@@ -126,7 +149,7 @@ Install by running the following command:
 pip install khalorg
 ```
 
-## From source
+### From source
 
 Set your current working directory to the root directory, i.e, the
 directory containing the `pyproject.toml` file. Next, run:
@@ -137,7 +160,7 @@ pip install .
 
 After this, the executable `khalorg` will be available.
 
-## For development
+### For development
 
 If you want to develop the code, debug it, and test it, run:
 
@@ -145,12 +168,12 @@ If you want to develop the code, debug it, and test it, run:
 pip install -e '.[test,debug]'
 ```
 
-# Usage
+## Usage
 
 Use `khalorg --help` to get information about the cli of `khalorg`. The
 following section discuss the `khalorg` commands that are available.
 
-## List: from khal to org
+### List: from khal to org
 
 ![khalorg list demo](https://github.com/BartSte/khalorg/blob/main/demo/list.gif?raw=true)
 
@@ -169,7 +192,7 @@ For more information about the allowed date formats, check the
 that the `khal` calendar called `my_calendar` exists. Make sure
 `my_calendar` is a calendar that exists on your local file system.
 
-### –format
+#### –format
 
 If `khalorg list --format` option is not defined, the default one is
 used which can be found at `./khalorg/static/khalorg_format.txt`. If you
@@ -215,7 +238,7 @@ and are therefore less informative:
 - `{until}`: the until property value. Is empty when using `khalorg list`.
 - `{rrule}`: the ICal RRULE of the item.
 
-### Recurring items
+#### Recurring items
 
 The `khalorg list` command relies on the `khal list` command. Using this
 command the `RRULE` of each item is retrieved to created the correct org
@@ -248,7 +271,7 @@ a repeater.
   Someone
 ```
 
-## New: from org to khal
+### New: from org to khal
 
 ![khalorg new demo](https://github.com/BartSte/khalorg/blob/main/demo/new.gif?raw=true)
 
@@ -288,7 +311,7 @@ It is assumed that the `khal` calendar called "my<sub>calendar</sub>"
 exists. Make sure "my<sub>calendar</sub>" is a calendar that exists on
 your local file system.
 
-### Recurring items
+#### Recurring items
 
 Only 1 timestamp per org item is supported. Note that the meeting above
 is repeated every week (`+1w`). Only simple org repeaters are supported
@@ -301,14 +324,14 @@ need outlook specific items like a Teams invite), I create the event in
 outlook first. Next, I use `khalorg edit` to change the fields that need
 editing (e.g., the description).
 
-### Attendees
+#### Attendees
 
 Optionally, attendees can be added to the `ATTENDEES` property field.
 The attendees will be added to the `Attendees` field of `khal`. Once you
 synchronize `khal` with a server (e.g., outlook) an invitation will be
 send to the attendees.
 
-## Edit: from org to khal
+### Edit: from org to khal
 
 ![khalorg edit demo](https://github.com/BartSte/khalorg/blob/main/demo/edit.gif?raw=true)
 
@@ -357,7 +380,7 @@ When using `khalorg edit` please consider the following:
   when editing an event that contains multiple timestamps (which are not
   supported).
 
-## Delete: from org to khal
+### Delete: from org to khal
 
 ![khalorg deleted demo](https://github.com/BartSte/khalorg/blob/main/demo/delete.gif?raw=true)
 
@@ -371,7 +394,7 @@ above can be removed by feeding the same file to `khalorg delete`:
 cat meeting.org | khalorg delete my_calendar
 ```
 
-### Recurring items
+#### Recurring items
 
 When deleting recurring items the whole series will be removed. Removing
 occurrences is not supported.
@@ -382,7 +405,7 @@ The neovim plugin can be found here:
 [nvim-khalorg](https://github.com/BartSte/nvim-khalorg). Check out the demo at
 the top of the [page](#demo).
 
-# Workflow for Office 365
+## Workflow for Office 365
 
 The diagram below illustrates the workflow than can be achieved when using
 `khalorg`. The folder `extras`, on the
@@ -426,7 +449,7 @@ more information.
 
 Distributed under the [MIT License](./LICENCE).
 
-# Improvements:
+## Improvements:
 
 - [ ] Timezones are not yet supported, so `khalorg` will only work when
       you agenda remain in the timezone that you specified within your
