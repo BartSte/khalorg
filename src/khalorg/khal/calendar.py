@@ -84,8 +84,8 @@ class Calendar:
         """
         path_config: Union[str, None] = find_configuration_file()
 
-        new_item_args: list = ['khal', 'new']
-        list_args: list = ['khal', 'list', '-df', '']
+        new_item_args: list = ["python3", "-m", "khal", "new"]
+        list_args: list = ["python3", "-m", "khal", "list", "-df", ""]
 
         self._collection: CalendarCollection
         self._new_item: Callable = subprocess_callback(new_item_args)

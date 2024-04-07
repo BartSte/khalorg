@@ -1,4 +1,5 @@
 import logging
+import sys
 from datetime import date, datetime
 from subprocess import STDOUT, CalledProcessError, check_output
 from typing import Callable
@@ -35,11 +36,17 @@ def is_future(timestamp: datetime | date) -> bool:
         True if the `timestamp` is in the future
 
     """
+    logging.debug("Check if timestamp %s is in the future", timestamp)
     if isinstance(timestamp, datetime):
-        now: datetime = datetime.now(timestamp.tzinfo)
-        return timestamp >= now
+        logging.debug(
+            "Timestamp is a datetime object with tzinfo %s", timestamp.tzinfo
+        )
+        now = datetime.now(timestamp.tzinfo)
     else:
-        return timestamp >= datetime.now().date()
+        now = datetime.now().date()
+
+    logging.debug("Now is %s", now)
+    return timestamp >= now
 
 
 def subprocess_callback(cmd: list) -> Callable:
@@ -56,6 +63,7 @@ def subprocess_callback(cmd: list) -> Callable:
         callback function
 
     """
+
     def callback(args: list) -> str:
         return try_check_output([*cmd, *args]).decode()
 
@@ -64,12 +72,13 @@ def subprocess_callback(cmd: list) -> Callable:
 
 def try_check_output(args: list) -> bytes:
     try:
-        return check_output(args, stderr=STDOUT)
+        return check_output(args, stderr=STDOUT, executable=sys.executable)
     except CalledProcessError as error:
         error_message: str = (
             f"The following arguments were sent to khal:\n\n{' '.join(args)}"
             "\n\nNext, the following error was received from khal:\n\n"
-            f"{error.output.decode()}\n\n")
+            f"{error.output.decode()}\n\n"
+        )
         logging.critical(error_message)
         raise Exception(error_message) from error
 

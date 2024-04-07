@@ -13,7 +13,7 @@ from khalorg.org.agenda_items import OrgAgendaFile, OrgAgendaItem
 
 def list_command(
         calendar: str,
-        khalorg_format: str = get_khalorg_format(),
+        khalorg_format: str | None  = None,
         start: str = 'today',
         stop: str = '1d',
         **_) -> str:
@@ -31,6 +31,7 @@ def list_command(
         stdout of the `khal list` command after post processing
 
     """
+    khalorg_format = khalorg_format or get_khalorg_format()
     args: KhalArgs = KhalArgs()
     args['-a'] = calendar
     args['-f'] = get_khal_format()

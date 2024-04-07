@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+import logging
 from os.path import join
 from tests import static
 from tests.helpers import (
@@ -84,8 +85,12 @@ def _list_test(runner, expected: OrgAgendaItem):
     expected.properties['UID'] = actual.properties['UID']
     expected.properties['CALENDAR'] = actual.properties['CALENDAR']
     expected.properties['RRULE'] = actual.properties['RRULE']
-    assert str(expected) == str(actual), f'Org item: {expected}'
 
+    logging.debug("khalorg_format: %s", khalorg_format)
+    logging.debug("Stdout: %s", stdout)
+    logging.debug("Expected: %s", expected)
+    logging.debug("Actual: %s", actual)
+    assert str(expected) == str(actual)
     # A recurring item should have a non empty rrule
     assert bool(actual.properties['RRULE']) == bool(expected.first_timestamp._repeater)  # noqa
 
