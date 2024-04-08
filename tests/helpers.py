@@ -413,7 +413,7 @@ def get_start_end(delta: timedelta = timedelta(hours=1),
 
     """
     # must be in the future
-    start: datetime = datetime.now() + timedelta(minutes=1)
+    start: datetime = datetime.now() + timedelta(minutes=2)
     end: datetime = start + delta
 
     if all_day:
