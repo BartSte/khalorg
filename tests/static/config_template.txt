@@ -11,9 +11,6 @@ color = dark green
 path = {calpath3}
 
 [locale]
-local_timezone = Europe/Berlin
-default_timezone = Europe/Berlin
-
 timeformat = %H:%M
 dateformat = %Y-%m-%d %a
 longdateformat = %Y-%m-%d %a
