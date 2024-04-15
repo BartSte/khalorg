@@ -1,4 +1,6 @@
 import logging
+from os.path import dirname, join
+import sys
 from datetime import date, datetime
 from typing import Callable, Iterable, TypedDict, Union
 
@@ -84,8 +86,9 @@ class Calendar:
         """
         path_config: Union[str, None] = find_configuration_file()
 
-        new_item_args: list = ["python3", "-m", "khal", "new"]
-        list_args: list = ["python3", "-m", "khal", "list", "-df", ""]
+        khal_bin: str = join(dirname(sys.executable), 'khal')
+        new_item_args: list = [khal_bin, "new"]
+        list_args: list = [khal_bin, "list", "-df", ""]
 
         self._collection: CalendarCollection
         self._new_item: Callable = subprocess_callback(new_item_args)
