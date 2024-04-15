@@ -1,5 +1,4 @@
 import logging
-import sys
 from datetime import date, datetime
 from subprocess import STDOUT, CalledProcessError, check_output
 from typing import Callable
@@ -72,7 +71,7 @@ def subprocess_callback(cmd: list) -> Callable:
 
 def try_check_output(args: list) -> bytes:
     try:
-        return check_output(args, stderr=STDOUT, executable=sys.executable)
+        return check_output(args, stderr=STDOUT)
     except CalledProcessError as error:
         error_message: str = (
             f"The following arguments were sent to khal:\n\n{' '.join(args)}"
