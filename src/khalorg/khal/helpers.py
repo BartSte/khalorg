@@ -1,11 +1,30 @@
 import logging
+import sys
 from datetime import date, datetime
+from os.path import dirname, exists, join
 from subprocess import STDOUT, CalledProcessError, check_output
 from typing import Callable
 
 from khalorg import paths
 
 Time = date | datetime
+
+
+def find_khal_bin() -> str:
+    """Returns the khal executable.
+
+    When pipx is used, the khal executable is located in the same directory
+    as the python executable. When using a virtual environment, or the
+    global python installation, the khal executable is located in the PATH.
+
+    Returns:
+    --------
+        path to the khal executable
+    """
+    bin: str = join(dirname(sys.executable), "khal")
+    bin = bin if exists(bin) else "khal"
+    logging.debug("khal executable is: %s", bin)
+    return bin
 
 
 def get_khal_format():

@@ -62,10 +62,7 @@ select = [
     "W",  # pycodestyle warnings
     "I",  # isort
     "N",  # PEP8 naming
-    "D",  # pydocstyle
 ]
-
-ignore = ["D212", "D205", "D210", "D203"]
 
 [tool.autopep8]
 max_line_length = 79
