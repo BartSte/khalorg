@@ -1,6 +1,4 @@
 import logging
-from os.path import dirname, join
-import sys
 from datetime import date, datetime
 from typing import Callable, Iterable, TypedDict, Union
 
@@ -15,6 +13,7 @@ from khal.settings.settings import (
 )
 
 from khalorg.khal.helpers import (
+    find_khal_bin,
     is_future,
     remove_tzinfo,
     subprocess_callback,
@@ -24,7 +23,7 @@ Time = date | datetime
 
 
 class CalendarProperties(TypedDict):
-    """ Properties of a khal Event. """
+    """Properties of a khal Event."""
 
     attendees: list[str]
     categories: list[str]
@@ -67,14 +66,17 @@ class Calendar:
         new_item: new command (khal new)
     """
 
-    MESSAGE_EDIT: str = ('When trying to edit an event, the number of events '
-                         'found in the khal calendar was not 1 but: {}. The '
-                         'command was aborted.')
+    MESSAGE_EDIT: str = (
+        "When trying to edit an event, the number of events "
+        "found in the khal calendar was not 1 but: {}. The "
+        "command was aborted."
+    )
 
     MESSAGE_DELETE: str = (
-        'When trying to delete an event, the number of events'
-        ' found in the khal calendar was not 1 but: {}. The '
-        'command was aborted.')
+        "When trying to delete an event, the number of events"
+        " found in the khal calendar was not 1 but: {}. The "
+        "command was aborted."
+    )
 
     def __init__(self, name: str):
         """
@@ -86,7 +88,7 @@ class Calendar:
         """
         path_config: Union[str, None] = find_configuration_file()
 
-        khal_bin: str = join(dirname(sys.executable), 'khal')
+        khal_bin: str = find_khal_bin()
         new_item_args: list = [khal_bin, "new"]
         list_args: list = [khal_bin, "list", "-df", ""]
 
@@ -126,7 +128,7 @@ class Calendar:
         -------
             stdout of the `khal list`
         """
-        logging.info(f'khalorg list args are: {khal_args}')
+        logging.info(f"khalorg list args are: {khal_args}")
         return self._list_command(khal_args)
 
     @property
@@ -138,7 +140,7 @@ class Calendar:
         -------
 
         """
-        return self.config['locale']['longdateformat']
+        return self.config["locale"]["longdateformat"]
 
     @property
     def datetime_format(self) -> str:
@@ -149,7 +151,7 @@ class Calendar:
         -------
 
         """
-        return self.config['locale']['longdatetimeformat']
+        return self.config["locale"]["longdatetimeformat"]
 
     @property
     def collection(self) -> CalendarCollection:
@@ -164,13 +166,14 @@ class Calendar:
             khal calendar collection.
 
         """
-        if not hasattr(self, '_collection'):
+        if not hasattr(self, "_collection"):
             self._collection = get_calendar_collection(self.name)
 
         return self._collection
 
-    def edit(self, props: CalendarProperties,
-             edit_dates: bool = False) -> list[Event]:
+    def edit(
+        self, props: CalendarProperties, edit_dates: bool = False
+    ) -> list[Event]:
         """
         Edit an existing event.
 
@@ -197,14 +200,14 @@ class Calendar:
         """
         events: list[Event]
 
-        if props['uid']:
-            events = self.get_events(props['uid'])
+        if props["uid"]:
+            events = self.get_events(props["uid"])
         else:
-            events = self.get_events_no_uid(props['summary'],
-                                            props['start'],
-                                            props['end'])
+            events = self.get_events_no_uid(
+                props["summary"], props["start"], props["end"]
+            )
 
-        logging.info(f'number of events is {len(events)}')
+        logging.info(f"number of events is {len(events)}")
         events = [x for x in events if is_future(x.end)]
 
         if len(events) == 0:
@@ -228,14 +231,13 @@ class Calendar:
             now in the local timezone
 
         """
-        return self.config['locale']['default_timezone'].localize(
-            datetime.now())
+        return self.config["locale"]["default_timezone"].localize(
+            datetime.now()
+        )
 
     def update_event(
-            self,
-            event: Event,
-            props: CalendarProperties,
-            edit_dates: bool = False) -> Event:
+        self, event: Event, props: CalendarProperties, edit_dates: bool = False
+    ) -> Event:
         """
         Update an event with `props`.
 
@@ -249,16 +251,16 @@ class Calendar:
             the update version of `event`
 
         """
-        event.update_url(props['url'])
-        event.update_summary(props['summary'])
-        event.update_location(props['location'])
-        event.update_attendees(props['attendees'])
-        event.update_categories(props['categories'])
-        event.update_description(props['description'])
+        event.update_url(props["url"])
+        event.update_summary(props["summary"])
+        event.update_location(props["location"])
+        event.update_attendees(props["attendees"])
+        event.update_categories(props["categories"])
+        event.update_description(props["description"])
 
         if edit_dates:
-            event.update_start_end(props['start'], props['end'])
-            event.update_rrule(props['rrule'])
+            event.update_start_end(props["start"], props["end"])
+            event.update_rrule(props["rrule"])
 
         event.increment_sequence()
         self.collection.update(event)
@@ -285,10 +287,8 @@ class Calendar:
         return [x for x in events if x.uid == uid or not uid]
 
     def get_events_no_uid(
-            self,
-            summary_wanted: str,
-            start_wanted: Time,
-            end_wanted: Time) -> list[Event]:
+        self, summary_wanted: str, start_wanted: Time, end_wanted: Time
+    ) -> list[Event]:
         """
         Return events that share the same summary, start time and stop time.
 
@@ -305,14 +305,16 @@ class Calendar:
         -------
             list of events
         """
+
         def exists(summary: str, end: Time) -> bool:
             equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)
             equal_summary: bool = summary == summary_wanted
             return equal_end and equal_summary
 
-        logging.info(f'Get events on date: {start_wanted}')
+        logging.info(f"Get events on date: {start_wanted}")
         return [
-            event for event in self.collection.get_events_on(start_wanted)
+            event
+            for event in self.collection.get_events_on(start_wanted)
             if exists(event.summary, event.end)
         ]
 
@@ -320,18 +322,14 @@ class Calendar:
         self.collection.update(event)
 
     def exists(
-            self,
-            summary_wanted: str,
-            start_wanted: Time,
-            end_wanted: Time) -> bool:
+        self, summary_wanted: str, start_wanted: Time, end_wanted: Time
+    ) -> bool:
         """
         Returns True if an item exists at this specific time, with the same
         title.
         """
         events: list = self.get_events_no_uid(
-            summary_wanted,
-            start_wanted,
-            end_wanted
+            summary_wanted, start_wanted, end_wanted
         )
         return len(events) > 0
 
@@ -343,7 +341,7 @@ class Calendar:
         ----
             props: dictionary representing the event.
         """
-        events: list = self.get_events(props['uid'])
+        events: list = self.get_events(props["uid"])
 
         if len(events) == 0:
             logging.error(self.MESSAGE_DELETE.format(len(events)))
@@ -352,10 +350,10 @@ class Calendar:
             event = events[0]
             assert event.href is not None
             try:
-                self.collection.delete(event.href,
-                                       event.etag,
-                                       calendar=event.calendar)
+                self.collection.delete(
+                    event.href, event.etag, calendar=event.calendar
+                )
             except NotFoundError as error:
                 logging.error(error)
             finally:
-                return ''
+                return ""
