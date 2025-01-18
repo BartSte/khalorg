@@ -50,10 +50,14 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
 
     def khal_new(_, args: list) -> str:
         result = runner.invoke(main_khal, ['new'] + args)
+        if result.exit_code:
+            raise result.exception
         return result.output
 
     def khal_list(_, args: list):
         result = runner.invoke(main_khal, ['list', '-df', ''] + args)
+        if result.exit_code:
+            raise result.exception
         return result.output
 
     monkeypatch.setattr(Calendar, 'new_item', khal_new)

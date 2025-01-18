@@ -16,9 +16,12 @@ classifiers = [
 dependencies = [
     "khal>=0.11",
     "vdirsyncer",
-    "orgparse"
+    "orgparse",
+
+    # khal is not compatible with icalendar >= 6.0 at the moment of writing
+    "icalendar<6.0",
 ]
-version = "0.0.3"
+version = "0.0.4"
 
 [project.optional-dependencies]
 debug = ["ipdb", "ipython"]
