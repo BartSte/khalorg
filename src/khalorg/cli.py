@@ -17,6 +17,7 @@ def get_parser() -> ArgumentParser:
     """
     parent: ArgumentParser = ArgumentParser(**ParserInfo.parent)
     parent.add_argument('--loglevel', **Args.loglevel)
+    parent.add_argument('--logfile', **Args.logfile)
     subparsers = parent.add_subparsers(required=True)
 
     child_new: ArgumentParser = subparsers.add_parser('new', **ParserInfo.new)
@@ -92,6 +93,11 @@ class Args:
         default='WARNING',
         help=('Set the logging level to: CRITICAL, ERROR, WARNING '
               '(default), INFO, DEBUG')
+    )
+    logfile: dict = dict(
+        type=str,
+        default=paths.log_file,
+        help='The path to the log file.'
     )
 
     start: dict = dict(
