@@ -1,9 +1,10 @@
 import logging
-import tests
 from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
 
+from khalorg import paths
+import tests
 from khalorg.helpers import get_default_khalorg_format, get_khalorg_format
 from tests.helpers import get_module_path
 
@@ -11,45 +12,55 @@ from tests.helpers import get_module_path
 def khalorg_tester(args: list) -> str:
     """Runs `/test/khalorg_tester` with `args` as command line arguments."""
     test_dir: str = get_module_path(tests)
-    cli_tester: list = ['python', join(test_dir, 'khalorg_tester')]
+    cli_tester: list = ["python", join(test_dir, "khalorg_tester")]
 
     try:
         return check_output(cli_tester + args).decode()
     except CalledProcessError as error:
         logging.critical(error.output.decode())
-        return ''
+        return ""
 
 
 class TestNew(TestCase):
-
     def test(self):
         """
         When feeding a set of command line args, an expected set of
         function arguments for khalorg.cli.new is expected.
         """
-        args: list = ['--loglevel', 'CRITICAL', 'new', 'calendar']
+        args: list = [
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "new",
+            "calendar",
+        ]
         actual = khalorg_tester(args)
-        expected: str = "'loglevel': 'CRITICAL', 'calendar': 'calendar'"
+        expected: str = (
+            "'loglevel': 'CRITICAL', 'logfile': 'foo', 'calendar': 'calendar'"
+        )
         self.assertTrue(expected in actual)
 
 
 class TestEdit(TestCase):
-
     def test(self):
         """
         When feeding a set of command line args, an expected set of
         function arguments for khalorg.cli.edit is expected.
         """
         args: list = [
-            '--loglevel',
-            'CRITICAL',
-            'edit',
-            'calendar',
-            '--edit-dates'
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "edit",
+            "calendar",
+            "--edit-dates",
         ]
         actual = khalorg_tester(args)
         expected: str = (
             "'loglevel': 'CRITICAL', "
+            "'logfile': 'foo', "
             "'edit_dates': True, "
             "'calendar': 'calendar'"
         )
@@ -61,14 +72,17 @@ class TestEdit(TestCase):
         function arguments for khalorg.cli.edit is expected.
         """
         args: list = [
-            '--loglevel',
-            'CRITICAL',
-            'edit',
-            'calendar'
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "edit",
+            "calendar",
         ]
         actual = khalorg_tester(args)
         expected: str = (
             "'loglevel': 'CRITICAL', "
+            "'logfile': 'foo', "
             "'edit_dates': False, "
             "'calendar': 'calendar'"
         )
@@ -76,7 +90,6 @@ class TestEdit(TestCase):
 
 
 class TestList(TestCase):
-
     def test(self):
         """
         When feeding a set of command line args, an expected set of
@@ -84,18 +97,21 @@ class TestList(TestCase):
         """
         default_format: str = get_default_khalorg_format()
         args: list = [
-            '--loglevel',
-            'CRITICAL',
-            'list',
-            '--format',
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "list",
+            "--format",
             default_format,
-            'calendar',
-            'today',
-            '2d'
+            "calendar",
+            "today",
+            "2d",
         ]
         actual = khalorg_tester(args)
         expected: str = (
             "'loglevel': 'CRITICAL', "
+            "'logfile': 'foo', "
             f"'format': {repr(default_format)}, "
             "'calendar': 'calendar', "
             "'start': 'today', "
@@ -110,12 +126,13 @@ class TestList(TestCase):
         """
         default_format: str = get_khalorg_format()
         args: list = [
-            'list',
-            'calendar',
+            "list",
+            "calendar",
         ]
         actual = khalorg_tester(args)
         expected: str = (
             "'loglevel': 'WARNING', "
+            f"'logfile': '{paths.log_file}', "
             f"'format': {repr(default_format)}, "
             "'calendar': 'calendar', "
             "'start': 'today', "
@@ -123,22 +140,25 @@ class TestList(TestCase):
         )
         self.assertTrue(expected in actual, msg=actual)
 
-class TestDelete(TestCase):
 
+class TestDelete(TestCase):
     def test(self):
         """
         When feeding a set of command line args, an expected set of
         function arguments for khalorg.cli.delete is expected.
         """
         args: list = [
-            '--loglevel',
-            'CRITICAL',
-            'delete',
-            'calendar',
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "delete",
+            "calendar",
         ]
         actual = khalorg_tester(args)
         expected: str = (
             "'loglevel': 'CRITICAL', "
+            "'logfile': 'foo', "
             "'calendar': 'calendar'"
         )
         self.assertTrue(expected in actual)
