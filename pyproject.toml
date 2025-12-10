@@ -9,7 +9,8 @@ description = "An interface between Org mode and Khal cli calendar."
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["khal", "org mode", "vdirsyncer", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
-license = {text = "MIT License"}
+license = "MIT"
+license-files = ["LICENSE", "THIRDPARTYLICENSES"]
 classifiers = [
     "Programming Language :: Python :: 3",
 ]

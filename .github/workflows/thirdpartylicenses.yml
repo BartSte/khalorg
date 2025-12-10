@@ -1,0 +1,57 @@
+name: Third-party licenses
+
+on:
+  push:
+    paths:
+      - THIRDPARTYLICENSES
+      - pyproject.toml
+      - LICENSE_OVERRIDE_FILE.yml
+      - uv.lock
+  pull_request:
+    paths:
+      - THIRDPARTYLICENSES
+      - pyproject.toml
+      - LICENSE_OVERRIDE_FILE.yml
+      - uv.lock
+  workflow_dispatch:
+
+jobs:
+  regenerate-licenses:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate THIRDPARTYLICENSES
+        run: |
+          if [[ -f LICENSE_OVERRIDE_FILE.yml ]]; then
+            uv run --with third_party_license_file_generator python -m third_party_license_file_generator -r pyproject.toml -p "$(uv python find)" -g -l LICENSE_OVERRIDE_FILE.yml
+          else
+            uv run --with third_party_license_file_generator python -m third_party_license_file_generator -r pyproject.toml -p "$(uv python find)" -g
+          fi
+
+      - name: Commit updated THIRDPARTYLICENSES
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if git status --porcelain -- THIRDPARTYLICENSES; then
+            git config user.name "${GITHUB_ACTOR}"
+            git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+            git add THIRDPARTYLICENSES
+            git commit -m "chore: update third-party licenses"
+            git push
+          else
+            echo "THIRDPARTYLICENSES is up to date."
+          fi
+
+      - name: Verify no changes
+        if: ${{ github.event_name != 'push' }}
+        run: git diff --exit-code
