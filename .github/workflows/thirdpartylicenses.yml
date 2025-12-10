@@ -2,6 +2,8 @@ name: Third-party licenses
 
 on:
   push:
+    branches:
+      - '**'
     paths:
       - THIRDPARTYLICENSES
       - pyproject.toml
