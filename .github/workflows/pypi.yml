@@ -1,10 +1,11 @@
 name: pypi
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
 
 jobs:
   pypi:
     uses: BartSte/.github/.github/workflows/pypi.yml@main
     with:
-      environment-name: release 
+      environment-name: release
