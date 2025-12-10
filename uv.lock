@@ -865,9 +865,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "icalendar", specifier = "<6.0" },
-    { name = "khal", specifier = ">=0.11" },
-    { name = "orgparse" },
-    { name = "vdirsyncer" },
+    { name = "khal", specifier = "~=0.11" },
+    { name = "orgparse", specifier = "~=0.4" },
+    { name = "vdirsyncer", specifier = "~=0.20" },
 ]
 
 [package.metadata.requires-dev]

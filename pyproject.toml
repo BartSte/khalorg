@@ -4,23 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "khalorg"
-authors = [ {name = "BartSte"} ]
+authors = [{ name = "BartSte" }]
 description = "An interface between Org mode and Khal cli calendar."
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = ["khal", "org mode", "vdirsyncer", "CalDav", "agenda", "emacs", "neovim", "orgmode-nvim"]
+keywords = [
+    "khal",
+    "org mode",
+    "vdirsyncer",
+    "CalDav",
+    "agenda",
+    "emacs",
+    "neovim",
+    "orgmode-nvim",
+]
 license = "MIT"
 license-files = ["LICENSE", "THIRDPARTYLICENSES"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-]
+classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "khal>=0.11",
-    "vdirsyncer",
-    "orgparse",
-
-    # khal is not compatible with icalendar >= 6.0 at the moment of writing
-    "icalendar<6.0",
+    "icalendar<6.0",    # khal is not compatible with icalendar >= 6.0 at the moment of writing
+    "khal~=0.11",
+    "orgparse~=0.4",
+    "vdirsyncer~=0.20",
 ]
 version = "0.1.1"
 
@@ -31,17 +36,14 @@ dev = ["ipdb", "ipython", "pytest", "build", "twine"]
 khalorg = "khalorg:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]  # list of folders that contain the packages (["."] by default)
-include = ["khalorg"]  # package names should match these glob patterns (["*"] by default)
+where = ["src"] # list of folders that contain the packages (["."] by default)
+include = [
+    "khalorg",
+] # package names should match these glob patterns (["*"] by default)
 
 [tool.pyright]
 include = ["src/khalorg", "tests"]
-exclude = [
-    "**/__pycache__",
-    ".git",
-    ".pytest_cache",
-    "extras",
-]
+exclude = ["**/__pycache__", ".git", ".pytest_cache", "extras"]
 ignore = []
 defineConstant = {}
 venvPath = ".venv"
@@ -58,11 +60,11 @@ executionEnvironments = []
 line-length = 80
 
 select = [
-    "F",  # pyflakes
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "I",  # isort
-    "N",  # PEP8 naming
+    "F", # pyflakes
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "I", # isort
+    "N", # PEP8 naming
 ]
 
 [tool.autopep8]
@@ -72,12 +74,8 @@ experimental = true
 
 [tool.pytest.ini_options]
 addopts = "-s -rA --log-level INFO"
-pythonpath = [
-  "src"
-]
-testpaths = [
-    "tests"
-]
+pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.ipdb]
 context = 9
