@@ -21,7 +21,7 @@ dependencies = [
     # khal is not compatible with icalendar >= 6.0 at the moment of writing
     "icalendar<6.0",
 ]
-version = "0.1.0"
+version = "0.1.1"
 
 [dependency-groups]
 dev = ["ipdb", "ipython", "pytest", "build", "twine"]
