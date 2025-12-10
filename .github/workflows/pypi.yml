@@ -1,0 +1,10 @@
+name: pypi
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi:
+    uses: BartSte/.github/.github/workflows/pypi.yml@main
+    with:
+      environment-name: release 

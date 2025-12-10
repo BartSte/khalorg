@@ -1,5 +1,4 @@
-name: Tests
-
+name: pytest
 on:
   push:
     branches:
@@ -9,22 +8,8 @@ on:
     branches:
       - main
       - develop
-
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v2
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: uv sync --frozen
-
-      - name: Run tests
-        run: uv run pytest --log-level=DEBUG
+  pytest:
+    uses: BartSte/.github/.github/workflows/pytest.yml@main
+    with:
+      python-version: "3.11"
