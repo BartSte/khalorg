@@ -165,7 +165,7 @@ After this, the executable `khalorg` will be available.
 If you want to develop the code, debug it, and test it, run:
 
 ```bash
-pip install -e '.[test,debug]'
+uv sync
 ```
 
 ## Usage
