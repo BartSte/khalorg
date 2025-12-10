@@ -23,10 +23,8 @@ dependencies = [
 ]
 version = "0.1.0"
 
-[project.optional-dependencies]
-debug = ["ipdb", "ipython"]
-test = ["pytest"]
-build = ["build", "twine"]
+[dependency-groups]
+dev = ["ipdb", "ipython", "pytest", "build", "twine"]
 
 [project.scripts]
 khalorg = "khalorg:main"
