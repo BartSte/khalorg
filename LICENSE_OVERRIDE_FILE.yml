@@ -1,0 +1,9 @@
+khal:
+  license_name: MIT
+  license_file: https://github.com/pimutils/khal/blob/e80134f9b8d8b84ddbb2390b1cd414c9e0388419/doc/source/license.rst
+click:
+  license_name: BSD-3-Clause
+  license_file: https://github.com/pallets/click/blob/6c894ebd8c63cc481e40cb0ca8745a5996b9f410/LICENSE.txt
+vdirsyncer:
+  license_name: MIT
+  license_file: https://github.com/pimutils/vdirsyncer/blob/c3262d88cc1480d492e33499d04ec8bde245b459/LICENSE
