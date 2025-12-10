@@ -843,7 +843,7 @@ wheels = [
 
 [[package]]
 name = "khalorg"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "icalendar" },
@@ -852,33 +852,32 @@ dependencies = [
     { name = "vdirsyncer" },
 ]
 
-[package.optional-dependencies]
-build = [
+[package.dev-dependencies]
+dev = [
     { name = "build" },
-    { name = "twine" },
-]
-debug = [
     { name = "ipdb" },
     { name = "ipython", version = "8.37.0", source = { registry = "https://gitlab.com/api/v4/groups/2265086/-/packages/pypi/simple/" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.8.0", source = { registry = "https://gitlab.com/api/v4/groups/2265086/-/packages/pypi/simple/" }, marker = "python_full_version >= '3.11'" },
-]
-test = [
     { name = "pytest" },
+    { name = "twine" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "build", marker = "extra == 'build'" },
     { name = "icalendar", specifier = "<6.0" },
-    { name = "ipdb", marker = "extra == 'debug'" },
-    { name = "ipython", marker = "extra == 'debug'" },
     { name = "khal", specifier = ">=0.11" },
     { name = "orgparse" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "twine", marker = "extra == 'build'" },
     { name = "vdirsyncer" },
 ]
-provides-extras = ["debug", "test", "build"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "build" },
+    { name = "ipdb" },
+    { name = "ipython" },
+    { name = "pytest" },
+    { name = "twine" },
+]
 
 [[package]]
 name = "markdown-it-py"
