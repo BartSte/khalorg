@@ -30,7 +30,7 @@ dependencies = [
 version = "0.1.1"
 
 [dependency-groups]
-dev = ["ipdb", "ipython", "pytest", "build", "twine"]
+dev = ["pytest"]
 
 [project.scripts]
 khalorg = "khalorg:main"
