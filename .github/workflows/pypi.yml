@@ -3,15 +3,18 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - "v*.*.*"
 
 jobs:
   pypi-publish:
     name: upload release to PyPI
     runs-on: ubuntu-latest
     environment: release
+
     permissions:
+      contents: read
       id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
