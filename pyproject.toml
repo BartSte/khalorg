@@ -30,7 +30,7 @@ dependencies = [
 version = "0.1.1"
 
 [dependency-groups]
-dev = ["pytest"]
+dev = ["pytest", "pre-commit"]
 
 [project.scripts]
 khalorg = "khalorg:main"
