@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "khalorg"
+dynamic = ["version"]
 authors = [{ name = "BartSte" }]
 description = "An interface between Org mode and Khal cli calendar."
 readme = "README.md"
@@ -27,10 +28,9 @@ dependencies = [
     "orgparse~=0.4",
     "vdirsyncer~=0.20",
 ]
-version = "0.1.1"
 
 [dependency-groups]
-dev = ["pytest"]
+dev = ["pytest", "pre-commit"]
 
 [project.scripts]
 khalorg = "khalorg:main"
@@ -40,6 +40,9 @@ where = ["src"] # list of folders that contain the packages (["."] by default)
 include = [
     "khalorg",
 ] # package names should match these glob patterns (["*"] by default)
+
+[tool.setuptools_scm]
+tag_regex = '^v(?P<version>\d+\.\d+\.\d+(?:[ab]\d+)?)$'
 
 [tool.pyright]
 include = ["src/khalorg", "tests"]
