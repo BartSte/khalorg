@@ -540,7 +540,6 @@ wheels = [
 
 [[package]]
 name = "khalorg"
-version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "icalendar" },
