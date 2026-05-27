@@ -1,0 +1,25 @@
+Syncs events between a khal calendar and an org file.
+
+Agenda items between `khal` and an org file can be synced using the `khalorg sync`
+command. For example:
+
+khalorg sync my_calendar my_calendar.org
+
+Here, the `khal` agenda items of the calendar `my_calendar` are converted to
+org format and written to a file called `my_calendar.org`, and viceversa.
+
+If ~khalorg sync --format~ option is not defined, the default one is used
+which can be found at `./khalorg/static/khalorg_format.txt`. If you want to
+define your own format, you have 2 options: you can use the
+`khalorg sync --format` option, or you can place your custom format at
+`$HOME/.config/khalorg/khalorg_format.txt` this format will then be used
+instead of the default.
+
+The following keys are supported:
+- attendees     - calendar
+- categories    - description.
+- location      - organizer
+- rrule         - status
+- timestamps    - title
+- uid           - url
+

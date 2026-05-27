@@ -10,3 +10,4 @@ davmail.log
 dist
 stubs
 .aider*
+.direnv

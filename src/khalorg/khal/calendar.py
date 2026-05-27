@@ -184,7 +184,7 @@ class Calendar:
         created when using, for example, the `khalorg new` command.
 
         When editing a list of recurring events, khal will update the PROTO
-        event, i.e., the series of events, not the occurence. Therefore, only
+        event, i.e., the series of events, not the occurrence. Therefore, only
         the first event is send to `update_event`
 
         Args:
@@ -214,8 +214,8 @@ class Calendar:
             logging.error(self.MESSAGE_EDIT.format(len(events)))
 
         else:
-            # Khal opdates the master/PROTO event (i.e., the series of events),
-            # instead of only the occurence. Therefore, only 1 event needs to
+            # Khal updates the master/PROTO event (i.e., the series of events),
+            # instead of only the occurrence. Therefore, only 1 event needs to
             # be updated instead of the whole list.
             self.update_event(events[0], props, edit_dates)
 
