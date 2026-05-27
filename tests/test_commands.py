@@ -447,3 +447,101 @@ def test_sync_solves_conflicts_edits_favoring_org_by_choice(
 
     _sync_test_remote(expected)
     _sync_test_local(org_file, expected)
+
+
+def test_sync_deletes_local_removed_events(runner, tmp_path: Path):
+    """If a synced event is removed from org, it's removed from the remote"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir, delete_on_sync=True)
+
+    assert org_file.read_text() == ""
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+
+
+def test_sync_doesnt_delete_local_removed_events_by_default(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from org, it's removed from the remote"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir)
+
+    assert org_file.read_text() == ""
+    assert len(khal_calendar.get_events(new_item_uid)) == 1
+
+
+def test_sync_deletes_remote_removed_events(runner, tmp_path: Path):
+    """If a synced event is removed from khal, it's removed from the local"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    initial.properties["UID"] = new_item_uid
+    sync("one", org_file, state_dir)
+    delete("one", org=str(initial))
+
+    sync("one", org_file, state_dir, delete_on_sync=True)
+
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+    assert org_file.read_text() == ""
+
+
+def test_sync_doesnt_delete_remote_removed_events_by_default(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from khal, it's removed from the local"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    initial.properties["UID"] = new_item_uid
+    sync("one", org_file, state_dir)
+    delete("one", org=str(initial))
+
+    sync("one", org_file, state_dir)
+
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+    _sync_test_local(org_file, initial)

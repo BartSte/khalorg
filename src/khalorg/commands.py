@@ -12,7 +12,6 @@ from khalorg.khal.helpers import get_khal_format
 from khalorg.org.agenda_items import (
     OrgAgendaFile,
     OrgAgendaItem,
-    OrgItemNotFound,
 )
 
 
@@ -262,6 +261,7 @@ def sync(
     stop: str = "90d",
     edit_dates: bool = False,
     conflict_resolution: str = "khal",
+    delete_on_sync: bool = False,
     khalorg_format: str | None = None,
     **_,
 ) -> None:
@@ -278,6 +278,9 @@ def sync(
             also edited.
         conflict_resolution: what source of truth use in case of conflict
             it can be one of: khal, org
+        delete_on_sync: Whether to delete events that disappear from one of the sources
+            WARNING: if you delete your local file, it will remove all the events
+            in the remote!!!
 
     Returns
     -------
@@ -306,68 +309,85 @@ def sync(
     khal_agenda = _list(calendar=calendar, start=start, stop=stop)
     processed_uids = []
     for i, item in enumerate(org_agenda.items):
-        try:
-            state_item = state_agenda.get_item(item.uid)
-        except OrgItemNotFound:
-            state_item = None
-        try:
-            khal_item = khal_agenda.get_item(item.uid)
-        except OrgItemNotFound:
-            khal_item = None
+        state_item = state_agenda.get_item(item.uid)
+        khal_item = khal_agenda.get_item(item.uid)
 
         if item == state_item and item.similar(khal_item):
             # if the item has not changed since the last sync on either side
-            pass
-        else:
-            if khal_item is None:
-                # push the new orgmode event.
-                new(calendar=calendar, org=str(item))
-                # When new is called, the original item is completed with
-                # the UID, so we can keep track on future syncs
-                new_item_uid = str(
-                    khal_calendar.get_events_no_uid(
-                        summary_wanted=item.title,
-                        start_wanted=item.timestamps[0].start,
-                        end_wanted=item.timestamps[0].end,
-                    )[0].uid
-                )
-                item.properties["UID"] = new_item_uid
+            # there's nothing to do
+            processed_uids.append(item.uid)
+            continue
+        if khal_item is None and item != state_item:
+            # if it has never been pushed to the remote and in the
+            # remote doesn't exist. Push the new orgmode event.
+            new(calendar=calendar, org=str(item))
+            # When new is called, the original item is completed with
+            # the UID, so we can keep track on future syncs
+            new_item_uid = str(
+                khal_calendar.get_events_no_uid(
+                    summary_wanted=item.title,
+                    start_wanted=item.timestamps[0].start,
+                    end_wanted=item.timestamps[0].end,
+                )[0].uid
+            )
+            item.properties["UID"] = new_item_uid
+            org_agenda.items[i] = item
+        elif khal_item is None and item == state_item:
+            # the element has been removed in the remote, we'll handle the
+            # deletion later
+            continue
+        elif item == state_item and khal_item and not item.similar(khal_item):
+            # khal has been updated
+            item = khal_item
+            org_agenda.items[i] = item
+        elif (
+            item != state_item and state_item and state_item.similar(khal_item)
+        ):
+            # org has been updated, so we push to the remote
+            edit(calendar=calendar, edit_dates=edit_dates, org=str(item))
+        elif item != state_item and khal_item and not item.similar(khal_item):
+            # both khal and org have changed, or they were different the first
+            # time sync is run. So we have a conflict
+            if conflict_resolution == "khal":
+                item = khal_item
                 org_agenda.items[i] = item
             else:
-                # solve the conflict
-                if item == state_item:
-                    # khal has been updated
-                    item = khal_item
-                    org_agenda.items[i] = item
-                elif khal_item.similar(state_item):
-                    # org has been updated, so item is the latest version
-                    edit(
-                        calendar=calendar, edit_dates=edit_dates, org=str(item)
-                    )
-                else:
-                    # both khal and org have changed, so we have a conflict
-                    if conflict_resolution == "khal":
-                        item = khal_item
-                        org_agenda.items[i] = item
-                    else:
-                        edit(
-                            calendar=calendar,
-                            edit_dates=edit_dates,
-                            org=str(item),
-                        )
+                edit(
+                    calendar=calendar,
+                    edit_dates=edit_dates,
+                    org=str(item),
+                )
+        else:
+            logging.info(f"Error syncing item {item}")
+            logging.info(f"khal_item is: {khal_item}")
+            logging.info(f"state_item is: {state_item}")
+            raise NotImplementedError
         processed_uids.append(item.uid)
 
     # Then pull the changes from khal
     for item in khal_agenda.items:
         if item.uid in processed_uids:
             continue
-        try:
-            org_item = org_agenda.get_item(item.uid)
-        except OrgItemNotFound:
-            org_item = None
+        org_item = org_agenda.get_item(item.uid)
+        state_item = state_agenda.get_item(item.uid)
 
-        if org_item is None:
+        if org_item is None and not item.similar(state_item):
+            # if the event has never been added
             org_agenda.items.append(item)
 
+    # Then remove the disappeared events
+    if delete_on_sync:
+        for item in state_agenda.items:
+            if item.uid in processed_uids:
+                continue
+
+            khal_item = khal_agenda.get_item(item.uid)
+            org_item = org_agenda.get_item(item.uid)
+            if item.similar(khal_item) and org_item is None:
+                # It's been removed locally
+                delete(calendar, org=str(item))
+            elif item == org_item and khal_item is None:
+                # It's been removed remotely
+                org_agenda.items.remove(item)
     org_file.write_text(format(org_agenda, khalorg_format))
     state_file.write_text(format(org_agenda, khalorg_format))

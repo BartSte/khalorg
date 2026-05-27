@@ -32,10 +32,6 @@ class EmptyOrgItemError(Exception):
     """The org agenda is empty."""
 
 
-class OrgItemNotFound(Exception):
-    """An OrgAgendaItem is not found."""
-
-
 class TooManyOrgItems(Exception):
     """More OrgAgendaItems than expected were found."""
 
@@ -560,54 +556,27 @@ class OrgAgendaFile:
         """
         return cls.from_str(path.read_text())
 
-    def update(self, agenda: "OrgAgendaFile") -> None:
-        """
-        Updates the agenda entries with the contents of agenda.
-
-        Returns
-        -------
-        """
-        [self.update_item(item) for item in agenda.items]
-
-    def update_item(self, item: OrgAgendaItem) -> None:
-        """
-        Updates an OrgAgendaItem with the contents of item.
-
-        Returns
-        -------
-        The updated org item
-        """
-        try:
-            existent_item = self.get_item(item.uid)
-            self.items.remove(existent_item)
-        except TooManyOrgItems as e:
-            raise e
-        except OrgItemNotFound:
-            pass
-        self.items.append(item)
-
-    def get_item(self, uid: str | None) -> OrgAgendaItem:
+    def get_item(self, uid: str | None) -> OrgAgendaItem | None:
         """
         Get the OrgAgendaItem that matches the UID.
 
         Returns
         -------
-            The org item
+            The org item or None if not found
 
         Raises
         -------
-            OrgItemNotFound: if no element is found with that UID
             TooManyOrgItems: if more than one element is found with that UID
         """
         if uid is None:
-            raise OrgItemNotFound(f"No elements found with uid: {uid}")
+            return None
 
         result = [item for item in self.items if item.uid == uid]
 
         if len(result) == 1:
             return result[0]
         elif len(result) == 0:
-            raise OrgItemNotFound(f"No elements found with uid: {uid}")
+            return None
         raise TooManyOrgItems(f"More than one elements found with uid: {uid}")
 
 

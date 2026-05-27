@@ -182,6 +182,11 @@ class TestSync(TestCase):
             "--stop",
             "2d",
             "--edit-dates",
+            "--state-dir",
+            "new_state_dir",
+            "--conflict-resolution",
+            "org",
+            "--delete-on-sync",
             "calendar",
             "file.org",
         ]
@@ -193,6 +198,9 @@ class TestSync(TestCase):
             "'start': 'today', "
             "'stop': '2d', "
             "'edit_dates': True, "
+            "'state_dir': 'new_state_dir', "
+            "'conflict_resolution': 'org', "
+            "'delete_on_sync': True, "
             "'calendar': 'calendar', "
             "'org_file': 'file.org', "
         )
@@ -217,6 +225,9 @@ class TestSync(TestCase):
             "'start': 'today', "
             "'stop': '90d', "
             "'edit_dates': False, "
+            f"'state_dir': '{paths.state_dir}', "
+            "'conflict_resolution': 'khal', "
+            "'delete_on_sync': False, "
             "'calendar': 'calendar', "
             "'org_file': 'file.org', "
         )

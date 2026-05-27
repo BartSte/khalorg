@@ -1,4 +1,4 @@
-Syncs events between a khal calendar and an org file.
+Syncs events bidirectionally between a khal calendar and an org file.
 
 Agenda items between `khal` and an org file can be synced using the `khalorg sync`
 command. For example:
@@ -22,4 +22,3 @@ The following keys are supported:
 - rrule         - status
 - timestamps    - title
 - uid           - url
-

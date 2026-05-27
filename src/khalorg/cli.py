@@ -53,7 +53,9 @@ def get_parser() -> ArgumentParser:
     child_sync.add_argument("--start", **Args.start)
     child_sync.add_argument("--stop", **Args.stop_sync)
     child_sync.add_argument("--edit-dates", **Args.edit_dates)
-    child_sync.add_argument("--state_dir", **Args.state_dir)
+    child_sync.add_argument("--state-dir", **Args.state_dir)
+    child_sync.add_argument("--conflict-resolution", **Args.conflict_resolution)
+    child_sync.add_argument("--delete-on-sync", **Args.delete_on_sync)
     child_sync.add_argument("calendar", **Args.calendar)
     child_sync.add_argument("org_file", **Args.orgfile)
     child_sync.set_defaults(func=sync)
@@ -108,7 +110,23 @@ class ParserInfo:
 class Args:
     """Arguments for the ArgumentParser.add_argument methods."""
 
-    calendar: dict = dict(type=str, help=("Set the name of the khal calendar."))
+    calendar: dict = dict(type=str, help="Set the name of the khal calendar.")
+    conflict_resolution: dict = dict(
+        type=str,
+        help=(
+            "What source of truth use in case of conflict "
+            "it can be one of: khal, org (default: khal)"
+        ),
+        default="khal",
+    )
+    delete_on_sync: dict = dict(
+        action="store_true",
+        help=(
+            "Whether to delete events that disappear from one of the sources "
+            "WARNING: if you delete your local file, it will remove all the events "
+            "in the remote!!!"
+        ),
+    )
 
     loglevel: dict = dict(
         required=False,
