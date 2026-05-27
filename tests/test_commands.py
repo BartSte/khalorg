@@ -371,46 +371,28 @@ def test_sync_doesnt_pull_new_events_on_dry_run(runner, tmp_path: Path):
     _sync_test_remote(expected)
 
 
-def test_sync_pushes_local_edits(runner, tmp_path: Path):
-    """Sync will push org edits to khal events."""
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_pushes_local_edits(runner, tmp_path: Path, dry_run: bool):
+    """Sync will push org edits to khal events; dry_run skips the remote push."""
     org_file = tmp_path / "file.org"
     state_dir = tmp_path / "state"
     initial: OrgAgendaItem = get_org_item()
     new("one", org=str(initial))
     sync("one", org_file, state_dir)
-    # make an edit in the file
     expected = copy.deepcopy(initial)
     expected.title = "edited summary"
     content = org_file.read_text().replace("summary", expected.title)
     org_file.write_text(content)
 
-    sync("one", org_file, state_dir)
+    sync("one", org_file, state_dir, dry_run=dry_run)
 
     _sync_test_local(org_file, expected)
-    _sync_test_remote(expected)
+    _sync_test_remote(initial if dry_run else expected)
 
 
-def test_sync_doesnt_push_local_edits_on_dry_run(runner, tmp_path: Path):
-    """Sync will push org edits to khal events."""
-    org_file = tmp_path / "file.org"
-    state_dir = tmp_path / "state"
-    initial: OrgAgendaItem = get_org_item()
-    new("one", org=str(initial))
-    sync("one", org_file, state_dir)
-    # make an edit in the file
-    expected = copy.deepcopy(initial)
-    expected.title = "edited summary"
-    content = org_file.read_text().replace("summary", expected.title)
-    org_file.write_text(content)
-
-    sync("one", org_file, state_dir, dry_run=True)
-
-    _sync_test_local(org_file, expected)
-    _sync_test_remote(initial)
-
-
-def test_sync_pulls_remote_edits(runner, tmp_path: Path):
-    """Sync will pull org new events from khal."""
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_pulls_remote_edits(runner, tmp_path: Path, dry_run: bool):
+    """Sync will pull remote edits into the org file; dry_run skips the local write."""
     org_file = tmp_path / "file.org"
     state_dir = tmp_path / "state"
     khal_calendar: Calendar = Calendar("one")
@@ -430,37 +412,10 @@ def test_sync_pulls_remote_edits(runner, tmp_path: Path):
     _edit("one", expected)
     _sync_test_remote(expected)
 
-    sync("one", org_file, state_dir)
+    sync("one", org_file, state_dir, dry_run=dry_run)
 
     _sync_test_remote(expected)
-    _sync_test_local(org_file, expected)
-
-
-def test_sync_doesnt_pull_remote_edits_on_dry_run(runner, tmp_path: Path):
-    """Sync will pull org new events from khal."""
-    org_file = tmp_path / "file.org"
-    state_dir = tmp_path / "state"
-    khal_calendar: Calendar = Calendar("one")
-    initial: OrgAgendaItem = get_org_item()
-    new("one", org=str(initial))
-    new_item_uid = str(
-        khal_calendar.get_events_no_uid(
-            summary_wanted=initial.title,
-            start_wanted=initial.timestamps[0].start,
-            end_wanted=initial.timestamps[0].end,
-        )[0].uid
-    )
-    sync("one", org_file, state_dir)
-    expected = copy.deepcopy(initial)
-    expected.title = "updated summary"
-    expected.properties["UID"] = new_item_uid
-    _edit("one", expected)
-    _sync_test_remote(expected)
-
-    sync("one", org_file, state_dir, dry_run=True)
-
-    _sync_test_remote(expected)
-    _sync_test_local(org_file, initial)
+    _sync_test_local(org_file, initial if dry_run else expected)
 
 
 def test_sync_solves_conflicts_edits_favoring_khal_by_default(
@@ -529,45 +484,11 @@ def test_sync_doesnt_solve_conflicts_edits_favoring_khal_by_default_on_dry_run(
     assert org_file.read_text() == local_changes
 
 
+@pytest.mark.parametrize("dry_run", [False, True])
 def test_sync_solves_conflicts_edits_favoring_org_by_choice(
-    runner, tmp_path: Path
+    runner, tmp_path: Path, dry_run: bool
 ):
-    """If event has changed both in org and khal, favour khal by default."""
-    org_file = tmp_path / "file.org"
-    state_dir = tmp_path / "state"
-    khal_calendar: Calendar = Calendar("one")
-    initial: OrgAgendaItem = get_org_item()
-    new("one", org=str(initial))
-    new_item_uid = str(
-        khal_calendar.get_events_no_uid(
-            summary_wanted=initial.title,
-            start_wanted=initial.timestamps[0].start,
-            end_wanted=initial.timestamps[0].end,
-        )[0].uid
-    )
-    sync("one", org_file, state_dir)
-    remote_edit = initial
-    remote_edit.title = "khal edited summary"
-    remote_edit.properties["UID"] = new_item_uid
-    _edit("one", remote_edit)
-    _sync_test_remote(remote_edit)
-    local_changes = org_file.read_text().replace(
-        "summary", "org edited summary"
-    )
-    expected = copy.deepcopy(initial)
-    expected.title = "org edited summary"
-    org_file.write_text(local_changes)
-
-    sync("one", org_file, state_dir, conflict_resolution="org")
-
-    _sync_test_remote(expected)
-    _sync_test_local(org_file, expected)
-
-
-def test_sync_doesnt_solve_conflicts_edits_favoring_org_by_choice_on_dry_run(
-    runner, tmp_path: Path
-):
-    """If event has changed both in org and khal, favour khal by default."""
+    """Conflict with org wins; dry_run skips pushing org's version to remote."""
     org_file = tmp_path / "file.org"
     state_dir = tmp_path / "state"
     khal_calendar: Calendar = Calendar("one")
@@ -586,16 +507,14 @@ def test_sync_doesnt_solve_conflicts_edits_favoring_org_by_choice_on_dry_run(
     remote_edit.properties["UID"] = new_item_uid
     _edit("one", remote_edit)
     _sync_test_remote(remote_edit)
-    local_changes = org_file.read_text().replace(
-        "summary", "org edited summary"
-    )
+    local_changes = org_file.read_text().replace("summary", "org edited summary")
     expected = copy.deepcopy(initial)
     expected.title = "org edited summary"
     org_file.write_text(local_changes)
 
-    sync("one", org_file, state_dir, conflict_resolution="org", dry_run=True)
+    sync("one", org_file, state_dir, conflict_resolution="org", dry_run=dry_run)
 
-    _sync_test_remote(remote_edit)
+    _sync_test_remote(remote_edit if dry_run else expected)
     _sync_test_local(org_file, expected)
 
 
