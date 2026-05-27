@@ -287,7 +287,7 @@ class Calendar:
         return [x for x in events if x.uid == uid or not uid]
 
     def get_events_no_uid(
-        self, summary_wanted: str, start_wanted: Time, end_wanted: Time
+        self, summary_wanted: str, start_wanted: Time, end_wanted: Time | None
     ) -> list[Event]:
         """
         Return events that share the same summary, start time and stop time.
@@ -305,6 +305,7 @@ class Calendar:
         -------
             list of events
         """
+        end_wanted = end_wanted or start_wanted
 
         def exists(summary: str, end: Time) -> bool:
             equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)
