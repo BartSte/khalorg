@@ -94,12 +94,16 @@ class OrgAgendaItem:
         Ensures the timestamps are sorted by start date, and the short range
         notation is disabled.
 
+        It also removes duplicate timestamps
+
         Args:
         ----
             value: list of OrgDate objects
         """
         timestamps.sort(key=lambda x: x.start)
-        for timestamp in timestamps:
+        for i, timestamp in enumerate(timestamps):
+            if timestamp.start == timestamp.end and timestamp._repeater is None:
+                timestamps[i] = OrgDate(start=timestamp.start)
             timestamp._allow_short_range = False
 
         self._timestamps = timestamps
@@ -296,7 +300,7 @@ class OrgAgendaItem:
         attribute_equal: bool = all(
             getattr(a, x) == getattr(b, x)
             for x in vars(a).keys()
-            if x != "properties"
+            if x not in ["properties", "_timestamps"]
         )
         try:
             properties_equal: bool = all(

@@ -128,7 +128,7 @@ class Calendar:
         -------
             stdout of the `khal list`
         """
-        logging.info(f"khalorg list args are: {khal_args}")
+        logging.debug(f"khalorg list args are: {khal_args}")
         return self._list_command(khal_args)
 
     @property
@@ -207,7 +207,7 @@ class Calendar:
                 props["summary"], props["start"], props["end"]
             )
 
-        logging.info(f"number of events is {len(events)}")
+        logging.debug(f"number of events is {len(events)}")
         events = [x for x in events if is_future(x.end)]
 
         if len(events) == 0:
@@ -311,7 +311,7 @@ class Calendar:
             equal_summary: bool = summary == summary_wanted
             return equal_end and equal_summary
 
-        logging.info(f"Get events on date: {start_wanted}")
+        logging.debug(f"Get events on date: {start_wanted}")
         return [
             event
             for event in self.collection.get_events_on(start_wanted)

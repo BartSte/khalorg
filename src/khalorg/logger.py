@@ -35,4 +35,4 @@ def setup(level: int | str = "INFO", logfile: str = paths.log_file):
     logger.addHandler(stream)
     logger.addHandler(file)
 
-    logging.info("--- New run ---")
+    logging.debug("--- New run ---")

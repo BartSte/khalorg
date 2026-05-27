@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
@@ -131,7 +132,7 @@ class TestList(TestCase):
         ]
         actual = khalorg_tester(args)
         expected: str = (
-            "'loglevel': 'WARNING', "
+            "'loglevel': 'INFO', "
             f"'logfile': '{paths.log_file}', "
             f"'format': {repr(default_format)}, "
             "'calendar': 'calendar', "
@@ -187,6 +188,7 @@ class TestSync(TestCase):
             "--conflict-resolution",
             "org",
             "--delete-on-sync",
+            "--dry-run",
             "calendar",
             "file.org",
         ]
@@ -198,11 +200,12 @@ class TestSync(TestCase):
             "'start': 'today', "
             "'stop': '2d', "
             "'edit_dates': True, "
-            "'state_dir': 'new_state_dir', "
+            "'state_dir': PosixPath('new_state_dir'), "
             "'conflict_resolution': 'org', "
             "'delete_on_sync': True, "
+            "'dry_run': True, "
             "'calendar': 'calendar', "
-            "'org_file': 'file.org', "
+            "'org_file': PosixPath('file.org'), "
         )
         self.assertTrue(expected in actual, msg=actual)
 
@@ -219,16 +222,17 @@ class TestSync(TestCase):
         ]
         actual = khalorg_tester(args)
         expected: str = (
-            "'loglevel': 'WARNING', "
+            "'loglevel': 'INFO', "
             f"'logfile': '{paths.log_file}', "
             f"'format': {repr(default_format)}, "
             "'start': 'today', "
             "'stop': '90d', "
             "'edit_dates': False, "
-            f"'state_dir': '{paths.state_dir}', "
+            f"'state_dir': PosixPath('{paths.state_dir}'), "
             "'conflict_resolution': 'khal', "
             "'delete_on_sync': False, "
+            "'dry_run': False, "
             "'calendar': 'calendar', "
-            "'org_file': 'file.org', "
+            "'org_file': PosixPath('file.org'), "
         )
         self.assertTrue(expected in actual, msg=actual)

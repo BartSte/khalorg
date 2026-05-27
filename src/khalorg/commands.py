@@ -142,7 +142,7 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     args: NewArgs = NewArgs()
     args["-a"] = calendar
     args.load_from_org(agenda_item)
-    logging.info(f"Khal new args are: {args.as_list()}")
+    logging.debug(f"Khal new args are: {args.as_list()}")
 
     return khal_calendar.new_item(args.as_list())
 
@@ -262,9 +262,10 @@ def sync(
     edit_dates: bool = False,
     conflict_resolution: str = "khal",
     delete_on_sync: bool = False,
+    dry_run: bool = False,
     khalorg_format: str | None = None,
     **_,
-) -> None:
+) -> str:
     """
     Syncs events between a khal calendar and an org file.
 
@@ -281,9 +282,11 @@ def sync(
         delete_on_sync: Whether to delete events that disappear from one of the sources
             WARNING: if you delete your local file, it will remove all the events
             in the remote!!!
+        dry_run: Doesn't do any action, it just prints what it would do
 
     Returns
     -------
+    empty string
 
     """
     khal_calendar: Calendar = Calendar(calendar)
@@ -320,43 +323,71 @@ def sync(
         if khal_item is None and item != state_item:
             # if it has never been pushed to the remote and in the
             # remote doesn't exist. Push the new orgmode event.
-            new(calendar=calendar, org=str(item))
-            # When new is called, the original item is completed with
-            # the UID, so we can keep track on future syncs
-            new_item_uid = str(
-                khal_calendar.get_events_no_uid(
-                    summary_wanted=item.title,
-                    start_wanted=item.timestamps[0].start,
-                    end_wanted=item.timestamps[0].end,
-                )[0].uid
+            logging.info(
+                f"Pushing new org event {item.uid}: {item.title} to khal "
+                f"calendar {calendar}"
             )
-            item.properties["UID"] = new_item_uid
-            org_agenda.items[i] = item
+            if not dry_run:
+                new(calendar=calendar, org=str(item))
+                # When new is called, the original item is completed with
+                # the UID, so we can keep track on future syncs
+                new_item_uid = str(
+                    khal_calendar.get_events_no_uid(
+                        summary_wanted=item.title,
+                        start_wanted=item.timestamps[0].start,
+                        end_wanted=item.timestamps[0].end,
+                    )[0].uid
+                )
+                logging.info(f"The new event uid is {new_item_uid}")
+                item.properties["UID"] = new_item_uid
+                item.properties["CALENDAR"] = calendar
+                org_agenda.items[i] = item
         elif khal_item is None and item == state_item:
             # the element has been removed in the remote, we'll handle the
             # deletion later
             continue
         elif item == state_item and khal_item and not item.similar(khal_item):
             # khal has been updated
+            logging.info(
+                f"Updating org event {item.uid}: {item.title} from khal "
+                f"calendar {calendar}"
+            )
+            item.similar(khal_item)
             item = khal_item
             org_agenda.items[i] = item
         elif (
             item != state_item and state_item and state_item.similar(khal_item)
         ):
             # org has been updated, so we push to the remote
-            edit(calendar=calendar, edit_dates=edit_dates, org=str(item))
+            logging.info(
+                f"Updating khal event {item.uid}: {item.title} on {calendar} "
+                "from org"
+            )
+            if not dry_run:
+                edit(calendar=calendar, edit_dates=edit_dates, org=str(item))
         elif item != state_item and khal_item and not item.similar(khal_item):
             # both khal and org have changed, or they were different the first
             # time sync is run. So we have a conflict
             if conflict_resolution == "khal":
+                logging.info(
+                    f"Conflict! Updating org event {item.uid}: {item.title} "
+                    f"from khal {calendar} following conflict_resolution "
+                    f"{conflict_resolution}"
+                )
                 item = khal_item
                 org_agenda.items[i] = item
             else:
-                edit(
-                    calendar=calendar,
-                    edit_dates=edit_dates,
-                    org=str(item),
+                logging.info(
+                    f"Conflict! Updating khal event {item.uid}: {item.title} "
+                    f"on {calendar} from org following conflict_resolution "
+                    f"{conflict_resolution}"
                 )
+                if not dry_run:
+                    edit(
+                        calendar=calendar,
+                        edit_dates=edit_dates,
+                        org=str(item),
+                    )
         else:
             logging.info(f"Error syncing item {item}")
             logging.info(f"khal_item is: {khal_item}")
@@ -372,6 +403,10 @@ def sync(
         state_item = state_agenda.get_item(item.uid)
 
         if org_item is None and not item.similar(state_item):
+            logging.info(
+                f"Pushing new khal event {item.uid}: {item.title} to org "
+                f"from calendar {calendar}"
+            )
             # if the event has never been added
             org_agenda.items.append(item)
 
@@ -385,9 +420,22 @@ def sync(
             org_item = org_agenda.get_item(item.uid)
             if item.similar(khal_item) and org_item is None:
                 # It's been removed locally
-                delete(calendar, org=str(item))
+                logging.info(
+                    f"Removing deleted org event {item.uid}: {item.title} "
+                    f"from khal calendar {calendar}"
+                )
+                if not dry_run:
+                    delete(calendar, org=str(item))
             elif item == org_item and khal_item is None:
                 # It's been removed remotely
+                logging.info(
+                    f"Removing deleted khal event {item.uid}: {item.title} "
+                    f"of calendar {calendar} from org"
+                )
                 org_agenda.items.remove(item)
-    org_file.write_text(format(org_agenda, khalorg_format))
-    state_file.write_text(format(org_agenda, khalorg_format))
+    if not dry_run:
+        org_file.write_text(format(org_agenda, khalorg_format))
+        state_file.write_text(format(org_agenda, khalorg_format))
+
+    # return empty string so that nothing is shown in the CLI
+    return ""

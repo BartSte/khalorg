@@ -1,4 +1,6 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
+from pathlib import Path
 from os.path import join
 
 from khalorg import paths
@@ -56,8 +58,9 @@ def get_parser() -> ArgumentParser:
     child_sync.add_argument("--state-dir", **Args.state_dir)
     child_sync.add_argument("--conflict-resolution", **Args.conflict_resolution)
     child_sync.add_argument("--delete-on-sync", **Args.delete_on_sync)
+    child_sync.add_argument("--dry-run", **Args.dry_run)
     child_sync.add_argument("calendar", **Args.calendar)
-    child_sync.add_argument("org_file", **Args.orgfile)
+    child_sync.add_argument("org_file", **Args.org_file)
     child_sync.set_defaults(func=sync)
 
     return parent
@@ -127,10 +130,14 @@ class Args:
             "in the remote!!!"
         ),
     )
+    dry_run: dict = dict(
+        action="store_true",
+        help="Doesn't do any changes, just print the actions it would do",
+    )
 
     loglevel: dict = dict(
         required=False,
-        default="WARNING",
+        default="INFO",
         help=(
             "Set the logging level to: CRITICAL, ERROR, WARNING "
             "(default), INFO, DEBUG"
@@ -139,7 +146,7 @@ class Args:
     logfile: dict = dict(
         type=str, default=paths.log_file, help="The path to the log file."
     )
-    orgfile: dict = dict(type=str, help="The path to the org file.")
+    org_file: dict = dict(type=Path, help="The path to the org file.")
 
     start: dict = dict(
         type=str,
@@ -155,7 +162,7 @@ class Args:
     )
 
     state_dir: dict = dict(
-        type=str,
+        type=Path,
         default=paths.state_dir,
         help="The path to the log file.",
     )
