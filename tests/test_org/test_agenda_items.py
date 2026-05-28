@@ -49,6 +49,17 @@ class TestOrgAgendaItem(TestCase):
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
 
+    def test_eq_even_if_whitespace_mismatch(self):
+        """
+        Two objects with the same arguments even if they differ in trailing
+        whitespaces must be equal.
+        """
+        a: OrgAgendaItem = OrgAgendaItem().load_from_str(
+            "* title  \nbody    \n\n"
+        )
+        b: OrgAgendaItem = OrgAgendaItem().load_from_str("* title\nbody")
+        self.assertTrue(a == b)
+
     def test_remove_timestamps(self):
         """`time_stamp` should be removed from `text`."""
         text: str = "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"

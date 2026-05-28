@@ -71,10 +71,10 @@ class OrgAgendaItem:
         """
         self._timestamps: list[OrgDate] = []
 
-        self.title: str = title
+        self.title: str = title.strip()
         self.timestamps = timestamps
         self.properties: dict = properties
-        self.description: str = description
+        self.description: str = description.strip()
 
     @property
     def timestamps(self) -> list[OrgDate]:
@@ -158,10 +158,10 @@ class OrgAgendaItem:
             active=True, inactive=False, range=True, point=True
         )
 
-        self.title = item.heading
+        self.title = item.heading.strip()
         self.properties = item.properties
         self.timestamps = item.get_timestamps(**kwargs)
-        self.description = remove_timestamps(item.body)
+        self.description = remove_timestamps(item.body.strip())
 
         return self
 
@@ -297,20 +297,37 @@ class OrgAgendaItem:
         if b is None:
             return False
         exclude = exclude or []
-        attribute_equal: bool = all(
-            getattr(a, x) == getattr(b, x)
-            for x in vars(a).keys()
-            if x not in ["properties", "_timestamps"]
-        )
+        attribute_equal = True
+        for x in vars(a).keys():
+            if x not in ["properties", "_timestamps"] and getattr(
+                a, x
+            ) != getattr(b, x):
+                logging.debug(
+                    f"There is a mismatch in the attribute {x}, one "
+                    f"has {getattr(a, x)} the other has {getattr(b, x)}."
+                )
+                attribute_equal = False
         try:
-            properties_equal: bool = all(
-                a.properties[property] == b.properties[property]
-                for property in a.properties.keys()
-                if property not in exclude
-            )
+            properties_equal = True
+            for property in a.properties.keys():
+                if (
+                    property not in exclude
+                    and a.properties[property] != b.properties[property]
+                ):
+                    logging.debug(
+                        f"There is a mismatch in the property {property}, one "
+                        f"has {a.properties[property]} the other "
+                        f"has {b.properties[property]}."
+                    )
+                    properties_equal = False
         except KeyError:
-            return False
+            logging.debug("One element has more properties than the other")
+            properties_equal = False
         time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
+        if not time_stamps_equal:
+            logging.debug(
+                f"The timestamps don't match {a.timestamps} vs {b.timestamps}"
+            )
         return attribute_equal and properties_equal and time_stamps_equal
 
     def similar(self, other: "OrgAgendaItem | None") -> bool:
