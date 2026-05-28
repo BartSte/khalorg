@@ -139,7 +139,16 @@ dateformat: 2013-12-21 Sat
 timeformat: 21:45
 ```
 
-If not, check the documentation of `khal` on how to change this.
+If not, you can try setting the snippet below in your khal configuration, which uses python's [`time.strftime` format](https://docs.python.org/3/library/time.html#time.strftime).
+
+```ini
+[locale]
+longdatetimeformat=%Y-%m-%d %a %H:%M
+datetimeformat=%Y-%m-%d %a %H:%M
+longdateformat=%Y-%m-%d %a
+dateformat=%Y-%m-%d %a
+timeformat=%H:%M
+```
 
 ### PyPi
 
