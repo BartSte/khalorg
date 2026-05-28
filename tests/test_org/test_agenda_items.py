@@ -1,3 +1,4 @@
+import datetime
 from tests.agenda_items import (
     AllDay,
     AllDayRecurring,
@@ -48,11 +49,20 @@ class TestOrgAgendaItem(TestCase):
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
 
-    def test_remove_timestamps(self):
-        """ `time_stamp` should be removed from `text`. """
-        text: str = (
-            "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"
+    def test_eq_even_if_whitespace_mismatch(self):
+        """
+        Two objects with the same arguments even if they differ in trailing
+        whitespaces must be equal.
+        """
+        a: OrgAgendaItem = OrgAgendaItem().load_from_str(
+            "* title  \nbody    \n\n"
         )
+        b: OrgAgendaItem = OrgAgendaItem().load_from_str("* title\nbody")
+        self.assertTrue(a == b)
+
+    def test_remove_timestamps(self):
+        """`time_stamp` should be removed from `text`."""
+        text: str = "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"
         expected: str = "Some text\n"
         actual: str = remove_timestamps(text)
         self.assertEqual(actual, expected)
@@ -77,14 +87,14 @@ class TestOrgAgendaItem(TestCase):
 
         for file_, obj in org_file_vs_obj:
             agenda_item: OrgAgendaItem = OrgAgendaItem(*obj.get_args())
-            is_equal, message = self._agenda_item_file_vs_object(file_,
-                                                                 agenda_item)
+            is_equal, message = self._agenda_item_file_vs_object(
+                file_, agenda_item
+            )
             self.assertTrue(is_equal, message)
 
     def _agenda_item_file_vs_object(
-            self,
-            org_file: str,
-            expected: OrgAgendaItem) -> tuple[bool, str]:
+        self, org_file: str, expected: OrgAgendaItem
+    ) -> tuple[bool, str]:
         """
         Comapre an *.org file with a OrgAgendaItem.
 
@@ -123,7 +133,7 @@ class TestOrgAgendaItem(TestCase):
         No timestamps are found if the agenda item is not the first child of a
         node.
         """
-        org_files: tuple = ('not_first_child.org', 'not_first_heading.org')
+        org_files: tuple = ("not_first_child.org", "not_first_heading.org")
         for file_ in org_files:
             node: OrgNode = loads(read_org_test_file(file_))
             item: OrgAgendaItem = OrgAgendaItem().load_from_org_node(node)
@@ -136,11 +146,11 @@ class TestOrgAgendaItem(TestCase):
         list.
         """
         item: OrgAgendaItem = OrgAgendaItem()
-        item.properties['ATTENDEES'] = (
-            'test@test.com, test2@test.com, test3@test.com'
+        item.properties["ATTENDEES"] = (
+            "test@test.com, test2@test.com, test3@test.com"
         )
-        actual: list = item.split_property('ATTENDEES')
-        expected: list = ['test@test.com', 'test2@test.com', 'test3@test.com']
+        actual: list = item.split_property("ATTENDEES")
+        expected: list = ["test@test.com", "test2@test.com", "test3@test.com"]
         self.assertEqual(actual, expected)
 
     def test_until_datetime(self):
@@ -149,7 +159,7 @@ class TestOrgAgendaItem(TestCase):
         do nothing.
         """
         item: OrgAgendaItem = OrgAgendaItem()
-        text: str = read_org_test_file('valid.org')
+        text: str = read_org_test_file("valid.org")
         item.load_from_str(text)
 
         expected: OrgDate = OrgDate((2023, 1, 2, 0, 0))
@@ -161,7 +171,7 @@ class TestOrgAgendaItem(TestCase):
         until to a date time.
         """
         item: OrgAgendaItem = OrgAgendaItem()
-        text: str = read_org_test_file('all_day.org')
+        text: str = read_org_test_file("all_day.org")
         item.load_from_str(text)
 
         expected: OrgDate = OrgDate((2023, 1, 2))
@@ -173,23 +183,45 @@ class TestOrgAgendaItem(TestCase):
         convert unil to a date.
         """
         item: OrgAgendaItem = OrgAgendaItem()
-        text: str = read_org_test_file('all_day_until_with_time.org')
+        text: str = read_org_test_file("all_day_until_with_time.org")
         item.load_from_str(text)
 
         expected: OrgDate = OrgDate((2023, 1, 2))
         self.assertEqual(expected, item.until)
 
     def test_until_rrule(self):
-        """  """
-        expected: str = '[2023-01-02 Mon 00:00]'
-        org_file = read_org_test_file('rrule_recurring.org') 
+        """ """
+        expected: str = "[2023-01-02 Mon 00:00]"
+        org_file = read_org_test_file("rrule_recurring.org")
         agenda_item: OrgAgendaItem = OrgAgendaItem()
         agenda_item.load_from_str(org_file)
         self.assertEqual(expected, agenda_item.until_rrule)
 
+    def test_start_equals_end_timestamp_doesnt_repeat(self):
+        """If start == end it only prints start.
+
+        Otherwise it creates org items with duplicated timestamps:
+
+        * event
+          <2023-01-02 Mon>--<2023-01-02 Mon>
+        """
+        assert OrgAgendaItem(
+            title="event",
+            timestamps=[
+                OrgDate(
+                    start=datetime.date(2023, 1, 2),
+                    end=datetime.date(2023, 1, 2),
+                )
+            ],
+        ).timestamps == [
+            OrgDate(
+                start=datetime.date(2023, 1, 2),
+            )
+        ]
+
 
 class TestAgendaOrgDates(TestCase):
-    """ Test if duplicated items are removed. """
+    """Test if duplicated items are removed."""
 
     def test_orgdates(self):
         orgs: tuple = (
@@ -207,12 +239,14 @@ class TestAgendaOrgDates(TestCase):
             actual: OrgDateAgenda = OrgDateAgenda(nodes)
 
             self.assertEqual(actual.dates, expected.org_dates, msg=org)
-            self.assertEqual(str(actual.dates['123']),
-                             str(expected.org_dates['123']), msg=org)
+            self.assertEqual(
+                str(actual.dates["123"]),
+                str(expected.org_dates["123"]),
+                msg=org,
+            )
 
 
 class TestOrgAgendaFile(TestCase):
-
     def test(self):
         """
         Test the OrgDateAgendaFile for the default format, (without the
@@ -222,13 +256,16 @@ class TestOrgAgendaFile(TestCase):
             khalorg_format: str = f.read()
 
         orgs: tuple = (
-            ('rrule_recurring.org', 'recurring.org'),
-            ('rrule_recurring_monthly.org', 'recurring_monthly.org'),
-            ('rrule_recurring_allday.org', 'recurring_allday.org'),
-            ('rrule_recurring_duplicates.org', 'recurring.org'),
-            ('rrule_recurring_not_supported.org', 'valid_no_until.org'),
-            ('rrule_recurring_1th.org', 'recurring.org'),
-            ('rrule_recurring_and_non_recurring.org', 'recurring_and_non_recurring.org')
+            ("rrule_recurring.org", "recurring.org"),
+            ("rrule_recurring_monthly.org", "recurring_monthly.org"),
+            ("rrule_recurring_allday.org", "recurring_allday.org"),
+            ("rrule_recurring_duplicates.org", "recurring.org"),
+            ("rrule_recurring_not_supported.org", "valid_no_until.org"),
+            ("rrule_recurring_1th.org", "recurring.org"),
+            (
+                "rrule_recurring_and_non_recurring.org",
+                "recurring_and_non_recurring.org",
+            ),
         )
 
         for org, expected_org in orgs:
@@ -246,21 +283,20 @@ class TestOrgAgendaFile(TestCase):
 
 
 class TestOrgDateAgenda(TestCase):
-
     def test_get_rrulestr_supported(self):
         """
         The RRULE of the rrule_recurring.org should be the same as the
         OrgDateAgenda.get_rrulestr method returns.
         """
-        org_file: str = read_org_test_file('rrule_recurring.org')
+        org_file: str = read_org_test_file("rrule_recurring.org")
         self._test_get_rrulestr(org_file)
 
     def _test_get_rrulestr(self, org_file: str):
         node: OrgNode = loads(org_file).children[0]
         dates: OrgDateAgenda = OrgDateAgenda(node)
 
-        expected: str = node.properties['RRULE']
-        actual: str = dates.get_rrulestr(node.properties['UID'])
+        expected: str = node.properties["RRULE"]
+        actual: str = dates.get_rrulestr(node.properties["UID"])
         assert expected == actual
 
     def test_get_rrulestr_unsupported(self):
@@ -268,5 +304,5 @@ class TestOrgDateAgenda(TestCase):
         The RRULE of the rrule_recurring_not_supported.org should be the
         same as the OrgDateAgenda.get_rrulestr method returns.
         """
-        org_file: str = read_org_test_file('rrule_recurring_not_supported.org')
+        org_file: str = read_org_test_file("rrule_recurring_not_supported.org")
         self._test_get_rrulestr(org_file)

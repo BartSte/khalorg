@@ -17,13 +17,13 @@ from tests import static
 
 
 class TestEvent:
-    summary: str = 'summary'
+    summary: str = "summary"
     description: str = "description\n"
     properties: dict = {
-        'ATTENDEES': 'test@test.com, test2@test.com',
-        'CATEGORIES': 'category1, category2',
-        'LOCATION': 'location1, location2',
-        'URL': 'www.test.com'
+        "ATTENDEES": "test@test.com, test2@test.com",
+        "CATEGORIES": "category1, category2",
+        "LOCATION": "location1, location2",
+        "URL": "www.test.com",
     }
 
 
@@ -32,7 +32,7 @@ Time = date | datetime
 
 def get_test_config() -> str:
     path_static: str = get_module_path(static)
-    return join(path_static, 'test_config_khal')
+    return join(path_static, "test_config_khal")
 
 
 def read_org_test_file(org_file: str) -> str:
@@ -54,28 +54,21 @@ def read_org_test_file(org_file: str) -> str:
         return org.read()
 
 
-def compare_without_white_space(a, b) -> bool:
-    return compare_with_exclude(a, b, ('', '\n', '\t'))
-
-
-def compare_with_exclude(a: str, b: str, excludes: tuple = tuple()) -> bool:
-    return _filter(a, excludes) == _filter(b, excludes)
-
-
 def _filter(text: str, excludes: tuple) -> list:
     return [x for x in text.splitlines() if x not in excludes]
 
 
 class CustomCliRunner(CliRunner):
     def __init__(
-            self,
-            config_file,
-            db=None,
-            calendars=None,
-            xdg_data_home=None,
-            xdg_config_home=None,
-            tmpdir=None,
-            **kwargs):
+        self,
+        config_file,
+        db=None,
+        calendars=None,
+        xdg_data_home=None,
+        xdg_config_home=None,
+        tmpdir=None,
+        **kwargs,
+    ):
         self.config_file = config_file
         self.db = db
         self.calendars = calendars
@@ -86,7 +79,7 @@ class CustomCliRunner(CliRunner):
         super().__init__(**kwargs)
 
     def invoke(self, cli, args=None, *a, **kw):
-        args = ['-c', str(self.config_file)] + (args or [])
+        args = ["-c", str(self.config_file)] + (args or [])
         return super().invoke(cli, args, *a, **kw)
 
 
@@ -112,44 +105,54 @@ def khal_runner(tmpdir, monkeypatch) -> Callable:
         a test runner function
 
     """
-    db = tmpdir.join('khal.db')
-    calendar = tmpdir.mkdir('calendar')
-    calendar2 = tmpdir.mkdir('calendar2')
-    calendar3 = tmpdir.mkdir('calendar3')
+    db = tmpdir.join("khal.db")
+    calendar = tmpdir.mkdir("calendar")
+    calendar2 = tmpdir.mkdir("calendar2")
+    calendar3 = tmpdir.mkdir("calendar3")
     config_template: str = get_config_template()
 
-    xdg_data_home = tmpdir.join('vdirs')
-    xdg_config_home = tmpdir.join('.config')
-    config_file = xdg_config_home.join('khal').join('config')
+    xdg_data_home = tmpdir.join("vdirs")
+    xdg_config_home = tmpdir.join(".config")
+    config_file = xdg_config_home.join("khal").join("config")
 
-    monkeypatch.setattr('vdirsyncer.cli.config.load_config', lambda: Config())
-    monkeypatch.setattr('xdg.BaseDirectory.xdg_data_home', str(xdg_data_home))
-    monkeypatch.setattr('xdg.BaseDirectory.xdg_config_home', str(xdg_config_home))  # noqa
-    monkeypatch.setattr('xdg.BaseDirectory.xdg_config_dirs', [str(xdg_config_home)])  # noqa
+    monkeypatch.setattr("vdirsyncer.cli.config.load_config", lambda: Config())
+    monkeypatch.setattr("xdg.BaseDirectory.xdg_data_home", str(xdg_data_home))
+    monkeypatch.setattr(
+        "xdg.BaseDirectory.xdg_config_home", str(xdg_config_home)
+    )  # noqa
+    monkeypatch.setattr(
+        "xdg.BaseDirectory.xdg_config_dirs", [str(xdg_config_home)]
+    )  # noqa
 
     def inner(print_new=False, default_calendar=True, days=2, **kwargs):
         if default_calendar:
-            default_calendar = 'default_calendar = one'
+            default_calendar = "default_calendar = one"
         else:
-            default_calendar = ''
-        if not os.path.exists(str(xdg_config_home.join('khal'))):
-            os.makedirs(str(xdg_config_home.join('khal')))
+            default_calendar = ""
+        if not os.path.exists(str(xdg_config_home.join("khal"))):
+            os.makedirs(str(xdg_config_home.join("khal")))
         config_file.write(
             config_template.format(
-                delta=str(days) + 'd',
+                delta=str(days) + "d",
                 calpath=str(calendar),
                 calpath2=str(calendar2),
                 calpath3=str(calendar3),
                 default_calendar=default_calendar,
                 print_new=print_new,
                 dbpath=str(db),
-                **kwargs))
+                **kwargs,
+            )
+        )
         runner = CustomCliRunner(
-            config_file=config_file, db=db, calendars={"one": calendar},
-            xdg_data_home=xdg_data_home, xdg_config_home=xdg_config_home,
+            config_file=config_file,
+            db=db,
+            calendars={"one": calendar},
+            xdg_data_home=xdg_data_home,
+            xdg_config_home=xdg_config_home,
             tmpdir=tmpdir,
         )
         return runner
+
     return inner
 
 
@@ -164,12 +167,12 @@ def get_config_template() -> str:
 
     """
     path_static: str = get_module_path(static)
-    path_config: str = join(path_static, 'config_template.txt')
+    path_config: str = join(path_static, "config_template.txt")
     with open(path_config) as file_:
         return file_.read()
 
 
-class Config():
+class Config:
     """
     Copied from khal.cli_test.
 
@@ -177,51 +180,52 @@ class Config():
     """
 
     storages = {
-        'home_calendar_local': {
-            'type': 'filesystem',
-            'instance_name': 'home_calendar_local',
-            'path': '~/.local/share/calendars/home/',
-            'fileext': '.ics',
+        "home_calendar_local": {
+            "type": "filesystem",
+            "instance_name": "home_calendar_local",
+            "path": "~/.local/share/calendars/home/",
+            "fileext": ".ics",
         },
-        'events_local': {
-            'type': 'filesystem',
-            'instance_name': 'events_local',
-            'path': '~/.local/share/calendars/events/',
-            'fileext': '.ics',
+        "events_local": {
+            "type": "filesystem",
+            "instance_name": "events_local",
+            "path": "~/.local/share/calendars/events/",
+            "fileext": ".ics",
         },
-        'home_calendar_remote': {
-            'type': 'caldav',
-            'url': 'https://some.url/caldav',
-            'username': 'foo',
-            'password.fetch': ['command', 'get_secret'],
-            'instance_name': 'home_calendar_remote',
+        "home_calendar_remote": {
+            "type": "caldav",
+            "url": "https://some.url/caldav",
+            "username": "foo",
+            "password.fetch": ["command", "get_secret"],
+            "instance_name": "home_calendar_remote",
         },
-        'home_contacts_remote': {
-            'type': 'carddav',
-            'url': 'https://another.url/caldav',
-            'username': 'bar',
-            'password.fetch': ['command', 'get_secret'],
-            'instance_name': 'home_contacts_remote',
+        "home_contacts_remote": {
+            "type": "carddav",
+            "url": "https://another.url/caldav",
+            "username": "bar",
+            "password.fetch": ["command", "get_secret"],
+            "instance_name": "home_contacts_remote",
         },
-        'home_contacts_local': {
-            'type': 'filesystem',
-            'instance_name': 'home_contacts_local',
-            'path': '~/.local/share/contacts/',
-            'fileext': '.vcf',
+        "home_contacts_local": {
+            "type": "filesystem",
+            "instance_name": "home_contacts_local",
+            "path": "~/.local/share/contacts/",
+            "fileext": ".vcf",
         },
-        'events_remote': {
-            'type': 'http',
-            'instance_name': 'events_remote',
-            'url': 'http://list.of/events/',
+        "events_remote": {
+            "type": "http",
+            "instance_name": "events_remote",
+            "url": "http://list.of/events/",
         },
     }
 
 
 def create_event(
-        runner: Any,
-        org_item: OrgAgendaItem,
-        repeat: str = '',
-        until: datetime | date | None = None):
+    runner: Any,
+    org_item: OrgAgendaItem,
+    repeat: str = "",
+    until: datetime | date | None = None,
+):
     """
     Create a new event.
 
@@ -235,24 +239,23 @@ def create_event(
         repeat: set to daily, weekly, monhtly, or yearly
     """
     args: NewArgs = NewArgs()
-    args['--repeat'] = repeat
+    args["--repeat"] = repeat
 
     if isinstance(until, datetime):
-        args['--until'] = until.strftime(args.datetime_format)
+        args["--until"] = until.strftime(args.datetime_format)
     elif isinstance(until, date):
-        args['--until'] = until.strftime(args.date_format)
+        args["--until"] = until.strftime(args.date_format)
 
     args.load_from_org(org_item)
 
-    new_cmd: list = ['new'] + args.as_list()
+    new_cmd: list = ["new"] + args.as_list()
     stdout: Result = runner.invoke(main_khal, new_cmd)
     assert stdout.exit_code == 0, stdout.output
 
 
 def assert_event_created(
-        calendar_name: str,
-        org_item: OrgAgendaItem,
-        recurring: bool = False) -> list[Event]:
+    calendar_name: str, org_item: OrgAgendaItem, recurring: bool = False
+) -> list[Event]:
     """
     Test if an event exists based on its summary and timestamp.
 
@@ -266,20 +269,22 @@ def assert_event_created(
     calendar: Calendar = Calendar(calendar_name)
     args: EditArgs = EditArgs()
     args.load_from_org(org_item)
-    events: list[Event] = calendar.get_events_no_uid(args['summary'],
-                                                     args['start'],
-                                                     args['end'])
-    assert len(events) >= 1, f'Number of events was {len(events)}'
+    events: list[Event] = calendar.get_events_no_uid(
+        args["summary"], args["start"], args["end"]
+    )
+    assert len(events) >= 1, f"Number of events was {len(events)}"
 
-    assert events[0].uid, 'UID is empty'
-    assert recurring == events[0].recurring, f'recurring is {events[0].recurring}'
+    assert events[0].uid, "UID is empty"
+    assert recurring == events[0].recurring, (
+        f"recurring is {events[0].recurring}"
+    )
 
     return events
 
 
 def assert_event_deleted(
-        calendar_name: str,
-        org_item: OrgAgendaItem) -> list[Event]:
+    calendar_name: str, org_item: OrgAgendaItem
+) -> list[Event]:
     """
     Test if an event is deleted.
 
@@ -291,19 +296,18 @@ def assert_event_deleted(
     calendar: Calendar = Calendar(calendar_name)
     args: DeleteArgs = DeleteArgs()
     args.load_from_org(org_item)
-    events: list[Event] = calendar.get_events(org_item.properties['UID'])
-    assert len(events) == 0, f'Number of events was {len(events)}'
+    events: list[Event] = calendar.get_events(org_item.properties["UID"])
+    assert len(events) == 0, f"Number of events was {len(events)}"
 
     return events
 
 
-def assert_event_edited(runner: Any,
-                        calendar_name: str,
-                        org_item: OrgAgendaItem,
-                        count: int = 1):
+def assert_event_edited(
+    runner: Any, calendar_name: str, org_item: OrgAgendaItem, count: int = 1
+):
     """
     Asserts whether the event, defined by event_props, start, and end
-    exitst.
+    exists.
 
     Args:
     ----
@@ -312,34 +316,40 @@ def assert_event_edited(runner: Any,
         org_item: org agenda item
     """
     calendar: Calendar = Calendar(calendar_name)
-    events: list[Event] = calendar.get_events(org_item.properties['UID'])
-    assert len(events) == count, f'Number of events is {len(events)}'
+    events: list[Event] = calendar.get_events(org_item.properties["UID"])
+    assert len(events) == count, f"Number of events is {len(events)}"
 
     list_fields: list = [
-        'start-long',
-        'end-long',
-        'attendees',
-        'categories',
-        'location',
-        'url']
+        "start-long",
+        "end-long",
+        "attendees",
+        "categories",
+        "location",
+        "url",
+    ]
 
     list_cmd: list = [
         "list",
-        "--format", ' '.join([f'{{{x}}}' for x in list_fields])
+        "--format",
+        " ".join([f"{{{x}}}" for x in list_fields]),
     ]
 
     result = runner.invoke(main_khal, list_cmd)
-    expected: list[str] = _get_expected_list_command(calendar, org_item,
-                                                     list_fields, count)
-    assert all(x in result.output for x in expected)
+    expected: list[str] = _get_expected_list_command(
+        calendar, org_item, list_fields, count
+    )
+    # Some versions of icalendar escapes the commas in the CATEGORIES
+    # section which makes similar objects differ.
+    assert all(x in result.output.replace("\\,", ",") for x in expected)
 
 
 def _get_expected_list_command(
-        calendar: Calendar,
-        org_item: OrgAgendaItem,
-        list_fields: list[str],
-        count: int = 1,
-        delta: timedelta = timedelta(0)) -> list[str]:
+    calendar: Calendar,
+    org_item: OrgAgendaItem,
+    list_fields: list[str],
+    count: int = 1,
+    delta: timedelta = timedelta(0),
+) -> list[str]:
     """
     Returns the expected list command for the "assert_event_edited"
     function.
@@ -364,10 +374,11 @@ def _get_expected_list_command(
         format: str = calendar.date_format
 
     expected: list = []
-    props: str = ' '.join([org_item.properties[x.upper()]
-                           for x in list_fields[2:]])
+    props: str = " ".join(
+        [org_item.properties[x.upper()] for x in list_fields[2:]]
+    )
     for _ in range(0, count - 1):
-        value: str = f'{start.strftime(format)} {end.strftime(format)} '
+        value: str = f"{start.strftime(format)} {end.strftime(format)} "
         expected.append(value + props)
         start = start + delta
         end = end + delta
@@ -375,10 +386,12 @@ def _get_expected_list_command(
     return expected
 
 
-def get_org_item(delta: timedelta = timedelta(hours=1),
-                 all_day: bool = False,
-                 until: str = '',
-                 repeater: tuple | None = None) -> OrgAgendaItem:
+def get_org_item(
+    delta: timedelta = timedelta(hours=1),
+    all_day: bool = False,
+    until: str = "",
+    repeater: tuple | None = None,
+) -> OrgAgendaItem:
     """
     Returns an org_item that is used for testing.
 
@@ -391,15 +404,15 @@ def get_org_item(delta: timedelta = timedelta(hours=1),
         title=TestEvent.summary,
         timestamps=[OrgDate(start, end, repeater=repeater)],
         properties=TestEvent.properties,
-        description=TestEvent.description
+        description=TestEvent.description,
     )
-    org_item.properties['UNTIL'] = until
+    org_item.properties["UNTIL"] = until
     return org_item
 
 
-def get_start_end(delta: timedelta = timedelta(hours=1),
-                  all_day: bool = False
-                  ) -> tuple[Time, Time | None]:
+def get_start_end(
+    delta: timedelta = timedelta(hours=1), all_day: bool = False
+) -> tuple[Time, Time | None]:
     """
     Get start and end datetime with a time difference of `delta`.
 

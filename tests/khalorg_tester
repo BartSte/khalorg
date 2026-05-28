@@ -6,7 +6,7 @@ from os.path import dirname, join
 from unittest.mock import patch
 
 root: str = dirname(dirname(__file__))
-sys.path.append(join(root, 'src'))
+sys.path.append(join(root, "src"))
 
 from khalorg import cli  # noqa
 
@@ -15,10 +15,11 @@ def echo(**kwargs):
     return kwargs
 
 
-@patch('khalorg.cli.edit', echo)
-@patch('khalorg.cli.new', echo)
-@patch('khalorg.cli.delete', echo)
-@patch('khalorg.cli.list_command', echo)
+@patch("khalorg.cli.edit", echo)
+@patch("khalorg.cli.new", echo)
+@patch("khalorg.cli.delete", echo)
+@patch("khalorg.cli.list_command", echo)
+@patch("khalorg.cli.sync", echo)
 def main():
     parser: ArgumentParser = cli.get_parser()
     args: Namespace = parser.parse_args()
@@ -26,5 +27,5 @@ def main():
     print(stdout)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -23,15 +23,15 @@ class EventChecks(Enum):
 class EventChecker:
     """
     Used to perform a set of checks before one of the Calendar commands are
-    executed.
+    run.
     """
 
-    MESSAGE_RRULE: str = 'Org repeater not supported.'
-    MESSAGE_FUTURE: str = 'Agenda item date not in the future.'
-    MESSAGE_DUPLICATE: str = 'Agenda item already exists.'
-    MESSAGE_UID: str = 'Agenda item its UID property is empty.'
+    MESSAGE_RRULE: str = "Org repeater not supported."
+    MESSAGE_FUTURE: str = "Agenda item date not in the future."
+    MESSAGE_DUPLICATE: str = "Agenda item already exists."
+    MESSAGE_UID: str = "Agenda item its UID property is empty."
 
-    def __init__(self, checks: list[EventChecks] = [x for x in EventChecks]):
+    def __init__(self, checks: list[EventChecks] | None = None):
         """
         Init.
 
@@ -43,10 +43,10 @@ class EventChecker:
             EventChecks.DUPLICATE: self.is_duplicate,
             EventChecks.FUTURE: self.is_future,
             EventChecks.RRULE: self.valid_rrule,
-            EventChecks.UID: self.has_uid
+            EventChecks.UID: self.has_uid,
         }
 
-        self.checks: list[EventChecks] = checks
+        self.checks: list[EventChecks] = list(checks) if checks is not None else list(EventChecks)
 
     def remove(self, check: EventChecks):
         """
@@ -60,7 +60,7 @@ class EventChecker:
         try:
             self.checks.remove(check)
         except ValueError:
-            logging.info(f'{check} was not found in EventChecker.checks')
+            logging.info(f"{check} was not found in EventChecker.checks")
 
     def is_valid(self, calendar: str | Calendar, item: OrgAgendaItem) -> str:
         """
@@ -89,7 +89,7 @@ class EventChecker:
             messages.append(func(*args))
 
         messages = [x for x in messages if x]
-        return '\n'.join(messages) if messages else ''
+        return "\n".join(messages) if messages else ""
 
     def is_future(self, item: OrgAgendaItem) -> str:
         """
@@ -105,7 +105,7 @@ class EventChecker:
             returned.
         """
         future: bool = is_in_future(item.first_timestamp.start)
-        return self.MESSAGE_FUTURE if not future else ''
+        return self.MESSAGE_FUTURE if not future else ""
 
     def is_duplicate(self, item: OrgAgendaItem, calendar: Calendar) -> str:
         """
@@ -121,11 +121,9 @@ class EventChecker:
             is returned.
         """
         is_duplicate: bool = calendar.exists(
-            item.title,
-            item.first_timestamp.start,
-            item.first_timestamp.end
+            item.title, item.first_timestamp.start, item.first_timestamp.end
         )
-        return self.MESSAGE_DUPLICATE if is_duplicate else ''
+        return self.MESSAGE_DUPLICATE if is_duplicate else ""
 
     def valid_rrule(self, item: OrgAgendaItem) -> str:
         """
@@ -143,10 +141,11 @@ class EventChecker:
         rule: str = get_rrulestr(
             item.first_timestamp.start,
             item.first_timestamp._repeater,
-            item.until.start)
+            item.until.start,
+        )
 
         valid_rrule: bool = rrulestr_is_supported(rule)
-        return self.MESSAGE_RRULE if not valid_rrule else ''
+        return self.MESSAGE_RRULE if not valid_rrule else ""
 
     def has_uid(self, item: OrgAgendaItem) -> str:
         """
@@ -161,4 +160,4 @@ class EventChecker:
             an error messages or an empty str.
 
         """
-        return self.MESSAGE_UID if not item.properties.get('UID') else ''
+        return self.MESSAGE_UID if not item.properties.get("UID") else ""

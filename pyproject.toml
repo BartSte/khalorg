@@ -23,8 +23,8 @@ license = "MIT"
 license-files = ["LICENSE", "THIRDPARTYLICENSES"]
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "icalendar<6.0",    # khal is not compatible with icalendar >= 6.0 at the moment of writing
-    "khal~=0.11",
+    "icalendar<8.0",    # khal is not compatible with icalendar >= 8.0 at the moment of writing
+    "khal~=0.14",
     "orgparse~=0.4",
     "vdirsyncer~=0.20",
 ]

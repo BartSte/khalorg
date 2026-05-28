@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
@@ -131,7 +132,7 @@ class TestList(TestCase):
         ]
         actual = khalorg_tester(args)
         expected: str = (
-            "'loglevel': 'WARNING', "
+            "'loglevel': 'INFO', "
             f"'logfile': '{paths.log_file}', "
             f"'format': {repr(default_format)}, "
             "'calendar': 'calendar', "
@@ -157,8 +158,87 @@ class TestDelete(TestCase):
         ]
         actual = khalorg_tester(args)
         expected: str = (
-            "'loglevel': 'CRITICAL', "
-            "'logfile': 'foo', "
-            "'calendar': 'calendar'"
+            "'loglevel': 'CRITICAL', 'logfile': 'foo', 'calendar': 'calendar'"
         )
         self.assertTrue(expected in actual)
+
+
+class TestSync(TestCase):
+    def test(self):
+        """
+        When feeding a set of command line args, an expected set of
+        function arguments for khalorg.cli.sync is expected.
+        """
+        default_format: str = get_default_khalorg_format()
+        args: list = [
+            "--loglevel",
+            "CRITICAL",
+            "--logfile",
+            "foo",
+            "sync",
+            "--format",
+            default_format,
+            "--start",
+            "today",
+            "--stop",
+            "2d",
+            "--edit-dates",
+            "--state-dir",
+            "new_state_dir",
+            "--conflict-resolution",
+            "org",
+            "--delete-on-sync",
+            "--dry-run",
+            "--filetags",
+            "one",
+            "--filetags",
+            "two",
+            "calendar",
+            "file.org",
+        ]
+        actual = khalorg_tester(args)
+        expected: str = (
+            "'loglevel': 'CRITICAL', "
+            "'logfile': 'foo', "
+            f"'format': {repr(default_format)}, "
+            "'start': 'today', "
+            "'stop': '2d', "
+            "'edit_dates': True, "
+            "'state_dir': PosixPath('new_state_dir'), "
+            "'conflict_resolution': 'org', "
+            "'delete_on_sync': True, "
+            "'filetags': ['one', 'two'], "
+            "'dry_run': True, "
+            "'calendar': 'calendar', "
+            "'org_file': PosixPath('file.org'), "
+        )
+        self.assertTrue(expected in actual, msg=actual)
+
+    def test_minimal(self):
+        """
+        When feeding a set of command line args, an expected set of
+        function arguments for khalorg.cli.sync is expected.
+        """
+        default_format: str = get_khalorg_format()
+        args: list = [
+            "sync",
+            "calendar",
+            "file.org",
+        ]
+        actual = khalorg_tester(args)
+        expected: str = (
+            "'loglevel': 'INFO', "
+            f"'logfile': '{paths.log_file}', "
+            f"'format': {repr(default_format)}, "
+            "'start': 'today', "
+            "'stop': '90d', "
+            "'edit_dates': False, "
+            f"'state_dir': PosixPath('{paths.state_dir}'), "
+            "'conflict_resolution': 'khal', "
+            "'delete_on_sync': False, "
+            "'filetags': None, "
+            "'dry_run': False, "
+            "'calendar': 'calendar', "
+            "'org_file': PosixPath('file.org'), "
+        )
+        self.assertTrue(expected in actual, msg=actual)
