@@ -667,3 +667,15 @@ def test_sync_doesnt_delete_remote_removed_events_by_default(
 
     assert len(khal_calendar.get_events(new_item_uid)) == 0
     _sync_test_local(org_file, initial)
+
+
+def test_sync_adds_filetags(runner, tmp_path: Path):
+    """Sync adds filetags when defined."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    expected: OrgAgendaItem = get_org_item()
+    new("one", org=str(expected))
+
+    sync("one", org_file, state_dir, filetags=["one", "two"])
+
+    assert "#+FILETAGS: :one:two:" in org_file.read_text()

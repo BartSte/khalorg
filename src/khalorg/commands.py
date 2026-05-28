@@ -263,6 +263,7 @@ def sync(
     conflict_resolution: str = "khal",
     delete_on_sync: bool = False,
     dry_run: bool = False,
+    filetags: list[str] | None = None,
     khalorg_format: str | None = None,
     **_,
 ) -> str:
@@ -292,6 +293,7 @@ def sync(
     khal_calendar: Calendar = Calendar(calendar)
     khalorg_format = khalorg_format or get_khalorg_format()
     state_file = state_dir / f"{calendar}.org"
+    filetags = filetags or []
 
     if conflict_resolution not in ["khal", "org"]:
         raise ValueError(
@@ -434,8 +436,13 @@ def sync(
                 )
                 org_agenda.items.remove(item)
     if not dry_run:
-        org_file.write_text(format(org_agenda, khalorg_format))
-        state_file.write_text(format(org_agenda, khalorg_format))
+        if filetags:
+            content = f"#+FILETAGS: :{':'.join(filetags)}:\n"
+        else:
+            content = ""
+        content += format(org_agenda, khalorg_format)
+        org_file.write_text(content)
+        state_file.write_text(content)
 
     # return empty string so that nothing is shown in the CLI
     return ""

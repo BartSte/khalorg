@@ -189,6 +189,10 @@ class TestSync(TestCase):
             "org",
             "--delete-on-sync",
             "--dry-run",
+            "--filetags",
+            "one",
+            "--filetags",
+            "two",
             "calendar",
             "file.org",
         ]
@@ -203,6 +207,7 @@ class TestSync(TestCase):
             "'state_dir': PosixPath('new_state_dir'), "
             "'conflict_resolution': 'org', "
             "'delete_on_sync': True, "
+            "'filetags': ['one', 'two'], "
             "'dry_run': True, "
             "'calendar': 'calendar', "
             "'org_file': PosixPath('file.org'), "
@@ -231,6 +236,7 @@ class TestSync(TestCase):
             f"'state_dir': PosixPath('{paths.state_dir}'), "
             "'conflict_resolution': 'khal', "
             "'delete_on_sync': False, "
+            "'filetags': None, "
             "'dry_run': False, "
             "'calendar': 'calendar', "
             "'org_file': PosixPath('file.org'), "

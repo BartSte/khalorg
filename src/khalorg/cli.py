@@ -58,6 +58,7 @@ def get_parser() -> ArgumentParser:
     child_sync.add_argument("--state-dir", **Args.state_dir)
     child_sync.add_argument("--conflict-resolution", **Args.conflict_resolution)
     child_sync.add_argument("--delete-on-sync", **Args.delete_on_sync)
+    child_sync.add_argument("--filetags", **Args.filetags)
     child_sync.add_argument("--dry-run", **Args.dry_run)
     child_sync.add_argument("calendar", **Args.calendar)
     child_sync.add_argument("org_file", **Args.org_file)
@@ -133,6 +134,13 @@ class Args:
     dry_run: dict = dict(
         action="store_true",
         help="Doesn't do any changes, just print the actions it would do",
+    )
+    filetags: dict = dict(
+        action="append",
+        help=(
+            "tag to prepend as FILETAGS on the generated file. "
+            "Can be specified many times"
+        ),
     )
 
     loglevel: dict = dict(
