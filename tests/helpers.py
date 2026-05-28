@@ -338,7 +338,9 @@ def assert_event_edited(
     expected: list[str] = _get_expected_list_command(
         calendar, org_item, list_fields, count
     )
-    assert all(x in result.output for x in expected)
+    # Some versions of icalendar escapes the commas in the CATEGORIES
+    # section which makes similar objects differ.
+    assert all(x in result.output.replace("\\,", ",") for x in expected)
 
 
 def _get_expected_list_command(

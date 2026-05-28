@@ -422,7 +422,10 @@ class OrgAgendaItem:
                 timestamps=self.get_timestamps_as_str(spec),
                 attendees=self.properties.get("ATTENDEES", ""),
                 calendar=self.properties.get("CALENDAR", ""),
-                categories=self.properties.get("CATEGORIES", ""),
+                # In some versions of icalendar, the comma that separates CATEGORIES are escaped
+                categories=self.properties.get("CATEGORIES", "").replace(
+                    "\\,", ","
+                ),
                 uid=uid,
                 location=self.properties.get("LOCATION", ""),
                 organizer=self.properties.get("ORGANIZER", ""),
@@ -559,6 +562,9 @@ class OrgAgendaFile:
             An instance of the OrgAgendaFile class.
         """
         items = items or "\n"
+        # Some versions of icalendar escapes the commas in the CATEGORIES
+        # section which makes similar objects differ.
+        items = items.replace("\\,", ",")
         return cls(orgparse.loads(items))
 
     @classmethod

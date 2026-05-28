@@ -507,7 +507,9 @@ def test_sync_solves_conflicts_edits_favoring_org_by_choice(
     remote_edit.properties["UID"] = new_item_uid
     _edit("one", remote_edit)
     _sync_test_remote(remote_edit)
-    local_changes = org_file.read_text().replace("summary", "org edited summary")
+    local_changes = org_file.read_text().replace(
+        "summary", "org edited summary"
+    )
     expected = copy.deepcopy(initial)
     expected.title = "org edited summary"
     org_file.write_text(local_changes)
