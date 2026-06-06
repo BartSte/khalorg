@@ -333,13 +333,21 @@ def sync(
                 new(calendar=calendar, org=str(item))
                 # When new is called, the original item is completed with
                 # the UID, so we can keep track on future syncs
-                new_item_uid = str(
-                    khal_calendar.get_events_no_uid(
-                        summary_wanted=item.title,
-                        start_wanted=item.timestamps[0].start,
-                        end_wanted=item.timestamps[0].end,
-                    )[0].uid
-                )
+                try:
+                    new_item_uid = str(
+                        khal_calendar.get_events_no_uid(
+                            summary_wanted=item.title,
+                            start_wanted=item.timestamps[0].start,
+                            end_wanted=item.timestamps[0].end,
+                        )[0].uid
+                    )
+                except IndexError:
+                    logging.error(
+                        f"Couldn't find in khal an event that matches title: "
+                        f"{item.title}, start: {item.timestamps[0].start}, "
+                        f"end: {item.timestamps[0].end}. Skipping this element."
+                    )
+                    continue
                 logging.info(f"The new event uid is {new_item_uid}")
                 item.properties["UID"] = new_item_uid
                 item.properties["CALENDAR"] = calendar

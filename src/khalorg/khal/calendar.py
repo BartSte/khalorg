@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Callable, Iterable, TypedDict, Union
 
 from khal.cli import build_collection
@@ -200,6 +200,10 @@ class Calendar:
         """
         events: list[Event]
 
+        # khal assumes a length of 1h if the start is a datetime and it's equal to end
+        if type(props["start"]) is datetime and props["end"] == props["start"]:
+            props["end"] = props["start"] + timedelta(hours=1)
+
         if props["uid"]:
             events = self.get_events(props["uid"])
         else:
@@ -305,7 +309,13 @@ class Calendar:
         -------
             list of events
         """
-        end_wanted = end_wanted or start_wanted
+        if end_wanted is None:
+            if type(start_wanted) is date:
+                end_wanted = start_wanted
+            else:
+                # if start and end are datetimes, khal assumes that the event
+                # has a length of one hour
+                end_wanted = start_wanted + timedelta(hours=1)
 
         def exists(summary: str, end: Time) -> bool:
             equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)

@@ -281,6 +281,11 @@ def _sync_test_local(org_file: Path, expected: OrgAgendaItem) -> None:
 
     logging.debug("Expected: %s", expected)
     logging.debug("Actual: %s", actual)
+
+    # The calendar and uid properties shall be set
+    assert actual.properties["CALENDAR"] != ""
+    assert actual.properties["UID"] != ""
+
     assert str(expected) == str(actual)
 
 
@@ -297,6 +302,18 @@ def _sync_test_remote(expected: OrgAgendaItem) -> None:
     expected.properties["UID"] = actual.properties["UID"]
     expected.properties["CALENDAR"] = actual.properties["CALENDAR"]
 
+    # khal assumes a length of 1h if the start is a datetime and it has no end
+    if (
+        type(expected.timestamps[0].start) is datetime
+        and expected.timestamps[0].end is None
+    ):
+        expected.timestamps = [
+            OrgDate(
+                expected.timestamps[0].start,
+                expected.timestamps[0].start + timedelta(hours=1),
+            )
+        ]
+
     logging.debug("khalorg_format: %s", khalorg_format)
     logging.debug("Stdout: %s", stdout)
     logging.debug("Expected: %s", expected)
@@ -304,12 +321,31 @@ def _sync_test_remote(expected: OrgAgendaItem) -> None:
     assert str(expected) == str(actual)
 
 
-def test_sync_pushes_new_events(runner, tmp_path: Path):
+def test_sync_pushes_new_events_with_start_and_end(runner, tmp_path: Path):
     """Sync will push org new events to khal."""
     org_file = tmp_path / "file.org"
     state_dir = tmp_path / "state"
-    start, end = get_start_end(delta=timedelta(hours=1))
-    date = OrgDate(start, end)
+    start, end = get_start_end()
+    date = OrgDate(start, end)  # '<2026-06-06 Sat 14:00--15:00>'
+    org_file.write_text(f"""* new event
+  {str(date)}
+""")
+    expected: OrgAgendaItem = OrgAgendaItem(
+        title="new event", timestamps=[date]
+    )
+
+    sync("one", org_file, state_dir)
+
+    _sync_test_local(org_file, expected)
+    _sync_test_remote(expected)
+
+
+def test_sync_pushes_new_events_with_only_start(runner, tmp_path: Path):
+    """Sync will push org new events to khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start, _ = get_start_end()
+    date = OrgDate(start)  # '<2026-06-06 Sat 14:00'
     org_file.write_text(f"""* new event
   {str(date)}
 """)
