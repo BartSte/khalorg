@@ -326,8 +326,8 @@ def sync(
             # if it has never been pushed to the remote and in the
             # remote doesn't exist. Push the new orgmode event.
             logging.info(
-                f"Pushing new org event {item.uid}: {item.title} to khal "
-                f"calendar {calendar}"
+                f"[org -> khal {calendar}] Pushing new event "
+                f"{item.uid}: {item.title}"
             )
             if not dry_run:
                 new(calendar=calendar, org=str(item))
@@ -351,8 +351,8 @@ def sync(
         elif item == state_item and khal_item and not item.similar(khal_item):
             # khal has been updated
             logging.info(
-                f"Updating org event {item.uid}: {item.title} from khal "
-                f"calendar {calendar}"
+                f"[khal {calendar} -> org] Updating event "
+                f"{item.uid}: {item.title}"
             )
             item.similar(khal_item)
             item = khal_item
@@ -362,8 +362,8 @@ def sync(
         ):
             # org has been updated, so we push to the remote
             logging.info(
-                f"Updating khal event {item.uid}: {item.title} on {calendar} "
-                "from org"
+                f"[org -> khal {calendar}] Updating event "
+                f"{item.uid}: {item.title}"
             )
             if not dry_run:
                 edit(calendar=calendar, edit_dates=edit_dates, org=str(item))
@@ -372,16 +372,16 @@ def sync(
             # time sync is run. So we have a conflict
             if conflict_resolution == "khal":
                 logging.info(
-                    f"Conflict! Updating org event {item.uid}: {item.title} "
-                    f"from khal {calendar} following conflict_resolution "
+                    f"[khal {calendar} -> org] Conflict updating event "
+                    f"{item.uid}: {item.title} following conflict_resolution "
                     f"{conflict_resolution}"
                 )
                 item = khal_item
                 org_agenda.items[i] = item
             else:
                 logging.info(
-                    f"Conflict! Updating khal event {item.uid}: {item.title} "
-                    f"on {calendar} from org following conflict_resolution "
+                    f"[org -> khal {calendar}] Conflict updating event "
+                    f"{item.uid}: {item.title} following conflict_resolution "
                     f"{conflict_resolution}"
                 )
                 if not dry_run:
@@ -406,8 +406,8 @@ def sync(
 
         if org_item is None and not item.similar(state_item):
             logging.info(
-                f"Pushing new khal event {item.uid}: {item.title} to org "
-                f"from calendar {calendar}"
+                f"[khal {calendar} -> org] Pushing new event "
+                f"{item.uid}: {item.title}"
             )
             # if the event has never been added
             org_agenda.items.append(item)
@@ -423,16 +423,16 @@ def sync(
             if item.similar(khal_item) and org_item is None:
                 # It's been removed locally
                 logging.info(
-                    f"Removing deleted org event {item.uid}: {item.title} "
-                    f"from khal calendar {calendar}"
+                    f"[org -> khal {calendar}] Removing deleted event "
+                    f"{item.uid}: {item.title}"
                 )
                 if not dry_run:
                     delete(calendar, org=str(item))
             elif item == org_item and khal_item is None:
                 # It's been removed remotely
                 logging.info(
-                    f"Removing deleted khal event {item.uid}: {item.title} "
-                    f"of calendar {calendar} from org"
+                    f"[khal {calendar} -> org] Removing deleted event "
+                    f"{item.uid}: {item.title}"
                 )
                 org_agenda.items.remove(item)
     if not dry_run:
