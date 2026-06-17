@@ -8,11 +8,11 @@ from typing import Any, Callable
 from click.testing import CliRunner, Result
 from khal.cli import main_khal
 from khal.controllers import Event
+from orgparse.date import OrgDate
+
 from khalorg.khal.args import DeleteArgs, EditArgs, NewArgs
 from khalorg.khal.calendar import Calendar
 from khalorg.org.agenda_items import OrgAgendaItem
-from orgparse.date import OrgDate
-
 from tests import static
 
 

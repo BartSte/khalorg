@@ -6,6 +6,9 @@ from typing import Generator
 
 import orgparse
 from dateutil.rrule import rrule
+from orgparse.date import OrgDate
+from orgparse.node import OrgNode
+
 from khalorg.helpers import get_khalorg_format
 from khalorg.khal.helpers import remove_tzinfo
 from khalorg.org.helpers import (
@@ -18,8 +21,6 @@ from khalorg.rrule import (
     rrulestr_to_rrule,
     set_org_repeater,
 )
-from orgparse.date import OrgDate
-from orgparse.node import OrgNode
 
 Time = date | datetime
 
@@ -509,8 +510,9 @@ class OrgAgendaFile:
 
     def apply_rrules(self) -> "OrgAgendaFile":
         """
-        Applies the RRULE properties of OrgAgendaItems to generate the appropriate
-        OrgDateAgenda objects and applies them to the OrgAgendaItems.
+        Applies the RRULE properties of OrgAgendaItems to generate the
+        appropriate OrgDateAgenda objects and applies them to the
+        OrgAgendaItems.
 
         Returns
         -------
@@ -623,10 +625,9 @@ class OrgDateAgenda:
     Attributes
     ----------
         TIME_STAMPS_TYPES (dict): A dictionary defining the types of timestamps
-            that can be processed by the class.
-        dates (dict): A dictionary containing the dates associated with each UID.
-        rrules (dict): A dictionary containing the recurrence rules associated
-            with each UID.
+        that can be processed by the class. dates (dict): A dictionary
+        containing the dates associated with each UID. rrules (dict): A
+        dictionary containing the recurrence rules associated with each UID.
 
     """
 
@@ -725,7 +726,7 @@ class OrgDateAgenda:
         new_timestamp: bool = all(timestamp != x for x in self.dates[uid])
 
         if (empty_rule and new_timestamp) or (new_rule and supported_rule):
-            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)  # noqa
+            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)
             self.rrules[uid].add(rule)
             self.dates[uid].append(timestamp_with_repeater)
         elif new_rule and not supported_rule:

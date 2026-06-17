@@ -2,9 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
-from khalorg.helpers import (
-    get_khalorg_format,
-)
+from khalorg.helpers import get_khalorg_format
 from khalorg.khal.args import DeleteArgs, EditArgs, KhalArgs, NewArgs
 from khalorg.khal.calendar import Calendar, CalendarProperties
 from khalorg.khal.checker import EventChecker, EventChecks

@@ -190,8 +190,8 @@ class Calendar:
         Args:
         ----
             props: typed dict containing agenda item properties
-            edit_dates: If set to True, the org time stamp and its recurrence are
-            also edited.
+            edit_dates: If set to True, the org time stamp and its recurrence
+            are also edited.
 
         Returns
         -------
