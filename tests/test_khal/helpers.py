@@ -13,7 +13,6 @@ def test_config_khal():
 
 
 class Mixin:
-
     @patch(
         "khalorg.khal.calendar.find_configuration_file", new=test_config_khal
     )

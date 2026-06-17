@@ -12,7 +12,6 @@ from khalorg.rrule import (
 
 
 class TestRrulestrToOrg(TestCase):
-
     def test_is_supported_true(self):
         rule: str = (
             "FREQ=WEEKLY;UNTIL=20230904T113000Z;INTERVAL=1;BYDAY=MO;WKST=MO"
@@ -45,7 +44,6 @@ class TestRrulestrToOrg(TestCase):
 
 
 class TestGetRrule(TestCase):
-
     def test_not_recurring(self):
         result: str = get_rrulestr(datetime.now(), tuple())
         self.assertFalse(result)

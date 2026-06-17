@@ -148,7 +148,6 @@ class NewArgs(KhalArgs):
     def _load_from_org(
         self, time_stamp: OrgDate, item: OrgAgendaItem, format: str
     ) -> "NewArgs":
-
         key_vs_value: tuple[tuple[str, datetime | str], ...] = (
             ("start", time_stamp.start.strftime(format)),
             ("end", self._get_end(time_stamp, format)),

@@ -7,7 +7,6 @@ from khalorg.khal.helpers import set_tzinfo
 
 
 class TestAddTzinfo(TestCase):
-
     def setUp(self) -> None:
         self.time: datetime = datetime(2023, 1, 1, 0, 0)
         self.date: date = datetime.date(self.time)

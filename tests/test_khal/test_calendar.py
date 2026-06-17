@@ -37,7 +37,6 @@ def test_get_calendar_collection_no_config(get_cli_runner):
 
 
 class TestCalendar(Mixin, TestCase):
-
     module: str = "khalorg.khal.calendar.find_configuration_file"
 
     @patch(module, return_value=get_test_config())

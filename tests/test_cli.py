@@ -157,8 +157,6 @@ class TestDelete(TestCase):
         ]
         actual = khalorg_tester(args)
         expected: str = (
-            "'loglevel': 'CRITICAL', "
-            "'logfile': 'foo', "
-            "'calendar': 'calendar'"
+            "'loglevel': 'CRITICAL', 'logfile': 'foo', 'calendar': 'calendar'"
         )
         self.assertTrue(expected in actual)

@@ -283,9 +283,9 @@ def assert_event_created(
     assert len(events) >= 1, f"Number of events was {len(events)}"
 
     assert events[0].uid, "UID is empty"
-    assert (
-        recurring == events[0].recurring
-    ), f"recurring is {events[0].recurring}"
+    assert recurring == events[0].recurring, (
+        f"recurring is {events[0].recurring}"
+    )
 
     return events
 
