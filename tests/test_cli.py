@@ -3,8 +3,8 @@ from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
 
-from khalorg import paths
 import tests
+from khalorg import paths
 from khalorg.helpers import get_default_khalorg_format, get_khalorg_format
 from tests.helpers import get_module_path
 

@@ -1,9 +1,7 @@
 import logging
 import sys
 
-from khalorg.helpers import (
-    get_khalorg_format,
-)
+from khalorg.helpers import get_khalorg_format
 from khalorg.khal.args import DeleteArgs, EditArgs, KhalArgs, NewArgs
 from khalorg.khal.calendar import Calendar, CalendarProperties
 from khalorg.khal.checker import EventChecker, EventChecks
@@ -12,11 +10,12 @@ from khalorg.org.agenda_items import OrgAgendaFile, OrgAgendaItem
 
 
 def list_command(
-        calendar: str,
-        khalorg_format: str | None  = None,
-        start: str = 'today',
-        stop: str = '1d',
-        **_) -> str:
+    calendar: str,
+    khalorg_format: str | None = None,
+    start: str = "today",
+    stop: str = "1d",
+    **_,
+) -> str:
     """
     Lists khal agenda items to org format.
 
@@ -33,10 +32,10 @@ def list_command(
     """
     khalorg_format = khalorg_format or get_khalorg_format()
     args: KhalArgs = KhalArgs()
-    args['-a'] = calendar
-    args['-f'] = get_khal_format()
-    args['start'] = start
-    args['stop'] = stop
+    args["-a"] = calendar
+    args["-f"] = get_khal_format()
+    args["start"] = start
+    args["stop"] = stop
 
     khal_calendar: Calendar = Calendar(calendar)
     org_items: str = khal_calendar.list_command(args.as_list())
@@ -73,14 +72,14 @@ def new(calendar: str, **kwargs) -> str:
         stdout of the `khal new` command
 
     """
-    org = kwargs.get('org', '') or sys.stdin.read()
+    org = kwargs.get("org", "") or sys.stdin.read()
 
     checker: EventChecker = EventChecker()
     checker.remove(EventChecks.UID)
 
     agenda_item: OrgAgendaItem = OrgAgendaItem()
     agenda_item.load_from_str(org)
-    agenda_item.properties['UID'] = ''  # UID must be empty for new item
+    agenda_item.properties["UID"] = ""  # UID must be empty for new item
 
     message: str = checker.is_valid(calendar, agenda_item)
     if not message:
@@ -89,7 +88,7 @@ def new(calendar: str, **kwargs) -> str:
         return stdout
     else:
         logging.critical(message)
-        return ''
+        return ""
 
 
 def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
@@ -111,9 +110,9 @@ def _new(calendar: str, agenda_item: OrgAgendaItem) -> str:
     khal_calendar: Calendar = Calendar(calendar)
 
     args: NewArgs = NewArgs()
-    args['-a'] = calendar
+    args["-a"] = calendar
     args.load_from_org(agenda_item)
-    logging.info(f'Khal new args are: {args.as_list()}')
+    logging.info(f"Khal new args are: {args.as_list()}")
 
     return khal_calendar.new_item(args.as_list())
 
@@ -139,7 +138,7 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
         also edited.
         **_:
     """
-    org = kwargs.get('org', '') or sys.stdin.read()
+    org = kwargs.get("org", "") or sys.stdin.read()
 
     checker: EventChecker = EventChecker()
     checker.remove(EventChecks.DUPLICATE)
@@ -152,12 +151,12 @@ def edit(calendar: str, edit_dates: bool = False, **kwargs) -> str:
         return _edit(calendar, agenda_item, edit_dates)
     else:
         logging.critical(message)
-        return ''
+        return ""
 
 
-def _edit(calendar: str,
-          agenda_item: OrgAgendaItem,
-          edit_dates: bool = False) -> str:
+def _edit(
+    calendar: str, agenda_item: OrgAgendaItem, edit_dates: bool = False
+) -> str:
     """
     Edits `agenda_item` that corresponds to an existing agenda item in a
     khal `calendar`.
@@ -180,20 +179,20 @@ def _edit(calendar: str,
     args: EditArgs = EditArgs()
     args.load_from_org(agenda_item)
     khal_calendar.edit(CalendarProperties(**args), edit_dates)
-    return ''
+    return ""
 
 
 def delete(calendar: str, **kwargs) -> str:
     """TODO
 
     Args:
-        calendar: 
-        **kwargs: 
+        calendar:
+        **kwargs:
 
     Returns:
-        
+
     """
-    org = kwargs.get('org', '') or sys.stdin.read()
+    org = kwargs.get("org", "") or sys.stdin.read()
 
     checker: EventChecker = EventChecker([EventChecks.UID])
     agenda_item: OrgAgendaItem = OrgAgendaItem()
@@ -204,7 +203,7 @@ def delete(calendar: str, **kwargs) -> str:
         return _delete(calendar, agenda_item)
     else:
         logging.critical(message)
-        return ''
+        return ""
 
 
 def _delete(calendar: str, agenda_item: OrgAgendaItem) -> str:

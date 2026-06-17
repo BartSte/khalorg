@@ -4,6 +4,9 @@ from typing import Generator
 
 import orgparse
 from dateutil.rrule import rrule
+from orgparse.date import OrgDate
+from orgparse.node import OrgNode
+
 from khalorg.helpers import get_khalorg_format
 from khalorg.khal.helpers import remove_tzinfo
 from khalorg.org.helpers import (
@@ -16,8 +19,6 @@ from khalorg.rrule import (
     rrulestr_to_rrule,
     set_org_repeater,
 )
-from orgparse.date import OrgDate
-from orgparse.node import OrgNode
 
 Time = date | datetime
 
@@ -27,7 +28,7 @@ class InvalidOrgItemError(Exception):
 
 
 class EmptyOrgItemError(Exception):
-    """ The org agenda is empty. """
+    """The org agenda is empty."""
 
 
 class OrgAgendaItem:
@@ -44,13 +45,15 @@ class OrgAgendaItem:
         body: all text that is not part of PROPERTIES
     """
 
-    MESSAGE_INVALID_NODE: str = 'No agenda item was found.'
+    MESSAGE_INVALID_NODE: str = "No agenda item was found."
 
-    def __init__(self,
-                 title: str = '',
-                 timestamps: list[OrgDate] = [],
-                 properties: dict = {},
-                 description: str = ''):
+    def __init__(
+        self,
+        title: str = "",
+        timestamps: list[OrgDate] = [],
+        properties: dict = {},
+        description: str = "",
+    ):
         """
         Init.
 
@@ -107,13 +110,12 @@ class OrgAgendaItem:
 
         """
         try:
-
             return self.timestamps[0]
         except IndexError as error:
-            message: str = 'Timestamp missing in agenda item'
+            message: str = "Timestamp missing in agenda item"
             raise InvalidOrgItemError(message) from error
 
-    def load_from_str(self, text: str) -> 'OrgAgendaItem':
+    def load_from_str(self, text: str) -> "OrgAgendaItem":
         """
         Loads an agenda item from a str.
 
@@ -129,7 +131,7 @@ class OrgAgendaItem:
         node: OrgNode = orgparse.loads(text)
         return self.load_from_org_node(node)
 
-    def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
+    def load_from_org_node(self, node: OrgNode) -> "OrgAgendaItem":
         """
         Load an agenda item from an `OrgNode`.
 
@@ -144,10 +146,8 @@ class OrgAgendaItem:
         """
         item: OrgNode = self.get_first_agenda_item(node)
         kwargs: dict[str, bool] = dict(
-            active=True,
-            inactive=False,
-            range=True,
-            point=True)
+            active=True, inactive=False, range=True, point=True
+        )
 
         self.title = item.heading
         self.properties = item.properties
@@ -189,7 +189,7 @@ class OrgAgendaItem:
             end date of recurring items as an OrgDate
 
         """
-        until: OrgDate = timestamp_to_orgdate(self.properties.get('UNTIL', ''))
+        until: OrgDate = timestamp_to_orgdate(self.properties.get("UNTIL", ""))
         start: datetime | date = until.start
         has_time = isinstance(start, datetime)
 
@@ -219,16 +219,16 @@ class OrgAgendaItem:
         -------
             the until part of the RRULE property
         """
-        rrulestr: str = self.properties.get('RRULE', '')
+        rrulestr: str = self.properties.get("RRULE", "")
         try:
             rule: rrule = rrulestr_to_rrule(rrulestr)
             until: Time = remove_tzinfo(rule._until)
             return str(OrgDate(until, active=False))
         except (AttributeError, ValueError):
-            return ''  # No RRULE or until date found
+            return ""  # No RRULE or until date found
 
     @classmethod
-    def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':
+    def from_node(cls, node: OrgNode) -> "OrgAgendaItem":
         """
         Constructs an OrgAgendaItem object from an OrgNode.
 
@@ -247,11 +247,11 @@ class OrgAgendaItem:
         try:
             return self.compare(self, other)
         except AttributeError as error:
-            message: str = 'Try using a object of type OrgAgendaItem.'
+            message: str = "Try using a object of type OrgAgendaItem."
             raise AttributeError(message) from error
 
     @staticmethod
-    def compare(a: 'OrgAgendaItem', b: 'OrgAgendaItem') -> bool:
+    def compare(a: "OrgAgendaItem", b: "OrgAgendaItem") -> bool:
         """
         The equality of the `vars` of a and b should all be True.
 
@@ -271,7 +271,7 @@ class OrgAgendaItem:
         time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
         return attribute_equal and time_stamps_equal
 
-    def split_property(self, key: str, delimiter: str = ', ') -> list:
+    def split_property(self, key: str, delimiter: str = ", ") -> list:
         """
         It is assumed that the value is stored as a str that is separated by a
         `delimiter`. This function splits this string into a list using the
@@ -334,26 +334,27 @@ class OrgAgendaItem:
             the formatted `spec`
 
         """
-        uid: str = str(self.properties.get('UID', ''))
+        uid: str = str(self.properties.get("UID", ""))
 
         try:
             return spec.format(
                 title=self.title,
                 timestamps=self.get_timestamps_as_str(spec),
-                attendees=self.properties.get('ATTENDEES', ''),
-                calendar=self.properties.get('CALENDAR', ''),
-                categories=self.properties.get('CATEGORIES', ''),
+                attendees=self.properties.get("ATTENDEES", ""),
+                calendar=self.properties.get("CALENDAR", ""),
+                categories=self.properties.get("CATEGORIES", ""),
                 uid=uid,
-                location=self.properties.get('LOCATION', ''),
-                organizer=self.properties.get('ORGANIZER', ''),
-                rrule=self.properties.get('RRULE', ''),
-                status=self.properties.get('STATUS', ''),
-                url=self.properties.get('URL', ''),
-                until=self.properties.get('UNTIL', ''),
+                location=self.properties.get("LOCATION", ""),
+                organizer=self.properties.get("ORGANIZER", ""),
+                rrule=self.properties.get("RRULE", ""),
+                status=self.properties.get("STATUS", ""),
+                url=self.properties.get("URL", ""),
+                until=self.properties.get("UNTIL", ""),
                 until_rrule=self.until_rrule,
-                description=self.description)
+                description=self.description,
+            )
         except KeyError as error:
-            message: str = 'Unsupported key encountered in `spec`'
+            message: str = "Unsupported key encountered in `spec`"
             raise KeyError(message) from error
 
     def get_timestamps_as_str(self, spec: str) -> str:
@@ -370,19 +371,21 @@ class OrgAgendaItem:
             the indented timestamps
 
         """
-        timestamp_indents: list = get_indent(spec, '{timestamps}')
+        timestamp_indents: list = get_indent(spec, "{timestamps}")
         generator: Generator = (str(x) for x in self.timestamps)
 
         if len(timestamp_indents) > 1:
-            logging.warning('Only 1 timestamp indent is supported. First '
-                            'indent found is used.')
+            logging.warning(
+                "Only 1 timestamp indent is supported. First "
+                "indent found is used."
+            )
 
         try:
             space = timestamp_indents[0]
         except IndexError:
-            return '\n'.join(generator)
+            return "\n".join(generator)
         else:
-            return f'\n{space}'.join(generator)
+            return f"\n{space}".join(generator)
 
 
 class OrgAgendaFile:
@@ -417,13 +420,15 @@ class OrgAgendaFile:
             None.
         """
         self.nodes: OrgNode = nodes
-        self.items: list[OrgAgendaItem] = [OrgAgendaItem.from_node(x)
-                                           for x in nodes if not x.is_root()]
+        self.items: list[OrgAgendaItem] = [
+            OrgAgendaItem.from_node(x) for x in nodes if not x.is_root()
+        ]
 
-    def apply_rrules(self) -> 'OrgAgendaFile':
+    def apply_rrules(self) -> "OrgAgendaFile":
         """
-        Applies the RRULE properties of OrgAgendaItems to generate the appropriate
-        OrgDateAgenda objects and applies them to the OrgAgendaItems.
+        Applies the RRULE properties of OrgAgendaItems to generate the
+        appropriate OrgDateAgenda objects and applies them to the
+        OrgAgendaItems.
 
         Returns
         -------
@@ -434,10 +439,10 @@ class OrgAgendaFile:
         agenda_timestamps = OrgDateAgenda(self.nodes)
 
         for item in self.items:
-            uid: str = item.properties['UID']
+            uid: str = item.properties["UID"]
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
-                item.properties['RRULE'] = agenda_timestamps.get_rrulestr(uid)
+                item.properties["RRULE"] = agenda_timestamps.get_rrulestr(uid)
                 uids.add(uid)
                 items.append(item)
 
@@ -456,10 +461,10 @@ class OrgAgendaFile:
         -------
             A formatted string.
         """
-        return '\n'.join(format(x, spec) for x in self.items)
+        return "\n".join(format(x, spec) for x in self.items)
 
-    @ classmethod
-    def from_str(cls, items: str) -> 'OrgAgendaFile':
+    @classmethod
+    def from_str(cls, items: str) -> "OrgAgendaFile":
         """
         Creates a new instance of the OrgAgendaFile class from a string
         representation of the org file.
@@ -474,7 +479,7 @@ class OrgAgendaFile:
         -------
             An instance of the OrgAgendaFile class.
         """
-        items = items or '\n'
+        items = items or "\n"
         return cls(orgparse.loads(items))
 
 
@@ -494,18 +499,14 @@ class OrgDateAgenda:
     Attributes
     ----------
         TIME_STAMPS_TYPES (dict): A dictionary defining the types of timestamps
-            that can be processed by the class.
-        dates (dict): A dictionary containing the dates associated with each UID.
-        rrules (dict): A dictionary containing the recurrence rules associated
-            with each UID.
+        that can be processed by the class. dates (dict): A dictionary
+        containing the dates associated with each UID. rrules (dict): A
+        dictionary containing the recurrence rules associated with each UID.
 
     """
 
     TIME_STAMPS_TYPES: dict = dict(
-        active=True,
-        inactive=False,
-        range=True,
-        point=True
+        active=True, inactive=False, range=True, point=True
     )
 
     def __init__(self, nodes: OrgNode | None = None) -> None:
@@ -527,7 +528,7 @@ class OrgDateAgenda:
             self.add_node(nodes)
 
     @classmethod
-    def from_str(cls, org_file: str) -> 'OrgDateAgenda':
+    def from_str(cls, org_file: str) -> "OrgDateAgenda":
         """
         Creates a new instance of the OrgDateAgenda class from a string.
 
@@ -599,7 +600,7 @@ class OrgDateAgenda:
         new_timestamp: bool = all(timestamp != x for x in self.dates[uid])
 
         if (empty_rule and new_timestamp) or (new_rule and supported_rule):
-            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)  # noqa
+            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)
             self.rrules[uid].add(rule)
             self.dates[uid].append(timestamp_with_repeater)
         elif new_rule and not supported_rule:
@@ -618,9 +619,8 @@ class OrgDateAgenda:
         return list(self.dates.keys())
 
     def _parse_node(
-            self,
-            node: OrgNode,
-            allow_short_range: bool = False) -> tuple:
+        self, node: OrgNode, allow_short_range: bool = False
+    ) -> tuple:
         """
         Returns the UID, the timestamp, and the RRULE from an OrgNode.
 
@@ -634,8 +634,8 @@ class OrgDateAgenda:
             the UID, timestamp, and RRULE property of an OrgNode.
 
         """
-        uid: str = str(node.properties.get('UID', ''))
-        rule: str = str(node.properties.get('RRULE', ''))
+        uid: str = str(node.properties.get("UID", ""))
+        rule: str = str(node.properties.get("RRULE", ""))
         timestamp: OrgDate = node.get_timestamps(**self.TIME_STAMPS_TYPES)[0]
         timestamp._allow_short_range = allow_short_range
 
@@ -653,7 +653,7 @@ class OrgDateAgenda:
         -------
             item as a str
         """
-        return '\n'.join([str(x) for x in self.dates[uid]])
+        return "\n".join([str(x) for x in self.dates[uid]])
 
     def get_rrulestr(self, uid: str) -> str:
         """
@@ -670,4 +670,4 @@ class OrgDateAgenda:
 
         """
         rules: set = self.rrules[uid] | self.unsupported_rrules[uid]
-        return ';'.join([x for x in rules if x])
+        return ";".join([x for x in rules if x])
