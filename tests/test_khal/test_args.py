@@ -129,9 +129,7 @@ class TestEditArgs(Mixin, TestCase):
             location="Somewhere",
             attendees=["test@test.com", "test2@test.com"],
             categories=["Something"],
-            description=(
-                "Hello,\n\n  Lets have a meeting.\n\n  Regards,\n\n\n  Someone",
-            ),
+            description=Recurring.description,
         )
 
         org_str: str = read_org_test_file("recurring.org")
