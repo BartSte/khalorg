@@ -62,6 +62,17 @@ class TestOrgAgendaItem(TestCase):
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
 
+    def test_not_eq_when_other_item_has_an_extra_property(self):
+        """Properties present on only one item must make items unequal."""
+        a = OrgAgendaItem(title="event", properties={"UID": "123"})
+        b = OrgAgendaItem(
+            title="event",
+            properties={"UID": "123", "LOCATION": "office"},
+        )
+
+        self.assertNotEqual(a, b)
+        self.assertNotEqual(b, a)
+
     def test_eq_even_if_whitespace_mismatch(self):
         """
         Two objects with the same arguments even if they differ in trailing

@@ -1,4 +1,3 @@
-from inspect import Attribute
 import logging
 from datetime import date, datetime
 from pathlib import Path
@@ -308,22 +307,23 @@ class OrgAgendaItem:
                     f"has {getattr(a, x)} the other has {getattr(b, x)}."
                 )
                 attribute_equal = False
-        try:
-            properties_equal = True
-            for property in a.properties.keys():
-                if (
-                    property not in exclude
-                    and a.properties[property] != b.properties[property]
-                ):
-                    logging.debug(
-                        f"There is a mismatch in the property {property}, one "
-                        f"has {a.properties[property]} the other "
-                        f"has {b.properties[property]}."
-                    )
-                    properties_equal = False
-        except KeyError:
-            logging.debug("One element has more properties than the other")
-            properties_equal = False
+        a_properties = {
+            key: value
+            for key, value in a.properties.items()
+            if key not in exclude
+        }
+        b_properties = {
+            key: value
+            for key, value in b.properties.items()
+            if key not in exclude
+        }
+        properties_equal = a_properties == b_properties
+        if not properties_equal:
+            logging.debug(
+                "The properties don't match %s vs %s",
+                a_properties,
+                b_properties,
+            )
         time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
         if not time_stamps_equal:
             logging.debug(
@@ -350,7 +350,9 @@ class OrgAgendaItem:
         """
         if other is None:
             return False
-        return self.compare(self, other, exclude=["RRULE", "UNTIL"])
+        excluded_properties = ["RRULE", "UNTIL"]
+        excluded_properties.extend(other.properties.keys() - self.properties)
+        return self.compare(self, other, exclude=excluded_properties)
 
     def split_property(self, key: str, delimiter: str = ", ") -> list:
         """

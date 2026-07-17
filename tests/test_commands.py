@@ -413,8 +413,14 @@ def test_sync_doesnt_pull_new_events_on_dry_run(runner, tmp_path: Path):
 
     sync("one", org_file, state_dir, dry_run=True)
 
-    assert org_file.read_text() == ""
-    _sync_test_remote(expected)
+    assert not org_file.exists()
+    assert not state_dir.exists()
+    events = Calendar("one").get_events_no_uid(
+        summary_wanted=expected.title,
+        start_wanted=expected.timestamps[0].start,
+        end_wanted=expected.timestamps[0].end,
+    )
+    assert len(events) == 1
 
 
 @pytest.mark.parametrize("dry_run", [False, True])
@@ -434,6 +440,33 @@ def test_sync_pushes_local_edits(runner, tmp_path: Path, dry_run: bool):
 
     _sync_test_local(org_file, expected)
     _sync_test_remote(initial if dry_run else expected)
+
+
+def test_sync_pushes_removed_local_properties(runner, tmp_path: Path):
+    """Removing an org property must clear its value in khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar = Calendar("one")
+    initial = get_org_item()
+    new("one", org=str(initial))
+    uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    content = "\n".join(
+        line
+        for line in org_file.read_text().splitlines()
+        if not line.strip().startswith(":LOCATION:")
+    )
+    org_file.write_text(content)
+
+    sync("one", org_file, state_dir)
+
+    assert khal_calendar.get_events(uid)[0].location == ""
 
 
 @pytest.mark.parametrize("dry_run", [False, True])
