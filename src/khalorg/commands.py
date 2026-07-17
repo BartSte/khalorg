@@ -14,11 +14,11 @@ from khalorg.org.agenda_items import (
 from khalorg.synchronization import (
     ConflictResolution,
     SyncContext,
-    _load_sync_agenda,
-    _pull_khal_changes,
-    _push_org_changes,
-    _remove_deleted_items,
-    _write_sync_files,
+    load_sync_agenda,
+    pull_khal_changes,
+    push_org_changes,
+    remove_deleted_items,
+    write_sync_files,
 )
 
 
@@ -310,8 +310,8 @@ def sync(
     state_file = state_dir / f"{calendar}.org"
     filetags = filetags or []
 
-    org_agenda = _load_sync_agenda(org_file)
-    state_agenda = _load_sync_agenda(state_file)
+    org_agenda = load_sync_agenda(org_file)
+    state_agenda = load_sync_agenda(state_file)
     khal_agenda = _list(calendar=calendar, start=start, stop=stop)
     context = SyncContext(
         calendar=calendar,
@@ -321,25 +321,25 @@ def sync(
         khal_agenda=khal_agenda,
         dry_run=dry_run,
     )
-    processed_uids = _push_org_changes(
+    processed_uids = push_org_changes(
         context=context,
         edit_dates=edit_dates,
         conflict_resolution=conflict_resolution,
         new_command=new,
         edit_command=edit,
     )
-    _pull_khal_changes(
+    pull_khal_changes(
         context=context,
         processed_uids=processed_uids,
     )
     if delete_on_sync:
-        _remove_deleted_items(
+        remove_deleted_items(
             context=context,
             processed_uids=processed_uids,
             delete_command=delete,
         )
     if not dry_run:
-        _write_sync_files(
+        write_sync_files(
             org_file=org_file,
             state_file=state_file,
             org_agenda=org_agenda,

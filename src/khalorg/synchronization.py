@@ -31,14 +31,14 @@ class SyncContext:
     dry_run: bool
 
 
-def _load_sync_agenda(path: Path) -> OrgAgendaFile:
+def load_sync_agenda(path: Path) -> OrgAgendaFile:
     """Load an org agenda without creating a missing file."""
     if path.exists():
         return OrgAgendaFile.from_path(path)
     return OrgAgendaFile.from_str("")
 
 
-def _push_org_changes(
+def push_org_changes(
     context: SyncContext,
     edit_dates: bool,
     conflict_resolution: ConflictResolution,
@@ -138,7 +138,7 @@ def _push_org_changes(
     return processed_uids
 
 
-def _pull_khal_changes(
+def pull_khal_changes(
     context: SyncContext,
     processed_uids: set[str | None],
 ) -> None:
@@ -157,7 +157,7 @@ def _pull_khal_changes(
             context.org_agenda.items.append(item)
 
 
-def _remove_deleted_items(
+def remove_deleted_items(
     context: SyncContext,
     processed_uids: set[str | None],
     delete_command: SyncCommand,
@@ -184,7 +184,7 @@ def _remove_deleted_items(
             context.org_agenda.items.remove(item)
 
 
-def _write_sync_files(
+def write_sync_files(
     org_file: Path,
     state_file: Path,
     org_agenda: OrgAgendaFile,
