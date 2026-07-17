@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Iterable
 from datetime import date, datetime, timedelta
-from typing import Callable, Iterable, TypedDict, Union
+from typing import Callable, TypedDict, Union
 
 from khal.cli import build_collection
 from khal.controllers import Event
