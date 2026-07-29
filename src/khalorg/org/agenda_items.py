@@ -296,17 +296,44 @@ class OrgAgendaItem:
         """
         if b is None:
             return False
-        exclude = exclude or []
+
+        return all(
+            (
+                OrgAgendaItem._attributes_match(a, b),
+                OrgAgendaItem._properties_match(a, b, exclude or []),
+                OrgAgendaItem._timestamps_match(a, b),
+            )
+        )
+
+    @staticmethod
+    def _attributes_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+    ) -> bool:
+        """Compare attributes other than properties and timestamps."""
         attribute_equal = True
-        for x in vars(a).keys():
-            if x not in ["properties", "_timestamps"] and getattr(
-                a, x
-            ) != getattr(b, x):
-                logging.debug(
-                    f"There is a mismatch in the attribute {x}, one "
-                    f"has {getattr(a, x)} the other has {getattr(b, x)}."
-                )
-                attribute_equal = False
+        for attribute in vars(a):
+            if attribute in {"properties", "_timestamps"}:
+                continue
+            if getattr(a, attribute) == getattr(b, attribute):
+                continue
+            logging.debug(
+                "There is a mismatch in the attribute %s, one has %s "
+                "the other has %s.",
+                attribute,
+                getattr(a, attribute),
+                getattr(b, attribute),
+            )
+            attribute_equal = False
+        return attribute_equal
+
+    @staticmethod
+    def _properties_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+        exclude: list[str],
+    ) -> bool:
+        """Compare properties after removing explicitly excluded keys."""
         a_properties = {
             key: value
             for key, value in a.properties.items()
@@ -324,12 +351,22 @@ class OrgAgendaItem:
                 a_properties,
                 b_properties,
             )
-        time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
-        if not time_stamps_equal:
+        return properties_equal
+
+    @staticmethod
+    def _timestamps_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+    ) -> bool:
+        """Compare normalized timestamp representations."""
+        timestamps_equal = str(a.timestamps) == str(b.timestamps)
+        if not timestamps_equal:
             logging.debug(
-                f"The timestamps don't match {a.timestamps} vs {b.timestamps}"
+                "The timestamps don't match %s vs %s",
+                a.timestamps,
+                b.timestamps,
             )
-        return attribute_equal and properties_equal and time_stamps_equal
+        return timestamps_equal
 
     def similar(self, other: "OrgAgendaItem | None") -> bool:
         """
