@@ -54,14 +54,6 @@ def read_org_test_file(org_file: str) -> str:
         return org.read()
 
 
-def compare_without_white_space(a, b) -> bool:
-    return compare_with_exclude(a, b, ("", "\n", "\t"))
-
-
-def compare_with_exclude(a: str, b: str, excludes: tuple = tuple()) -> bool:
-    return _filter(a, excludes) == _filter(b, excludes)
-
-
 def _filter(text: str, excludes: tuple) -> list:
     return [x for x in text.splitlines() if x not in excludes]
 
@@ -315,7 +307,7 @@ def assert_event_edited(
 ):
     """
     Asserts whether the event, defined by event_props, start, and end
-    exitst.
+    exists.
 
     Args:
     ----
@@ -346,7 +338,9 @@ def assert_event_edited(
     expected: list[str] = _get_expected_list_command(
         calendar, org_item, list_fields, count
     )
-    assert all(x in result.output for x in expected)
+    # Some versions of icalendar escapes the commas in the CATEGORIES
+    # section which makes similar objects differ.
+    assert all(x in result.output.replace("\\,", ",") for x in expected)
 
 
 def _get_expected_list_command(

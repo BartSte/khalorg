@@ -1,13 +1,34 @@
+from datetime import date, datetime, timedelta
+from pathlib import Path
+import copy
 import logging
 from datetime import date, datetime, timedelta
 from os.path import join
+from tests import static
+from tests.helpers import (
+    assert_event_created,
+    assert_event_deleted,
+    assert_event_edited,
+    get_module_path,
+    get_org_item,
+    get_start_end,
+    khal_runner,
+)
 from typing import Callable, Generator
 
 import pytest
 from khal.cli import main_khal
 from orgparse.date import OrgDate
 
-from khalorg.commands import _delete, _edit, _new, delete, list_command, new
+from khalorg.commands import (
+    _delete,
+    _edit,
+    _new,
+    delete,
+    list_command,
+    new,
+    sync,
+)
 from khalorg.khal.calendar import Calendar
 from khalorg.org.agenda_items import OrgAgendaItem
 from tests import static
@@ -32,9 +53,9 @@ def get_cli_runner(tmpdir, monkeypatch) -> Callable:
 @pytest.fixture
 def runner(get_cli_runner, monkeypatch) -> Generator:
     """
-    Returns a test runnen that is created by CliRunner.
+    Returns a test runner that is created by CliRunner.
 
-    The Calendar.new_item is monkeypatched to enable using the temporarly
+    The Calendar.new_item is monkeypatched to enable using the temporarily
     created calendar.
 
     Args:
@@ -68,7 +89,7 @@ def runner(get_cli_runner, monkeypatch) -> Generator:
 
 def test_list(runner):
     """
-    The list_command function is expected to retrun the same item as
+    The list_command function is expected to return the same item as
     `expected`.
     """
     expected: OrgAgendaItem = get_org_item()
@@ -257,3 +278,483 @@ def test_delete(runner):
     expected.properties["UID"] = str(events[0].uid)
     delete("one", org=str(expected))
     assert_event_deleted("one", expected)
+
+
+def _sync_test_local(org_file: Path, expected: OrgAgendaItem) -> None:
+    assert org_file.exists()
+    actual: OrgAgendaItem = OrgAgendaItem()
+    actual.load_from_str(org_file.read_text())
+
+    # UID and CALENDAR are changed in the process.
+    expected.properties["UID"] = actual.properties["UID"]
+    expected.properties["CALENDAR"] = actual.properties["CALENDAR"]
+
+    logging.debug("Expected: %s", expected)
+    logging.debug("Actual: %s", actual)
+
+    # The calendar and uid properties shall be set
+    assert actual.properties["CALENDAR"] != ""
+    assert actual.properties["UID"] != ""
+
+    assert str(expected) == str(actual)
+
+
+def _sync_test_remote(expected: OrgAgendaItem) -> None:
+    format_file: str = join(get_module_path(static), "khalorg_format_full.txt")
+    with open(format_file) as f:
+        khalorg_format: str = f.read()
+
+    actual: OrgAgendaItem = OrgAgendaItem()
+    stdout: str = list_command("one", khalorg_format)
+    actual.load_from_str(stdout)
+
+    # UID and CALENDAR are changed in the process.
+    expected.properties["UID"] = actual.properties["UID"]
+    expected.properties["CALENDAR"] = actual.properties["CALENDAR"]
+
+    # khal assumes a length of 1h if the start is a datetime and it has no end
+    if (
+        type(expected.timestamps[0].start) is datetime
+        and expected.timestamps[0].end is None
+    ):
+        expected.timestamps = [
+            OrgDate(
+                expected.timestamps[0].start,
+                expected.timestamps[0].start + timedelta(hours=1),
+            )
+        ]
+
+    logging.debug("khalorg_format: %s", khalorg_format)
+    logging.debug("Stdout: %s", stdout)
+    logging.debug("Expected: %s", expected)
+    logging.debug("Actual: %s", actual)
+    assert str(expected) == str(actual)
+
+
+def test_sync_pushes_new_events_with_start_and_end(runner, tmp_path: Path):
+    """Sync will push org new events to khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start, end = get_start_end()
+    date = OrgDate(start, end)  # '<2026-06-06 Sat 14:00--15:00>'
+    org_file.write_text(f"""* new event
+  {str(date)}
+""")
+    expected: OrgAgendaItem = OrgAgendaItem(
+        title="new event", timestamps=[date]
+    )
+
+    sync("one", org_file, state_dir)
+
+    _sync_test_local(org_file, expected)
+    _sync_test_remote(expected)
+
+
+def test_sync_pushes_new_events_with_only_start(runner, tmp_path: Path):
+    """Sync will push org new events to khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start, _ = get_start_end()
+    date = OrgDate(start)  # '<2026-06-06 Sat 14:00'
+    org_file.write_text(f"""* new event
+  {str(date)}
+""")
+    expected: OrgAgendaItem = OrgAgendaItem(
+        title="new event", timestamps=[date]
+    )
+
+    sync("one", org_file, state_dir)
+
+    _sync_test_local(org_file, expected)
+    _sync_test_remote(expected)
+
+
+def test_sync_doesnt_push_new_events_on_dry_run(runner, tmp_path: Path):
+    """Sync will push org new events to khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start, end = get_start_end(delta=timedelta(hours=1))
+    date = OrgDate(start, end)
+    org_file.write_text(f"""* new event
+  {str(date)}
+""")
+    expected: OrgAgendaItem = OrgAgendaItem(
+        title="new event", timestamps=[date]
+    )
+
+    sync("one", org_file, state_dir, dry_run=True)
+
+    format_file: str = join(get_module_path(static), "khalorg_format_full.txt")
+    with open(format_file) as f:
+        khalorg_format: str = f.read()
+
+    assert list_command("one", khalorg_format) == ""
+
+
+def test_sync_pulls_new_events(runner, tmp_path: Path):
+    """Sync will pull org new events from khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    expected: OrgAgendaItem = get_org_item()
+    new("one", org=str(expected))
+
+    sync("one", org_file, state_dir)
+
+    _sync_test_local(org_file, expected)
+    _sync_test_remote(expected)
+
+
+def test_sync_doesnt_pull_new_events_on_dry_run(runner, tmp_path: Path):
+    """Sync will pull org new events from khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    expected: OrgAgendaItem = get_org_item()
+    new("one", org=str(expected))
+
+    sync("one", org_file, state_dir, dry_run=True)
+
+    assert not org_file.exists()
+    assert not state_dir.exists()
+    events = Calendar("one").get_events_no_uid(
+        summary_wanted=expected.title,
+        start_wanted=expected.timestamps[0].start,
+        end_wanted=expected.timestamps[0].end,
+    )
+    assert len(events) == 1
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_pushes_local_edits(runner, tmp_path: Path, dry_run: bool):
+    """Sync will push org edits to khal events; dry_run skips the remote push."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    sync("one", org_file, state_dir)
+    expected = copy.deepcopy(initial)
+    expected.title = "edited summary"
+    content = org_file.read_text().replace("summary", expected.title)
+    org_file.write_text(content)
+
+    sync("one", org_file, state_dir, dry_run=dry_run)
+
+    _sync_test_local(org_file, expected)
+    _sync_test_remote(initial if dry_run else expected)
+
+
+def test_sync_pushes_removed_local_properties(runner, tmp_path: Path):
+    """Removing an org property must clear its value in khal."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar = Calendar("one")
+    initial = get_org_item()
+    new("one", org=str(initial))
+    uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    content = "\n".join(
+        line
+        for line in org_file.read_text().splitlines()
+        if not line.strip().startswith(":LOCATION:")
+    )
+    org_file.write_text(content)
+
+    sync("one", org_file, state_dir)
+
+    assert khal_calendar.get_events(uid)[0].location == ""
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_pulls_remote_edits(runner, tmp_path: Path, dry_run: bool):
+    """Sync will pull remote edits into the org file; dry_run skips the local write."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    expected = copy.deepcopy(initial)
+    expected.title = "updated summary"
+    expected.properties["UID"] = new_item_uid
+    _edit("one", expected)
+    _sync_test_remote(expected)
+
+    sync("one", org_file, state_dir, dry_run=dry_run)
+
+    _sync_test_remote(expected)
+    _sync_test_local(org_file, initial if dry_run else expected)
+
+
+def test_sync_solves_conflicts_edits_favoring_khal_by_default(
+    runner, tmp_path: Path
+):
+    """If event has changed both in org and khal, favour khal by default."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    expected = copy.deepcopy(initial)
+    expected.title = "khal edited summary"
+    expected.properties["UID"] = new_item_uid
+    _edit("one", expected)
+    _sync_test_remote(expected)
+    local_changes = org_file.read_text().replace(
+        "summary", "org edited summary"
+    )
+    org_file.write_text(local_changes)
+
+    sync("one", org_file, state_dir)
+
+    _sync_test_remote(expected)
+    _sync_test_local(org_file, expected)
+
+
+def test_sync_doesnt_solve_conflicts_edits_favoring_khal_by_default_on_dry_run(
+    runner, tmp_path: Path
+):
+    """If event has changed both in org and khal, favour khal by default."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    expected = copy.deepcopy(initial)
+    expected.title = "khal edited summary"
+    expected.properties["UID"] = new_item_uid
+    _edit("one", expected)
+    _sync_test_remote(expected)
+    local_changes = org_file.read_text().replace(
+        "summary", "org edited summary"
+    )
+    org_file.write_text(local_changes)
+
+    sync("one", org_file, state_dir, dry_run=True)
+
+    _sync_test_remote(expected)
+    assert org_file.read_text() == local_changes
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_solves_conflicts_edits_favoring_org_by_choice(
+    runner, tmp_path: Path, dry_run: bool
+):
+    """Conflict with org wins; dry_run skips pushing org's version to remote."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    remote_edit = copy.deepcopy(initial)
+    remote_edit.title = "khal edited summary"
+    remote_edit.properties["UID"] = new_item_uid
+    _edit("one", remote_edit)
+    _sync_test_remote(remote_edit)
+    local_changes = org_file.read_text().replace(
+        "summary", "org edited summary"
+    )
+    expected = copy.deepcopy(initial)
+    expected.title = "org edited summary"
+    org_file.write_text(local_changes)
+
+    sync("one", org_file, state_dir, conflict_resolution="org", dry_run=dry_run)
+
+    _sync_test_remote(remote_edit if dry_run else expected)
+    _sync_test_local(org_file, expected)
+
+
+def test_sync_deletes_local_removed_events(runner, tmp_path: Path):
+    """If a synced event is removed from org, it's removed from the remote"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir, delete_on_sync=True)
+
+    assert org_file.read_text() == ""
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+
+
+def test_sync_doesnt_delete_local_removed_events_on_dry_run(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from org, it's removed from the remote"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir, delete_on_sync=True, dry_run=True)
+
+    assert org_file.read_text() == ""
+    assert len(khal_calendar.get_events(new_item_uid)) == 1
+
+
+def test_sync_doesnt_delete_local_removed_events_by_default(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from org, it's removed from the remote"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    sync("one", org_file, state_dir)
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir)
+
+    assert org_file.read_text() == ""
+    assert len(khal_calendar.get_events(new_item_uid)) == 1
+
+
+def test_sync_deletes_remote_removed_events(runner, tmp_path: Path):
+    """If a synced event is removed from khal, it's removed from the local"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    initial.properties["UID"] = new_item_uid
+    sync("one", org_file, state_dir)
+    delete("one", org=str(initial))
+
+    sync("one", org_file, state_dir, delete_on_sync=True)
+
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+    assert org_file.read_text() == ""
+
+
+def test_sync_doesnt_delete_remote_removed_events_on_dry_run(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from khal, it's removed from the local"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    initial.properties["UID"] = new_item_uid
+    sync("one", org_file, state_dir)
+    delete("one", org=str(initial))
+
+    sync("one", org_file, state_dir, delete_on_sync=True, dry_run=True)
+
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+    _sync_test_local(org_file, initial)
+
+
+def test_sync_doesnt_delete_remote_removed_events_by_default(
+    runner, tmp_path: Path
+):
+    """If a synced event is removed from khal, it's removed from the local"""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    khal_calendar: Calendar = Calendar("one")
+    initial: OrgAgendaItem = get_org_item()
+    new("one", org=str(initial))
+    new_item_uid = str(
+        khal_calendar.get_events_no_uid(
+            summary_wanted=initial.title,
+            start_wanted=initial.timestamps[0].start,
+            end_wanted=initial.timestamps[0].end,
+        )[0].uid
+    )
+    initial.properties["UID"] = new_item_uid
+    sync("one", org_file, state_dir)
+    delete("one", org=str(initial))
+
+    sync("one", org_file, state_dir)
+
+    assert len(khal_calendar.get_events(new_item_uid)) == 0
+    _sync_test_local(org_file, initial)
+
+
+def test_sync_adds_filetags(runner, tmp_path: Path):
+    """Sync adds filetags when defined."""
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    expected: OrgAgendaItem = get_org_item()
+    new("one", org=str(expected))
+
+    sync("one", org_file, state_dir, filetags=["one", "two"])
+
+    assert "#+FILETAGS: :one:two:" in org_file.read_text()

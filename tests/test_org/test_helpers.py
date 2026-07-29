@@ -5,7 +5,7 @@ from orgparse.date import OrgDate
 from khalorg.org.helpers import timestamp_to_orgdate
 
 
-class TestTimestampToOrgdat(TestCase):
+class TestTimestampToOrgdate(TestCase):
     DATE: str = "2023-01-02 Mon"
     EXPECTED: OrgDate = OrgDate.from_str(DATE)
 

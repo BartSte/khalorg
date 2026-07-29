@@ -62,7 +62,7 @@ def get_indent(text: str, piece: str) -> list:
 class OrgRegex:
     """Regex used for org timestamps."""
 
-    day: str = "[A-Z]{1}[a-z]{2}"
+    day: str = "[^\W\d_]{3}"  # matches 3 letter unicode word: Sun, mié...
     time: str = "[0-9]{2}:[0-9]{2}"
     date: str = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
     repeater: str = "[-+]{1,2}[0-9]+[a-z]+"

@@ -6,6 +6,7 @@ from khalorg import static
 root: str = dirname(__file__)
 log_file: str = expanduser("~/.local/state/khalorg.log")
 config_dir: str = expanduser("~/.config/khalorg")
+state_dir: str = expanduser("~/.local/share/khalorg")
 static_dir: str = dirname(getfile(static))
 
 format: str = join(config_dir, "khalorg_format.txt")

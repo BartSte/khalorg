@@ -1,6 +1,7 @@
 import logging
-from datetime import date, datetime
-from typing import Callable, Iterable, TypedDict, Union
+from collections.abc import Iterable
+from datetime import date, datetime, timedelta
+from typing import Callable, TypedDict, Union
 
 from khal.cli import build_collection
 from khal.controllers import Event
@@ -128,7 +129,7 @@ class Calendar:
         -------
             stdout of the `khal list`
         """
-        logging.info(f"khalorg list args are: {khal_args}")
+        logging.debug(f"khalorg list args are: {khal_args}")
         return self._list_command(khal_args)
 
     @property
@@ -184,7 +185,7 @@ class Calendar:
         created when using, for example, the `khalorg new` command.
 
         When editing a list of recurring events, khal will update the PROTO
-        event, i.e., the series of events, not the occurence. Therefore, only
+        event, i.e., the series of events, not the occurrence. Therefore, only
         the first event is send to `update_event`
 
         Args:
@@ -200,6 +201,10 @@ class Calendar:
         """
         events: list[Event]
 
+        # khal assumes a length of 1h if the start is a datetime and it's equal to end
+        if type(props["start"]) is datetime and props["end"] == props["start"]:
+            props["end"] = props["start"] + timedelta(hours=1)
+
         if props["uid"]:
             events = self.get_events(props["uid"])
         else:
@@ -207,15 +212,15 @@ class Calendar:
                 props["summary"], props["start"], props["end"]
             )
 
-        logging.info(f"number of events is {len(events)}")
+        logging.debug(f"number of events is {len(events)}")
         events = [x for x in events if is_future(x.end)]
 
         if len(events) == 0:
             logging.error(self.MESSAGE_EDIT.format(len(events)))
 
         else:
-            # Khal opdates the master/PROTO event (i.e., the series of events),
-            # instead of only the occurence. Therefore, only 1 event needs to
+            # Khal updates the master/PROTO event (i.e., the series of events),
+            # instead of only the occurrence. Therefore, only 1 event needs to
             # be updated instead of the whole list.
             self.update_event(events[0], props, edit_dates)
 
@@ -287,7 +292,7 @@ class Calendar:
         return [x for x in events if x.uid == uid or not uid]
 
     def get_events_no_uid(
-        self, summary_wanted: str, start_wanted: Time, end_wanted: Time
+        self, summary_wanted: str, start_wanted: Time, end_wanted: Time | None
     ) -> list[Event]:
         """
         Return events that share the same summary, start time and stop time.
@@ -305,13 +310,20 @@ class Calendar:
         -------
             list of events
         """
+        if end_wanted is None:
+            if type(start_wanted) is date:
+                end_wanted = start_wanted
+            else:
+                # if start and end are datetimes, khal assumes that the event
+                # has a length of one hour
+                end_wanted = start_wanted + timedelta(hours=1)
 
         def exists(summary: str, end: Time) -> bool:
             equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)
             equal_summary: bool = summary == summary_wanted
             return equal_end and equal_summary
 
-        logging.info(f"Get events on date: {start_wanted}")
+        logging.debug(f"Get events on date: {start_wanted}")
         return [
             event
             for event in self.collection.get_events_on(start_wanted)

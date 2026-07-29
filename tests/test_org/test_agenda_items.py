@@ -1,3 +1,19 @@
+import datetime
+from tests.agenda_items import (
+    AllDay,
+    AllDayRecurring,
+    BodyFirst,
+    Minimal,
+    MultipleTimstampsValid,
+    NotFirstLevel,
+    NoTimestamp,
+    Recurring,
+    ShortTimestamp,
+    Valid,
+)
+from tests.helpers import (
+    read_org_test_file,
+)
 from unittest import TestCase
 
 from orgparse import loads
@@ -46,13 +62,31 @@ class TestOrgAgendaItem(TestCase):
             other_agenda_item = OrgAgendaItem(*args)
             self.assertTrue(agenda_item != other_agenda_item)
 
+    def test_not_eq_when_other_item_has_an_extra_property(self):
+        """Properties present on only one item must make items unequal."""
+        a = OrgAgendaItem(title="event", properties={"UID": "123"})
+        b = OrgAgendaItem(
+            title="event",
+            properties={"UID": "123", "LOCATION": "office"},
+        )
+
+        self.assertNotEqual(a, b)
+        self.assertNotEqual(b, a)
+
+    def test_eq_even_if_whitespace_mismatch(self):
+        """
+        Two objects with the same arguments even if they differ in trailing
+        whitespaces must be equal.
+        """
+        a: OrgAgendaItem = OrgAgendaItem().load_from_str(
+            "* title  \nbody    \n\n"
+        )
+        b: OrgAgendaItem = OrgAgendaItem().load_from_str("* title\nbody")
+        self.assertTrue(a == b)
+
     def test_remove_timestamps(self):
         """`time_stamp` should be removed from `text`."""
-        text: str = (
-            "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>"
-            "\nSome text\n"
-            "<2023-01-01 Sun 01:00>"
-        )
+        text: str = "<2023-01-01 Sun 01:00>--<2023-01-01 Sun 02:00>\nSome text\n<2023-01-01 Sun 01:00>"
         expected: str = "Some text\n"
         actual: str = remove_timestamps(text)
         self.assertEqual(actual, expected)
@@ -186,6 +220,28 @@ class TestOrgAgendaItem(TestCase):
         agenda_item: OrgAgendaItem = OrgAgendaItem()
         agenda_item.load_from_str(org_file)
         self.assertEqual(expected, agenda_item.until_rrule)
+
+    def test_start_equals_end_timestamp_doesnt_repeat(self):
+        """If start == end it only prints start.
+
+        Otherwise it creates org items with duplicated timestamps:
+
+        * event
+          <2023-01-02 Mon>--<2023-01-02 Mon>
+        """
+        assert OrgAgendaItem(
+            title="event",
+            timestamps=[
+                OrgDate(
+                    start=datetime.date(2023, 1, 2),
+                    end=datetime.date(2023, 1, 2),
+                )
+            ],
+        ).timestamps == [
+            OrgDate(
+                start=datetime.date(2023, 1, 2),
+            )
+        ]
 
 
 class TestAgendaOrgDates(TestCase):

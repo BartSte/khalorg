@@ -23,7 +23,7 @@ class EventChecks(Enum):
 class EventChecker:
     """
     Used to perform a set of checks before one of the Calendar commands are
-    executed.
+    run.
     """
 
     MESSAGE_RRULE: str = "Org repeater not supported."
@@ -31,7 +31,7 @@ class EventChecker:
     MESSAGE_DUPLICATE: str = "Agenda item already exists."
     MESSAGE_UID: str = "Agenda item its UID property is empty."
 
-    def __init__(self, checks: list[EventChecks] = [x for x in EventChecks]):
+    def __init__(self, checks: list[EventChecks] | None = None):
         """
         Init.
 
@@ -46,7 +46,7 @@ class EventChecker:
             EventChecks.UID: self.has_uid,
         }
 
-        self.checks: list[EventChecks] = checks
+        self.checks: list[EventChecks] = list(checks) if checks is not None else list(EventChecks)
 
     def remove(self, check: EventChecks):
         """
