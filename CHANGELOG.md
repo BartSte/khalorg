@@ -10,6 +10,24 @@ user. A change is always categorized based on the following types:
 - Task: a change is made to the repository that has no effect on the source
   code.
 
+# 0.2
+
+## Feature
+
+- `khalorg sync` synchronizes events between a `khal` calendar and an org file,
+  with conflict resolution, optional deletion, dry-run, and file-tag support.
+
+## Bug
+
+- Fixed dry-run file creation, removed-property synchronization, and handling
+  of events without an explicit end time.
+- Fixed duplicate timestamps and shared event-check state.
+
+## Improvement
+
+- Improved org-item matching and support for non-English weekday abbreviations.
+- Compatibility is updated to `khal` 0.14 and `icalendar` versions below 8.
+
 # 0.1
 
 ## Feature

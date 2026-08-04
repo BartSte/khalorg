@@ -32,14 +32,16 @@ called [nvim-khalorg](https://github.com/BartSte/nvim-khalorg):
   - [For development](#for-development)
 - [Usage](#usage)
   - [List: from khal to org](#list-from-khal-to-org)
-    - [–format](#format)
-    - [Recurring items](#recurring-items)
+    - [Custom output format](#custom-output-format)
+    - [Recurring events from khal](#recurring-events-from-khal)
+  - [Sync: bidirectional](#sync-bidirectional)
+    - [Sync options](#sync-options)
   - [New: from org to khal](#new-from-org-to-khal)
-    - [Recurring items](#recurring-items)
+    - [Creating recurring events](#creating-recurring-events)
     - [Attendees](#attendees)
   - [Edit: from org to khal](#edit-from-org-to-khal)
   - [Delete: from org to khal](#delete-from-org-to-khal)
-    - [Recurring items](#recurring-items)
+    - [Deleting recurring events](#deleting-recurring-events)
 - [Neovim plugin](#neovim-plugin)
 - [Workflow for Office 365](#workflow-for-office-365)
 - [Troubleshooting](#troubleshooting)
@@ -106,11 +108,13 @@ Based on the above, the following workflow is desired:
       item.
 - [x] `khalorg edit`: edit an existing `khal` agenda item with org mode.
 - [x] `khalorg delete`: delete an existing `khal` item.
+- [x] `khalorg sync`: synchronize events between a `khal` calendar and an org
+      file.
 - [x] Recurring items are supported by providing an org repeater in the
       time stamp (e.g., `+1w`). The following is supported:
-  - the follow org repeaters: `+{integer}{d,w,m,y}`
-  - `khalorg new` and `khalorg edit --edit-dates` support 1 time stamp
-    per org agenda item.
+  - `khalorg new` supports `+1d`, `+1w`, `+1m`, and `+1y`.
+  - `khalorg new` and `khalorg edit --edit-dates` support one timestamp per
+    org agenda item.
   - `khalorg list` concatenates timestamps that cannot be describes by
     an org repeater, resulting in an org agenda item with multiple
     timestamps.
@@ -192,14 +196,12 @@ For more information about the allowed date formats, check the
 that the `khal` calendar called `my_calendar` exists. Make sure
 `my_calendar` is a calendar that exists on your local file system.
 
-#### –format
+#### Custom output format
 
-If `khalorg list --format` option is not defined, the default one is
-used which can be found at `./khalorg/static/khalorg_format.txt`. If you
-want to define your own format, you have 2 options: you can use the
-`khalorg list --format` option, or you can place your custom format at
-`$HOME/.config/khalorg/khalorg_format.txt` this format will then be used
-instead of the default one that is shown below.
+If `khalorg list --format` is not defined, the default template from
+[`src/khalorg/static/khalorg_format.txt`](./src/khalorg/static/khalorg_format.txt)
+is used. Pass a custom template with `--format`, or save one at
+`$HOME/.config/khalorg/khalorg_format.txt` to use it by default.
 
 ```org
 * {title}
@@ -213,11 +215,12 @@ instead of the default one that is shown below.
   :STATUS: {status}
   :UID: {uid}
   :URL: {url}
+  :UNTIL: {until_rrule}
   :END:
   {description}
 ```
 
-the following keys are supported:
+The following keys are supported:
 
 - `{attendees}`: a comma separated list of email addresses of attendees
 - `{calendar}`: the name of the khal calendar
@@ -229,22 +232,22 @@ the following keys are supported:
 - `{timestamps}`: the timestamp of the item
 - `{title}`: the summary of the item
 - `{uid}`: the UID of the item
-- `{rrule_until}`: the until value of the RRULE.
+- `{until_rrule}`: the until value from the RRULE
 - `{url}`: the url property
 
-the following keys are supported but are typically reserved for internal use
+The following keys are supported but are typically reserved for internal use
 and are therefore less informative:
 
 - `{until}`: the until property value. Is empty when using `khalorg list`.
 - `{rrule}`: the ICal RRULE of the item.
 
-#### Recurring items
+#### Recurring events from khal
 
 The `khalorg list` command relies on the `khal list` command. Using this
-command the `RRULE` of each item is retrieved to created the correct org
+command the `RRULE` of each item is retrieved to create the correct org
 repeater. Only simple org repeaters are supported that have the
-following form: `+[number][h,w,m,y]`. Complex `RRULEs` are described by
-concatenating the corresponding timestamps within 1 agenda item,
+following form: `+[number][h,d,w,m,y]`. Complex `RRULEs` are described by
+concatenating the corresponding timestamps within one agenda item,
 resulting in a list of items. For example, the agenda item below
 represents a weekly recurring event where the first meeting was moved to
 another date, resulting in a timestamp without a repeater, and one with
@@ -270,6 +273,37 @@ a repeater.
 
   Someone
 ```
+
+### Sync: bidirectional
+
+`khalorg sync` synchronizes new and changed events between a `khal` calendar
+and an org file:
+
+```bash
+khalorg sync my_calendar my_calendar.org
+```
+
+Events are matched by UID. The default range is from `today` through `90d`.
+Sync state is stored in
+`$HOME/.local/share/khalorg/<calendar>.org`; keep this file between runs so
+that changes and conflicts can be detected. If the org file does not exist,
+it is created from the selected `khal` calendar.
+
+When an event changed in both sources since the previous sync, `khal` wins by
+default. Deletions are not propagated unless `--delete-on-sync` is passed.
+
+#### Sync options
+
+- `--start` and `--stop` set the synchronized date range.
+- `--conflict-resolution khal|org` selects which source wins a conflict.
+- `--edit-dates` allows org changes to update event dates and recurrence.
+- `--delete-on-sync` propagates deletions between both sources. Back up both
+  sources and test with `--dry-run` before enabling it.
+- `--dry-run` logs planned actions without changing either source or the sync
+  state.
+- `--state-dir` changes where synchronization state is stored.
+- `--filetags TAG` adds a file tag to generated org files and can be repeated.
+- `--format` uses the same output templates as `khalorg list`.
 
 ### New: from org to khal
 
@@ -311,13 +345,11 @@ It is assumed that the `khal` calendar called "my<sub>calendar</sub>"
 exists. Make sure "my<sub>calendar</sub>" is a calendar that exists on
 your local file system.
 
-#### Recurring items
+#### Creating recurring events
 
-Only 1 timestamp per org item is supported. Note that the meeting above
-is repeated every week (`+1w`). Only simple org repeaters are supported
-that have the following form: `+[number][h,w,m,y]`. These events repeat
-forever, unless you specify an end date using the \`UNTIL\` property in
-the org file.
+Only one timestamp per org item is supported. `khalorg new` accepts the
+repeaters `+1d`, `+1w`, `+1m`, and `+1y`. These events repeat forever unless
+you specify an end date using the `UNTIL` property in the org file.
 
 Personally, when I need to create a complex repeat pattern (or when I
 need outlook specific items like a Teams invite), I create the event in
@@ -375,7 +407,7 @@ When using `khalorg edit` please consider the following:
   meeting.
 - Only the PROTO event is edited, i.e., the whole series is altered not
   only the occurrence.
-- `khal edit` will only update the dates + recurrence if the
+- `khalorg edit` will only update the dates and recurrence if the
   `--edit-dates` flag is passed. This avoids editing the start-stop date
   when editing an event that contains multiple timestamps (which are not
   supported).
@@ -394,7 +426,7 @@ above can be removed by feeding the same file to `khalorg delete`:
 cat meeting.org | khalorg delete my_calendar
 ```
 
-#### Recurring items
+#### Deleting recurring events
 
 When deleting recurring items the whole series will be removed. Removing
 occurrences is not supported.
@@ -447,7 +479,7 @@ more information.
 
 ## License
 
-Distributed under the [MIT License](./LICENCE).
+Distributed under the [MIT License](./LICENSE).
 
 ## Improvements:
 
@@ -457,7 +489,7 @@ Distributed under the [MIT License](./LICENCE).
 - [ ] Running khal commands directly from a script in not
       straightforward. Therefore, khal is executed as a subprocess, by using
       its command line interface.
-- [ ] `khalorg new` and `khal edit` only support 1 timestamp per item.
+- [ ] `khalorg new` and `khalorg edit` only support one timestamp per item.
       However, it is desired that all timestamps within 1 org agenda item,
       end up in 1 khal event, as is the case for the `orgagenda`. To achieve
       this the following could be build:
