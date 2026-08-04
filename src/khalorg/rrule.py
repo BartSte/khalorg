@@ -18,17 +18,18 @@ Time = datetime | date
 
 MAX_WEEKDAYS: int = 2
 NOT_SUPPORTED: tuple = (
-    '_byeaster',
-    '_bynmonthday',
-    '_bynweekday',
-    '_bysetpos',
-    '_byweekno',
-    '_byyearday')
+    "_byeaster",
+    "_bynmonthday",
+    "_bynweekday",
+    "_bysetpos",
+    "_byweekno",
+    "_byyearday",
+)
 
 
-def get_recurobject(date: Time,
-                    repeater: tuple[str, int, str],
-                    until: Time | None = None) -> dict:
+def get_recurobject(
+    date: Time, repeater: tuple[str, int, str], until: Time | None = None
+) -> dict:
     """
     Retruns the RRULE as an iCal vRecur object.
 
@@ -45,10 +46,12 @@ def get_recurobject(date: Time,
     return vRecur.from_ical(get_rrulestr(date, repeater, until, clip=True))
 
 
-def get_rrulestr(date: Time,
-                 repeater: tuple[str, int, str] | None,
-                 until: Time | None = None,
-                 clip: bool = False) -> str:
+def get_rrulestr(
+    date: Time,
+    repeater: tuple[str, int, str] | None,
+    until: Time | None = None,
+    clip: bool = False,
+) -> str:
     """
     Return the rrule as a str.
 
@@ -68,13 +71,15 @@ def get_rrulestr(date: Time,
     try:
         return _get_rrulestr(date, repeater, until, clip=clip)
     except RRuleError:
-        return ''
+        return ""
 
 
-def _get_rrulestr(date: Time,
-                  repeater: tuple[str, int, str] | None,
-                  until: Time | None = None,
-                  clip: bool = False) -> str:
+def _get_rrulestr(
+    date: Time,
+    repeater: tuple[str, int, str] | None,
+    until: Time | None = None,
+    clip: bool = False,
+) -> str:
     """
     Same as get_rrule but without a try-except.
 
@@ -90,12 +95,12 @@ def _get_rrulestr(date: Time,
         RRULE as str
     """
     result: str = str(get_rrule(date, repeater, until))
-    return re.sub(r'^DTSTART:.*\nRRULE:', '', result) if clip else result
+    return re.sub(r"^DTSTART:.*\nRRULE:", "", result) if clip else result
 
 
-def get_rrule(time: Time,
-              repeater: tuple[str, int, str] | None,
-              until: Time | None = None) -> rrule:
+def get_rrule(
+    time: Time, repeater: tuple[str, int, str] | None, until: Time | None = None
+) -> rrule:
     """
     Retruns the RRULE as an rrule of the dateutils module.
 
@@ -112,7 +117,7 @@ def get_rrule(time: Time,
         freq=get_rrule_freq(repeater),
         dtstart=time,
         interval=get_rrule_interval(repeater),
-        until=until
+        until=until,
     )
     return result
 
@@ -130,11 +135,11 @@ def get_rrule_freq(repeater: tuple[str, int, str]) -> int:
         the RRULE frequency.
     """
     freq_map: dict[str, int] = {
-        'y': YEARLY,
-        'm': MONTHLY,
-        'w': WEEKLY,
-        'd': DAILY,
-        'h': HOURLY
+        "y": YEARLY,
+        "m": MONTHLY,
+        "w": WEEKLY,
+        "d": DAILY,
+        "h": HOURLY,
     }
     try:
         key: str = repeater[2]
@@ -168,9 +173,8 @@ def get_rrule_interval(repeater: tuple) -> int:
 
 
 def set_org_repeater(
-        date: OrgDate,
-        rule: str,
-        allow_short_range: bool = False) -> OrgDate:
+    date: OrgDate, rule: str, allow_short_range: bool = False
+) -> OrgDate:
     """
     Apply the repeater of `date` that corresponds to the `rrule`.
 
@@ -188,7 +192,8 @@ def set_org_repeater(
         start=date.start,
         end=date.end,
         active=True,
-        repeater=rrulestr_to_org(rule))
+        repeater=rrulestr_to_org(rule),
+    )
     obj._allow_short_range = allow_short_range
     return obj
 
@@ -236,10 +241,10 @@ def _rrule_to_org(obj: rrule) -> tuple[str, int, str] | None:
     -------
         str: The original repeater string.
     """
-    freq_map: tuple = ('y', 'm', 'w', 'd', 'h')
+    freq_map: tuple = ("y", "m", "w", "d", "h")
     interval: int = obj._interval
     frequency: str = freq_map[obj._freq]
-    return '+', interval, frequency
+    return "+", interval, frequency
 
 
 def rrulestr_to_rrule(value: str) -> rrule:
@@ -256,7 +261,7 @@ def rrulestr_to_rrule(value: str) -> rrule:
     """
     obj: rrule | rruleset = rrulestr(value)
     if isinstance(obj, rruleset):
-        raise ValueError('Only 1 RRULE supported')
+        raise ValueError("Only 1 RRULE supported")
     else:
         return obj
 
@@ -281,7 +286,7 @@ def rrulestr_is_supported(value: str) -> bool:
     ------
         AssertionError: If `value` is not a str.
     """
-    assert isinstance(value, str), '`value` must be a str'
+    assert isinstance(value, str), "`value` must be a str"
 
     if not value:
         return True  # empty rrule is supported
@@ -290,9 +295,11 @@ def rrulestr_is_supported(value: str) -> bool:
         return rrule_is_supported(obj)
 
 
-def rrule_is_supported(rule: rrule,
-                       max_days: int = MAX_WEEKDAYS,
-                       unsupported: tuple = NOT_SUPPORTED) -> bool:
+def rrule_is_supported(
+    rule: rrule,
+    max_days: int = MAX_WEEKDAYS,
+    unsupported: tuple = NOT_SUPPORTED,
+) -> bool:
     """
     Check if a given rrule object is supported.
 

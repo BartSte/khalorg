@@ -12,6 +12,16 @@ Thank you for considering contributing to the `khalorg` project! We welcome cont
 6. Push your changes to your forked repository (`git push origin my_branch_name`).
 7. Create a pull request on GitHub.
 
+## Running the tests
+
+Make sure you have `pytest` installed. Then
+
+```bash
+# if your locale is different
+export LC_TIME=en_US.UTF-8
+python -m pytest
+```
+
 ## Code of Conduct
 
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.

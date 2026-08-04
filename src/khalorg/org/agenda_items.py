@@ -1,9 +1,13 @@
 import logging
 from datetime import date, datetime
+from pathlib import Path
 from typing import Generator
 
 import orgparse
 from dateutil.rrule import rrule
+from orgparse.date import OrgDate
+from orgparse.node import OrgNode
+
 from khalorg.helpers import get_khalorg_format
 from khalorg.khal.helpers import remove_tzinfo
 from khalorg.org.helpers import (
@@ -16,8 +20,6 @@ from khalorg.rrule import (
     rrulestr_to_rrule,
     set_org_repeater,
 )
-from orgparse.date import OrgDate
-from orgparse.node import OrgNode
 
 Time = date | datetime
 
@@ -27,7 +29,11 @@ class InvalidOrgItemError(Exception):
 
 
 class EmptyOrgItemError(Exception):
-    """ The org agenda is empty. """
+    """The org agenda is empty."""
+
+
+class TooManyOrgItems(Exception):
+    """More OrgAgendaItems than expected were found."""
 
 
 class OrgAgendaItem:
@@ -44,13 +50,15 @@ class OrgAgendaItem:
         body: all text that is not part of PROPERTIES
     """
 
-    MESSAGE_INVALID_NODE: str = 'No agenda item was found.'
+    MESSAGE_INVALID_NODE: str = "No agenda item was found."
 
-    def __init__(self,
-                 title: str = '',
-                 timestamps: list[OrgDate] = [],
-                 properties: dict = {},
-                 description: str = ''):
+    def __init__(
+        self,
+        title: str = "",
+        timestamps: list[OrgDate] = [],
+        properties: dict = {},
+        description: str = "",
+    ):
         """
         Init.
 
@@ -63,10 +71,10 @@ class OrgAgendaItem:
         """
         self._timestamps: list[OrgDate] = []
 
-        self.title: str = title
+        self.title: str = title.strip()
         self.timestamps = timestamps
         self.properties: dict = properties
-        self.description: str = description
+        self.description: str = description.strip()
 
     @property
     def timestamps(self) -> list[OrgDate]:
@@ -86,12 +94,16 @@ class OrgAgendaItem:
         Ensures the timestamps are sorted by start date, and the short range
         notation is disabled.
 
+        It also removes duplicate timestamps
+
         Args:
         ----
             value: list of OrgDate objects
         """
         timestamps.sort(key=lambda x: x.start)
-        for timestamp in timestamps:
+        for i, timestamp in enumerate(timestamps):
+            if timestamp.start == timestamp.end and timestamp._repeater is None:
+                timestamps[i] = OrgDate(start=timestamp.start)
             timestamp._allow_short_range = False
 
         self._timestamps = timestamps
@@ -107,13 +119,12 @@ class OrgAgendaItem:
 
         """
         try:
-
             return self.timestamps[0]
         except IndexError as error:
-            message: str = 'Timestamp missing in agenda item'
+            message: str = "Timestamp missing in agenda item"
             raise InvalidOrgItemError(message) from error
 
-    def load_from_str(self, text: str) -> 'OrgAgendaItem':
+    def load_from_str(self, text: str) -> "OrgAgendaItem":
         """
         Loads an agenda item from a str.
 
@@ -129,7 +140,7 @@ class OrgAgendaItem:
         node: OrgNode = orgparse.loads(text)
         return self.load_from_org_node(node)
 
-    def load_from_org_node(self, node: OrgNode) -> 'OrgAgendaItem':
+    def load_from_org_node(self, node: OrgNode) -> "OrgAgendaItem":
         """
         Load an agenda item from an `OrgNode`.
 
@@ -144,15 +155,13 @@ class OrgAgendaItem:
         """
         item: OrgNode = self.get_first_agenda_item(node)
         kwargs: dict[str, bool] = dict(
-            active=True,
-            inactive=False,
-            range=True,
-            point=True)
+            active=True, inactive=False, range=True, point=True
+        )
 
-        self.title = item.heading
+        self.title = item.heading.strip()
         self.properties = item.properties
         self.timestamps = item.get_timestamps(**kwargs)
-        self.description = remove_timestamps(item.body)
+        self.description = remove_timestamps(item.body.strip())
 
         return self
 
@@ -176,6 +185,21 @@ class OrgAgendaItem:
             raise EmptyOrgItemError(self.MESSAGE_INVALID_NODE) from error
 
     @property
+    def uid(self) -> str | None:
+        """
+        Return the UID property as string.
+
+        Returns
+        -------
+            UID if exists else None
+
+        """
+        try:
+            return self.properties["UID"]
+        except KeyError:
+            return None
+
+    @property
     def until(self) -> OrgDate:
         """
         Return the UNTIL property as an OrgDate.
@@ -189,7 +213,7 @@ class OrgAgendaItem:
             end date of recurring items as an OrgDate
 
         """
-        until: OrgDate = timestamp_to_orgdate(self.properties.get('UNTIL', ''))
+        until: OrgDate = timestamp_to_orgdate(self.properties.get("UNTIL", ""))
         start: datetime | date = until.start
         has_time = isinstance(start, datetime)
 
@@ -219,16 +243,16 @@ class OrgAgendaItem:
         -------
             the until part of the RRULE property
         """
-        rrulestr: str = self.properties.get('RRULE', '')
+        rrulestr: str = self.properties.get("RRULE", "")
         try:
             rule: rrule = rrulestr_to_rrule(rrulestr)
             until: Time = remove_tzinfo(rule._until)
             return str(OrgDate(until, active=False))
         except (AttributeError, ValueError):
-            return ''  # No RRULE or until date found
+            return ""  # No RRULE or until date found
 
     @classmethod
-    def from_node(cls, node: OrgNode) -> 'OrgAgendaItem':
+    def from_node(cls, node: OrgNode) -> "OrgAgendaItem":
         """
         Constructs an OrgAgendaItem object from an OrgNode.
 
@@ -247,11 +271,15 @@ class OrgAgendaItem:
         try:
             return self.compare(self, other)
         except AttributeError as error:
-            message: str = 'Try using a object of type OrgAgendaItem.'
+            message: str = "Try using a object of type OrgAgendaItem."
             raise AttributeError(message) from error
 
     @staticmethod
-    def compare(a: 'OrgAgendaItem', b: 'OrgAgendaItem') -> bool:
+    def compare(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem | None",
+        exclude: list[str] | None = None,
+    ) -> bool:
         """
         The equality of the `vars` of a and b should all be True.
 
@@ -259,19 +287,111 @@ class OrgAgendaItem:
         ----
             a: agenda item
             b: agenda item
+            exclude: list of attributes to exclude from the comparison
 
         Returns:
         -------
             bool: True if the items are equal.
 
         """
-        attribute_equal: bool = all(
-            getattr(a, x) == getattr(b, x) for x in vars(a).keys()
-        )
-        time_stamps_equal: bool = str(a.timestamps) == str(b.timestamps)
-        return attribute_equal and time_stamps_equal
+        if b is None:
+            return False
 
-    def split_property(self, key: str, delimiter: str = ', ') -> list:
+        return all(
+            (
+                OrgAgendaItem._attributes_match(a, b),
+                OrgAgendaItem._properties_match(a, b, exclude or []),
+                OrgAgendaItem._timestamps_match(a, b),
+            )
+        )
+
+    @staticmethod
+    def _attributes_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+    ) -> bool:
+        """Compare attributes other than properties and timestamps."""
+        attribute_equal = True
+        for attribute in vars(a):
+            if attribute in {"properties", "_timestamps"}:
+                continue
+            if getattr(a, attribute) == getattr(b, attribute):
+                continue
+            logging.debug(
+                "There is a mismatch in the attribute %s, one has %s "
+                "the other has %s.",
+                attribute,
+                getattr(a, attribute),
+                getattr(b, attribute),
+            )
+            attribute_equal = False
+        return attribute_equal
+
+    @staticmethod
+    def _properties_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+        exclude: list[str],
+    ) -> bool:
+        """Compare properties after removing explicitly excluded keys."""
+        a_properties = {
+            key: value
+            for key, value in a.properties.items()
+            if key not in exclude
+        }
+        b_properties = {
+            key: value
+            for key, value in b.properties.items()
+            if key not in exclude
+        }
+        properties_equal = a_properties == b_properties
+        if not properties_equal:
+            logging.debug(
+                "The properties don't match %s vs %s",
+                a_properties,
+                b_properties,
+            )
+        return properties_equal
+
+    @staticmethod
+    def _timestamps_match(
+        a: "OrgAgendaItem",
+        b: "OrgAgendaItem",
+    ) -> bool:
+        """Compare normalized timestamp representations."""
+        timestamps_equal = str(a.timestamps) == str(b.timestamps)
+        if not timestamps_equal:
+            logging.debug(
+                "The timestamps don't match %s vs %s",
+                a.timestamps,
+                b.timestamps,
+            )
+        return timestamps_equal
+
+    def similar(self, other: "OrgAgendaItem | None") -> bool:
+        """
+        Matches khal OrgAgendaItem with org OrgAgendaItem.
+
+        Each have some specific properties, this method compares all but the
+        ones that are not present in the other by model design.
+
+        Excluded properties are: RRULE and UNTIL
+
+        Args:
+        ----
+            other: agenda item
+
+        Returns:
+        -------
+            bool: True if the items are equal.
+        """
+        if other is None:
+            return False
+        excluded_properties = ["RRULE", "UNTIL"]
+        excluded_properties.extend(other.properties.keys() - self.properties)
+        return self.compare(self, other, exclude=excluded_properties)
+
+    def split_property(self, key: str, delimiter: str = ", ") -> list:
         """
         It is assumed that the value is stored as a str that is separated by a
         `delimiter`. This function splits this string into a list using the
@@ -334,26 +454,30 @@ class OrgAgendaItem:
             the formatted `spec`
 
         """
-        uid: str = str(self.properties.get('UID', ''))
+        uid: str = str(self.properties.get("UID", ""))
 
         try:
             return spec.format(
                 title=self.title,
                 timestamps=self.get_timestamps_as_str(spec),
-                attendees=self.properties.get('ATTENDEES', ''),
-                calendar=self.properties.get('CALENDAR', ''),
-                categories=self.properties.get('CATEGORIES', ''),
+                attendees=self.properties.get("ATTENDEES", ""),
+                calendar=self.properties.get("CALENDAR", ""),
+                # In some versions of icalendar, the comma that separates CATEGORIES are escaped
+                categories=self.properties.get("CATEGORIES", "").replace(
+                    "\\,", ","
+                ),
                 uid=uid,
-                location=self.properties.get('LOCATION', ''),
-                organizer=self.properties.get('ORGANIZER', ''),
-                rrule=self.properties.get('RRULE', ''),
-                status=self.properties.get('STATUS', ''),
-                url=self.properties.get('URL', ''),
-                until=self.properties.get('UNTIL', ''),
+                location=self.properties.get("LOCATION", ""),
+                organizer=self.properties.get("ORGANIZER", ""),
+                rrule=self.properties.get("RRULE", ""),
+                status=self.properties.get("STATUS", ""),
+                url=self.properties.get("URL", ""),
+                until=self.properties.get("UNTIL", ""),
                 until_rrule=self.until_rrule,
-                description=self.description)
+                description=self.description,
+            )
         except KeyError as error:
-            message: str = 'Unsupported key encountered in `spec`'
+            message: str = "Unsupported key encountered in `spec`"
             raise KeyError(message) from error
 
     def get_timestamps_as_str(self, spec: str) -> str:
@@ -370,19 +494,21 @@ class OrgAgendaItem:
             the indented timestamps
 
         """
-        timestamp_indents: list = get_indent(spec, '{timestamps}')
+        timestamp_indents: list = get_indent(spec, "{timestamps}")
         generator: Generator = (str(x) for x in self.timestamps)
 
         if len(timestamp_indents) > 1:
-            logging.warning('Only 1 timestamp indent is supported. First '
-                            'indent found is used.')
+            logging.warning(
+                "Only 1 timestamp indent is supported. First "
+                "indent found is used."
+            )
 
         try:
             space = timestamp_indents[0]
         except IndexError:
-            return '\n'.join(generator)
+            return "\n".join(generator)
         else:
-            return f'\n{space}'.join(generator)
+            return f"\n{space}".join(generator)
 
 
 class OrgAgendaFile:
@@ -417,13 +543,15 @@ class OrgAgendaFile:
             None.
         """
         self.nodes: OrgNode = nodes
-        self.items: list[OrgAgendaItem] = [OrgAgendaItem.from_node(x)
-                                           for x in nodes if not x.is_root()]
+        self.items: list[OrgAgendaItem] = [
+            OrgAgendaItem.from_node(x) for x in nodes if not x.is_root()
+        ]
 
-    def apply_rrules(self) -> 'OrgAgendaFile':
+    def apply_rrules(self) -> "OrgAgendaFile":
         """
-        Applies the RRULE properties of OrgAgendaItems to generate the appropriate
-        OrgDateAgenda objects and applies them to the OrgAgendaItems.
+        Applies the RRULE properties of OrgAgendaItems to generate the
+        appropriate OrgDateAgenda objects and applies them to the
+        OrgAgendaItems.
 
         Returns
         -------
@@ -434,10 +562,10 @@ class OrgAgendaFile:
         agenda_timestamps = OrgDateAgenda(self.nodes)
 
         for item in self.items:
-            uid: str = item.properties['UID']
+            uid: str = item.properties["UID"]
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
-                item.properties['RRULE'] = agenda_timestamps.get_rrulestr(uid)
+                item.properties["RRULE"] = agenda_timestamps.get_rrulestr(uid)
                 uids.add(uid)
                 items.append(item)
 
@@ -456,10 +584,10 @@ class OrgAgendaFile:
         -------
             A formatted string.
         """
-        return '\n'.join(format(x, spec) for x in self.items)
+        return "\n".join(format(x, spec) for x in self.items)
 
-    @ classmethod
-    def from_str(cls, items: str) -> 'OrgAgendaFile':
+    @classmethod
+    def from_str(cls, items: str) -> "OrgAgendaFile":
         """
         Creates a new instance of the OrgAgendaFile class from a string
         representation of the org file.
@@ -474,8 +602,50 @@ class OrgAgendaFile:
         -------
             An instance of the OrgAgendaFile class.
         """
-        items = items or '\n'
+        items = items or "\n"
+        # Some versions of icalendar escapes the commas in the CATEGORIES
+        # section which makes similar objects differ.
+        items = items.replace("\\,", ",")
         return cls(orgparse.loads(items))
+
+    @classmethod
+    def from_path(cls, path: Path) -> "OrgAgendaFile":
+        """
+        Creates a new instance of the OrgAgendaFile class from a path
+        of an org file.
+
+        Args:
+        ----
+            path: A Path to the org file.
+
+        Returns:
+        -------
+            An instance of the OrgAgendaFile class.
+        """
+        return cls.from_str(path.read_text())
+
+    def get_item(self, uid: str | None) -> OrgAgendaItem | None:
+        """
+        Get the OrgAgendaItem that matches the UID.
+
+        Returns
+        -------
+            The org item or None if not found
+
+        Raises
+        -------
+            TooManyOrgItems: if more than one element is found with that UID
+        """
+        if uid is None:
+            return None
+
+        result = [item for item in self.items if item.uid == uid]
+
+        if len(result) == 1:
+            return result[0]
+        elif len(result) == 0:
+            return None
+        raise TooManyOrgItems(f"More than one elements found with uid: {uid}")
 
 
 class OrgDateAgenda:
@@ -494,18 +664,14 @@ class OrgDateAgenda:
     Attributes
     ----------
         TIME_STAMPS_TYPES (dict): A dictionary defining the types of timestamps
-            that can be processed by the class.
-        dates (dict): A dictionary containing the dates associated with each UID.
-        rrules (dict): A dictionary containing the recurrence rules associated
-            with each UID.
+        that can be processed by the class. dates (dict): A dictionary
+        containing the dates associated with each UID. rrules (dict): A
+        dictionary containing the recurrence rules associated with each UID.
 
     """
 
     TIME_STAMPS_TYPES: dict = dict(
-        active=True,
-        inactive=False,
-        range=True,
-        point=True
+        active=True, inactive=False, range=True, point=True
     )
 
     def __init__(self, nodes: OrgNode | None = None) -> None:
@@ -527,7 +693,7 @@ class OrgDateAgenda:
             self.add_node(nodes)
 
     @classmethod
-    def from_str(cls, org_file: str) -> 'OrgDateAgenda':
+    def from_str(cls, org_file: str) -> "OrgDateAgenda":
         """
         Creates a new instance of the OrgDateAgenda class from a string.
 
@@ -599,7 +765,7 @@ class OrgDateAgenda:
         new_timestamp: bool = all(timestamp != x for x in self.dates[uid])
 
         if (empty_rule and new_timestamp) or (new_rule and supported_rule):
-            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)  # noqa
+            timestamp_with_repeater: OrgDate = set_org_repeater(timestamp, rule)
             self.rrules[uid].add(rule)
             self.dates[uid].append(timestamp_with_repeater)
         elif new_rule and not supported_rule:
@@ -618,9 +784,8 @@ class OrgDateAgenda:
         return list(self.dates.keys())
 
     def _parse_node(
-            self,
-            node: OrgNode,
-            allow_short_range: bool = False) -> tuple:
+        self, node: OrgNode, allow_short_range: bool = False
+    ) -> tuple:
         """
         Returns the UID, the timestamp, and the RRULE from an OrgNode.
 
@@ -634,8 +799,8 @@ class OrgDateAgenda:
             the UID, timestamp, and RRULE property of an OrgNode.
 
         """
-        uid: str = str(node.properties.get('UID', ''))
-        rule: str = str(node.properties.get('RRULE', ''))
+        uid: str = str(node.properties.get("UID", ""))
+        rule: str = str(node.properties.get("RRULE", ""))
         timestamp: OrgDate = node.get_timestamps(**self.TIME_STAMPS_TYPES)[0]
         timestamp._allow_short_range = allow_short_range
 
@@ -653,7 +818,7 @@ class OrgDateAgenda:
         -------
             item as a str
         """
-        return '\n'.join([str(x) for x in self.dates[uid]])
+        return "\n".join([str(x) for x in self.dates[uid]])
 
     def get_rrulestr(self, uid: str) -> str:
         """
@@ -670,4 +835,4 @@ class OrgDateAgenda:
 
         """
         rules: set = self.rrules[uid] | self.unsupported_rrules[uid]
-        return ';'.join([x for x in rules if x])
+        return ";".join([x for x in rules if x])

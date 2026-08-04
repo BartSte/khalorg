@@ -3,10 +3,7 @@ from collections import OrderedDict
 from datetime import date, datetime
 from typing import Generator
 
-from khal.settings.settings import (
-    find_configuration_file,
-    get_config,
-)
+from khal.settings.settings import find_configuration_file, get_config
 from orgparse.date import OrgDate
 
 from khalorg.khal.calendar import CalendarProperties
@@ -48,19 +45,19 @@ class KhalArgs(OrderedDict):
     """
 
     REPEAT_ORG_TO_KHAL: dict = {
-        '+1d': 'daily',
-        '+1w': 'weekly',
-        '+1m': 'monthly',
-        '+1y': 'yearly'
+        "+1d": "daily",
+        "+1w": "weekly",
+        "+1m": "monthly",
+        "+1y": "yearly",
     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         path_config: str | None = find_configuration_file()
         config: dict = get_config(path_config)
-        self.timezone = config['locale']['default_timezone']
-        self.date_format: str = config['locale']['longdateformat']
-        self.datetime_format: str = config['locale']['longdatetimeformat']
+        self.timezone = config["locale"]["default_timezone"]
+        self.date_format: str = config["locale"]["longdateformat"]
+        self.datetime_format: str = config["locale"]["longdatetimeformat"]
 
     def as_list(self) -> list:
         """
@@ -97,7 +94,7 @@ class KhalArgs(OrderedDict):
     @staticmethod
     def _is_option(key: str) -> bool:
         try:
-            return key[0] == '-'
+            return key[0] == "-"
         except IndexError:
             return False
 
@@ -111,6 +108,7 @@ class KhalArgs(OrderedDict):
             positional arguments.
 
         """
+
         def condition(key):
             return not self._is_option(key)
 
@@ -123,7 +121,7 @@ class NewArgs(KhalArgs):
     directly from an org file.
     """
 
-    def load_from_org(self, item: OrgAgendaItem) -> 'NewArgs':
+    def load_from_org(self, item: OrgAgendaItem) -> "NewArgs":
         """
         For convenience: directly load Args from OrgAgendaItem.
 
@@ -147,20 +145,18 @@ class NewArgs(KhalArgs):
 
         return self._load_from_org(item.first_timestamp, item, format)
 
-    def _load_from_org(self,
-                       time_stamp: OrgDate,
-                       item: OrgAgendaItem,
-                       format: str) -> 'NewArgs':
-
+    def _load_from_org(
+        self, time_stamp: OrgDate, item: OrgAgendaItem, format: str
+    ) -> "NewArgs":
         key_vs_value: tuple[tuple[str, datetime | str], ...] = (
-            ('start', time_stamp.start.strftime(format)),
-            ('end', self._get_end(time_stamp, format)),
-            ('summary', item.title),
-            ('description', f':: {item.description}'),
-            ('--location', item.properties.get('LOCATION', '')),
-            ('--url', item.properties.get('URL', '')),
-            ('--repeat', self._get_repeat(time_stamp)),
-            ('--until', self._get_until(item.until))
+            ("start", time_stamp.start.strftime(format)),
+            ("end", self._get_end(time_stamp, format)),
+            ("summary", item.title),
+            ("description", f":: {item.description}"),
+            ("--location", item.properties.get("LOCATION", "")),
+            ("--url", item.properties.get("URL", "")),
+            ("--repeat", self._get_repeat(time_stamp)),
+            ("--until", self._get_until(item.until)),
         )
 
         for key, value in key_vs_value:
@@ -185,7 +181,7 @@ class NewArgs(KhalArgs):
         try:
             return time_stamp.end.strftime(format)
         except AttributeError:
-            logging.debug('End timestamp cannot be formatted.')
+            logging.debug("End timestamp cannot be formatted.")
             return time_stamp.start.strftime(format)
 
     def _get_repeat(self, time_stamp: OrgDate) -> str:
@@ -202,11 +198,11 @@ class NewArgs(KhalArgs):
             iCal RRULE
         """
         try:
-            key: str = ''.join([str(x) for x in time_stamp._repeater])
-            return self.REPEAT_ORG_TO_KHAL.get(key, '')
+            key: str = "".join([str(x) for x in time_stamp._repeater])
+            return self.REPEAT_ORG_TO_KHAL.get(key, "")
         except TypeError:
-            logging.debug('No repeater found.')
-            return ''
+            logging.debug("No repeater found.")
+            return ""
 
     def _get_until(self, until: OrgDate) -> str:
         """Returns the `until` date as a str.
@@ -215,15 +211,13 @@ class NewArgs(KhalArgs):
             until: an orgdate
 
         Returns:
-            until as str 
+            until as str
         """
-        return until.start.strftime(self.date_format) if until else ''
-        
-        
+        return until.start.strftime(self.date_format) if until else ""
 
 
 class EditArgs(KhalArgs):
-    """ Arguments for the Calendar.edit command. """
+    """Arguments for the Calendar.edit command."""
 
     def load_from_org(self, org_item: OrgAgendaItem):
         """
@@ -240,19 +234,21 @@ class EditArgs(KhalArgs):
         end: Time = set_tzinfo(timestamp.end, self.timezone)
         until: Time = set_tzinfo(org_item.until.start, self.timezone)
 
-        repeater: tuple[str, int, str] = org_item.first_timestamp._repeater or tuple()
+        repeater: tuple[str, int, str] = (
+            org_item.first_timestamp._repeater or tuple()
+        )
         rule: dict = get_recurobject(start, repeater, until)
 
         props: CalendarProperties = CalendarProperties(
             start=start,
             end=end or start,
             rrule=rule or None,
-            uid=str(org_item.properties.get('UID', '')),
-            url=str(org_item.properties.get('URL', '')),
+            uid=str(org_item.properties.get("UID", "")),
+            url=str(org_item.properties.get("URL", "")),
             summary=org_item.title,
-            location=str(org_item.properties.get('LOCATION', '')),
-            attendees=org_item.split_property('ATTENDEES'),
-            categories=[str(org_item.properties.get('CATEGORIES', ''))],
+            location=str(org_item.properties.get("LOCATION", "")),
+            attendees=org_item.split_property("ATTENDEES"),
+            categories=[str(org_item.properties.get("CATEGORIES", ""))],
             description=org_item.description,
         )
         self.update(props)
@@ -260,5 +256,3 @@ class EditArgs(KhalArgs):
 
 class DeleteArgs(EditArgs):
     """Arguments for the Calendar.delete command."""
-
-    pass

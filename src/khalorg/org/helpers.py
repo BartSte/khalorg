@@ -21,21 +21,21 @@ def remove_timestamps(text: str) -> str:
         text without active ranr timestamps
 
     """
-    '^(?:\\s*<foo>\\s*)+$'
+    "^(?:\\s*<foo>\\s*)+$"
     result: str = text
-    head: str = r'(^|\n)\s*'
-    tail: str = r'\s*(\n|$)'
+    head: str = r"(^|\n)\s*"
+    tail: str = r"\s*(\n|$)"
     timestamps: str = (
-        f'(?:{OrgRegex.timestamp_long})|'
-        f'(?:{OrgRegex.timestamp_short})|'
-        f'(?:{OrgRegex.timestamp_short_alt})|'
-        f'(?:{OrgRegex.timestamp})'
+        f"(?:{OrgRegex.timestamp_long})|"
+        f"(?:{OrgRegex.timestamp_short})|"
+        f"(?:{OrgRegex.timestamp_short_alt})|"
+        f"(?:{OrgRegex.timestamp})"
     )
-    regex: str = f'({head}{timestamps}{tail})+'
-    result: str = re.sub(regex, '', result)
+    regex: str = f"({head}{timestamps}{tail})+"
+    result: str = re.sub(regex, "", result)
 
     # Remove indent first line.
-    result = re.sub(r'^\s+', '', result)
+    result = re.sub(r"^\s+", "", result)
 
     return result
 
@@ -55,21 +55,22 @@ def get_indent(text: str, piece: str) -> list:
         the indents that belong to the matches.
 
     """
-    return re.findall(rf'^(\s+){piece}', text, re.MULTILINE)
+    return re.findall(rf"^(\s+){piece}", text, re.MULTILINE)
 
 
 @dataclass
 class OrgRegex:
-    """ Regex used for org timestamps. """
+    """Regex used for org timestamps."""
 
-    day: str = '[A-Z]{1}[a-z]{2}'
-    time: str = '[0-9]{2}:[0-9]{2}'
-    date: str = '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-    repeater: str = '[-+]{1,2}[0-9]+[a-z]+'
-    timestamp: str = f'<{date}( {day})?( {time})?( {repeater})?>'
-    timestamp_short: str = f'<{date}( {day})? {time}--{time}( {repeater})?>'
-    timestamp_short_alt: str = f'<{date}( {day})? {time}-{time}( {repeater})?>'
-    timestamp_long: str = f'{timestamp}--{timestamp}'
+    day: str = "[^\W\d_]{3}"  # matches 3 letter unicode word: Sun, mié...
+    time: str = "[0-9]{2}:[0-9]{2}"
+    date: str = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+    repeater: str = "[-+]{1,2}[0-9]+[a-z]+"
+    timestamp: str = f"<{date}( {day})?( {time})?( {repeater})?>"
+    timestamp_short: str = f"<{date}( {day})? {time}--{time}( {repeater})?>"
+    timestamp_short_alt: str = f"<{date}( {day})? {time}-{time}( {repeater})?>"
+    timestamp_long: str = f"{timestamp}--{timestamp}"
+
 
 def timestamp_to_orgdate(timestamp: str) -> OrgDate:
     """Returns the OrgDate equivalent of `timestamp`. It extends
@@ -82,5 +83,5 @@ def timestamp_to_orgdate(timestamp: str) -> OrgDate:
     Returns:
         the corresponding OrgDate object.
     """
-    datestr: str = re.sub(r'[\[\<](.*)[\]\>]', r'\1', timestamp)
+    datestr: str = re.sub(r"[\[\<](.*)[\]\>]", r"\1", timestamp)
     return OrgDate.from_str(datestr)
