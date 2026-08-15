@@ -1,3 +1,5 @@
+
+
 # Khalorg
 
 [Click here for the GitHub page.](https://github.com/BartSte/khalorg)
@@ -131,6 +133,8 @@ Based on the above, the following workflow is desired:
 
 For safety, always make a back-up of your calendar before installing software
 that is new to you.
+
+Requires Python `>=3.10,<3.14`.
 
 Make sure your `khal` date format is compatible with org, otherwise it
 will not work. When running `khal printformats` you should get:
