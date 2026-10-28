@@ -302,9 +302,9 @@ Sync state is stored in
 that changes and conflicts can be detected. If the org file does not exist,
 it is created from the selected `khal` calendar.
 
-An existing org export can also start a new sync. If an event already matches
-the calendar, sync records its initial state without updating the calendar.
-Identical edits in both sources also require no calendar update.
+You can start sync from an existing org export. Sync records the initial
+state of events that already match the calendar. It also accepts identical
+edits in both sources. Neither case changes the calendar.
 
 When an event changed in both sources since the previous sync, `khal` wins by
 default. Deletions are not propagated unless `--delete-on-sync` is passed.
