@@ -10,6 +10,13 @@ user. A change is always categorized based on the following types:
 - Task: a change is made to the repository that has no effect on the source
   code.
 
+# 0.2.1
+
+## Bug
+
+- Fixed `--format` handling in `khalorg list` and `khalorg sync` so both
+  commands use the selected template.
+
 # 0.2
 
 ## Feature
