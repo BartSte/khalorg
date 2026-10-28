@@ -245,8 +245,8 @@ The following keys are supported:
 - `{timestamps}`: the timestamp of the item
 - `{title}`: the summary of the item
 - `{uid}`: the UID of the item
-- `{until_rrule}`: the explicit `UNTIL` property, or the end date from the
-  `RRULE` when the property is absent. An empty `UNTIL` property stays empty.
+- `{until_rrule}`: the explicit `UNTIL` property. If this property is absent,
+  the value comes from the `RRULE`. An empty `UNTIL` property stays empty.
 - `{url}`: the url property
 
 The following keys are supported but are typically reserved for internal use
@@ -308,8 +308,8 @@ When an event changed in both sources since the previous sync, `khal` wins by
 default. Deletions are not propagated unless `--delete-on-sync` is passed.
 
 Sync preserves the `UNTIL` property of recurring events. With `--edit-dates`,
-changes to this property update the recurrence end date. An empty `UNTIL`
-property clears the end date, so the event repeats indefinitely.
+sync applies edits to the recurrence end date. An empty `UNTIL` property
+clears the end date. The event then repeats indefinitely.
 
 #### Sync options
 

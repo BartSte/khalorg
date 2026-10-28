@@ -425,10 +425,9 @@ class OrgAgendaItem:
         return format(self, spec)
 
     def __format__(self, spec: str) -> str:
-        """
-        By providing a `spec`, which is a template where values that are
-        surrounded by curly-braces will be formatted. The following keys are
-        avauilable:
+        """Format the item with a template.
+
+        The template can contain these keys:
             - attendees
             - calendar
             - categories
@@ -444,19 +443,19 @@ class OrgAgendaItem:
             - until_rrule
             - url.
 
-        The until_rrule placeholder uses an explicit UNTIL property before
-        the RRULE end date.
+        The until_rrule placeholder uses an explicit UNTIL property.
+        If this property is absent, the placeholder uses the RRULE end date.
 
-        Using other keys will result in an error.
+        An unsupported key raises KeyError.
 
         Args:
-        ----
-            spec: a template where keys surrounded by "{}" will be formatted.
+            spec: The output template.
 
         Returns:
-        -------
-            the formatted `spec`
+            The formatted org item.
 
+        Raises:
+            KeyError: The template contains an unsupported key.
         """
         uid: str = str(self.properties.get("UID", ""))
 
