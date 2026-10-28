@@ -297,6 +297,8 @@ khalorg sync my_calendar my_calendar.org
 ```
 
 Events are matched by UID. The default range is from `today` through `90d`.
+Sync continues to track known events outside this range. A date change or a
+narrower range does not count as an event deletion.
 Sync state is stored in
 `$HOME/.local/share/khalorg/<calendar>.org`; keep this file between runs so
 that changes and conflicts can be detected. If the org file does not exist,
