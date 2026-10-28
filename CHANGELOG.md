@@ -10,6 +10,13 @@ user. A change is always categorized based on the following types:
 - Task: a change is made to the repository that has no effect on the source
   code.
 
+# 0.2.1
+
+## Bug
+
+- Fixed event matching without a UID to compare start times. Events with the
+  same title and end time can now have different starts.
+
 # 0.2
 
 ## Feature

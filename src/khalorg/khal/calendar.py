@@ -294,21 +294,17 @@ class Calendar:
     def get_events_no_uid(
         self, summary_wanted: str, start_wanted: Time, end_wanted: Time | None
     ) -> list[Event]:
-        """
-        Return events that share the same summary, start time and stop time.
+        """Return events with the same summary, start time, and end time.
 
-        Timezone information is not supported yet, so it is ignored by setting
-        the Event.end.tzinfo to None.
+        Timestamp comparisons ignore timezone information.
 
         Args:
-        ----
             summary_wanted: summary/title of the event
             start_wanted: start time
             end_wanted: end time
 
-        Returns
-        -------
-            list of events
+        Returns:
+            The events that match all three fields.
         """
         if end_wanted is None:
             if type(start_wanted) is date:
@@ -318,16 +314,19 @@ class Calendar:
                 # has a length of one hour
                 end_wanted = start_wanted + timedelta(hours=1)
 
-        def exists(summary: str, end: Time) -> bool:
+        def exists(summary: str, start: Time, end: Time) -> bool:
+            equal_start: bool = remove_tzinfo(start) == remove_tzinfo(
+                start_wanted
+            )
             equal_end: bool = remove_tzinfo(end) == remove_tzinfo(end_wanted)
             equal_summary: bool = summary == summary_wanted
-            return equal_end and equal_summary
+            return equal_start and equal_end and equal_summary
 
         logging.debug(f"Get events on date: {start_wanted}")
         return [
             event
             for event in self.collection.get_events_on(start_wanted)
-            if exists(event.summary, event.end)
+            if exists(event.summary, event.start, event.end)
         ]
 
     def update(self, event: Event) -> None:
