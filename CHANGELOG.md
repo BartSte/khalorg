@@ -10,6 +10,13 @@ user. A change is always categorized based on the following types:
 - Task: a change is made to the repository that has no effect on the source
   code.
 
+# 0.2.1
+
+## Bug
+
+- Fixed crashes during export of minutely and secondly recurring events.
+  These rules use explicit timestamps instead of org repeaters.
+
 # 0.2
 
 ## Feature

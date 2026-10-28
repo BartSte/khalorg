@@ -261,10 +261,15 @@ command the `RRULE` of each item is retrieved to create the correct org
 repeater. Only simple org repeaters are supported that have the
 following form: `+[number][h,d,w,m,y]`. Complex `RRULEs` are described by
 concatenating the corresponding timestamps within one agenda item,
-resulting in a list of items. For example, the agenda item below
-represents a weekly recurring event where the first meeting was moved to
-another date, resulting in a timestamp without a repeater, and one with
-a repeater.
+resulting in a list of items.
+
+Minutely and secondly rules have no org repeater equivalent. `khalorg list`
+writes their occurrences as explicit timestamps within the requested range.
+Org timestamps use minute precision, so second-level timing is not preserved.
+
+In the following example, the first occurrence of a weekly event moved to
+another date. Its timestamp has no repeater. The timestamp for the remaining
+occurrences has a repeater.
 
 ```org
 * Meeting
