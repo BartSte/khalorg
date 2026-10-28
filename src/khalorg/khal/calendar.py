@@ -299,9 +299,9 @@ class Calendar:
         Timestamp comparisons ignore timezone information.
 
         Args:
-            summary_wanted: summary/title of the event
-            start_wanted: start time
-            end_wanted: end time
+            summary_wanted: The event title.
+            start_wanted: The start time.
+            end_wanted: The end time.
 
         Returns:
             The events that match all three fields.

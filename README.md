@@ -358,7 +358,8 @@ It is assumed that the `khal` calendar called "my<sub>calendar</sub>"
 exists. Make sure "my<sub>calendar</sub>" is a calendar that exists on
 your local file system.
 
-When the title, start, and end match, `khalorg new` treats events as duplicates.
+If the title, start time, and end time match, `khalorg new` treats events as
+duplicates.
 Events with different start times can share the same title and end time.
 
 #### Creating recurring events
