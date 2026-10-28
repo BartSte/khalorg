@@ -14,8 +14,8 @@ user. A change is always categorized based on the following types:
 
 ## Bug
 
-- Fixed duplicate events and false deletions when known calendar events fall
-  outside the selected sync range.
+- Fixed duplicate events and false deletions for known events outside the
+  selected sync range.
 
 # 0.2
 
