@@ -441,7 +441,11 @@ class OrgAgendaItem:
             - title
             - uid
             - until
+            - until_rrule
             - url.
+
+        The until_rrule placeholder uses an explicit UNTIL property before
+        the RRULE end date.
 
         Using other keys will result in an error.
 
@@ -473,7 +477,7 @@ class OrgAgendaItem:
                 status=self.properties.get("STATUS", ""),
                 url=self.properties.get("URL", ""),
                 until=self.properties.get("UNTIL", ""),
-                until_rrule=self.until_rrule,
+                until_rrule=self.properties.get("UNTIL", self.until_rrule),
                 description=self.description,
             )
         except KeyError as error:
@@ -566,6 +570,8 @@ class OrgAgendaFile:
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
                 item.properties["RRULE"] = agenda_timestamps.get_rrulestr(uid)
+                # Calendar imports use the recurrence rule as the source.
+                item.properties["UNTIL"] = item.until_rrule
                 uids.add(uid)
                 items.append(item)
 

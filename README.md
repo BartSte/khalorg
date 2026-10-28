@@ -245,13 +245,15 @@ The following keys are supported:
 - `{timestamps}`: the timestamp of the item
 - `{title}`: the summary of the item
 - `{uid}`: the UID of the item
-- `{until_rrule}`: the until value from the RRULE
+- `{until_rrule}`: the explicit `UNTIL` property, or the end date from the
+  `RRULE` when the property is absent. An empty `UNTIL` property stays empty.
 - `{url}`: the url property
 
 The following keys are supported but are typically reserved for internal use
 and are therefore less informative:
 
-- `{until}`: the until property value. Is empty when using `khalorg list`.
+- `{until}`: the `UNTIL` property value. Calendar imports derive this value
+  from the `RRULE`.
 - `{rrule}`: the ICal RRULE of the item.
 
 #### Recurring events from khal
@@ -304,6 +306,10 @@ it is created from the selected `khal` calendar.
 
 When an event changed in both sources since the previous sync, `khal` wins by
 default. Deletions are not propagated unless `--delete-on-sync` is passed.
+
+Sync preserves the `UNTIL` property of recurring events. With `--edit-dates`,
+changes to this property update the recurrence end date. An empty `UNTIL`
+property clears the end date, so the event repeats indefinitely.
 
 #### Sync options
 
