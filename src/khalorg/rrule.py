@@ -300,26 +300,19 @@ def rrule_is_supported(
     max_days: int = MAX_WEEKDAYS,
     unsupported: tuple = NOT_SUPPORTED,
 ) -> bool:
-    """
-    Check if a given rrule object is supported.
+    """Return whether a recurrence rule fits one org repeater.
 
-    This function checks if a given rrule object is supported. The rrule is
-    considered unsupported if it has any of the attributes specified in
-    `unsupported`. The rrule is also considered unsupported if it has more than
-    `max_days` weekdays.
+    Rules with unsupported attributes cannot use an org repeater.
+    A rule must contain fewer than `max_days` weekdays.
     Only yearly through hourly frequencies have an org repeater equivalent.
 
     Args:
-    ----
-        rrule_obj (rrule): The rrule object to check for support.
-        max_days (int, optional): The maximum number of weekdays allowed.
-        Defaults to MAX_WEEKDAYS.
-        unsupported (tuple, optional): A tuple of strings representing
-        unsupported attributes. Defaults to NOT_SUPPORTED.
+        rule: The recurrence rule.
+        max_days: The exclusive limit for weekdays.
+        unsupported: Rule attributes that prevent conversion to an org repeater.
 
     Returns:
-    -------
-        bool: True if the rrule object is supported, False otherwise.
+        True for an empty rule or a rule that fits an org repeater.
     """
     if not rule:
         return True  # empty rule is supported
