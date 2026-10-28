@@ -324,8 +324,8 @@ default. Deletions are not propagated unless `--delete-on-sync` is passed.
   state.
 - `--state-dir` changes where synchronization state is stored.
 - `--filetags TAG` adds a file tag to generated org files and can be repeated.
-- `--format` sets the template for the org file and sync state. It uses the
-  same template fields as `khalorg list`.
+- `--format` sets the template for the org file and sync state. The template
+  uses the same fields as `khalorg list`.
 
 ### New: from org to khal
 
