@@ -306,7 +306,7 @@ def rrule_is_supported(
     This function checks if a given rrule object is supported. The rrule is
     considered unsupported if it has any of the attributes specified in
     `unsupported`. The rrule is also considered unsupported if it has more than
-    `max_days` weekdays.
+    `max_days` weekdays. Monthly rules with multiple month days are unsupported.
 
     Args:
     ----
@@ -329,8 +329,18 @@ def rrule_is_supported(
 
     weeks_exceeded: bool = _get_weeks_exceeded(rule)
     weekday_is_supported: bool = _get_weekday_is_supported(rule, max_days)
+    monthdays_exceeded: bool = (
+        rule._freq == MONTHLY and len(rule._bymonthday) > 1
+    )
 
-    return all([rrule_is_supported, weekday_is_supported, not weeks_exceeded])
+    return all(
+        [
+            rrule_is_supported,
+            weekday_is_supported,
+            not weeks_exceeded,
+            not monthdays_exceeded,
+        ]
+    )
 
 
 def _get_weekday_is_supported(rule: rrule, max_days: int) -> bool:

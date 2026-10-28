@@ -261,7 +261,13 @@ command the `RRULE` of each item is retrieved to create the correct org
 repeater. Only simple org repeaters are supported that have the
 following form: `+[number][h,d,w,m,y]`. Complex `RRULEs` are described by
 concatenating the corresponding timestamps within one agenda item,
-resulting in a list of items. For example, the agenda item below
+resulting in a list of items.
+
+Monthly rules with multiple month days, such as
+`FREQ=MONTHLY;BYMONTHDAY=1,15`, use one explicit timestamp for each occurrence
+in the requested range.
+
+For example, the agenda item below
 represents a weekly recurring event where the first meeting was moved to
 another date, resulting in a timestamp without a repeater, and one with
 a repeater.

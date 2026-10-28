@@ -10,6 +10,13 @@ user. A change is always categorized based on the following types:
 - Task: a change is made to the repository that has no effect on the source
   code.
 
+# 0.2.1
+
+## Bug
+
+- Fixed missing occurrences in calendar exports for monthly rules with multiple
+  month days.
+
 # 0.2
 
 ## Feature
