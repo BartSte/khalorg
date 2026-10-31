@@ -216,6 +216,14 @@ If `khalorg list --format` is not defined, the default template from
 is used. Pass a custom template with `--format`, or save one at
 `$HOME/.config/khalorg/khalorg_format.txt` to use it by default.
 
+This command lists only the event titles:
+
+```bash
+khalorg list --format '{title}' my_calendar today 90d
+```
+
+The default template contains these fields:
+
 ```org
 * {title}
   {timestamps}
@@ -333,7 +341,8 @@ clears the end date. The event then repeats indefinitely.
   state.
 - `--state-dir` changes where synchronization state is stored.
 - `--filetags TAG` adds a file tag to generated org files and can be repeated.
-- `--format` uses the same output templates as `khalorg list`.
+- `--format` sets the template for the org file and sync state. The template
+  uses the same fields as `khalorg list`.
 
 ### New: from org to khal
 
