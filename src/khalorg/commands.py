@@ -14,6 +14,7 @@ from khalorg.org.agenda_items import (
 from khalorg.synchronization import (
     ConflictResolution,
     SyncContext,
+    load_missing_khal_items,
     load_sync_agenda,
     pull_khal_changes,
     push_org_changes,
@@ -321,6 +322,7 @@ def sync(
         khal_agenda=khal_agenda,
         dry_run=dry_run,
     )
+    load_missing_khal_items(context)
     processed_uids = push_org_changes(
         context=context,
         edit_dates=edit_dates,
