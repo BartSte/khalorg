@@ -305,6 +305,7 @@ def rrule_is_supported(
     Rules with unsupported attributes cannot use an org repeater.
     A rule must contain fewer than `max_days` weekdays.
     Only yearly through hourly frequencies have an org repeater equivalent.
+    Monthly rules with multiple month days need explicit timestamps.
 
     Args:
         rule: The recurrence rule.
@@ -326,8 +327,18 @@ def rrule_is_supported(
 
     weeks_exceeded: bool = _get_weeks_exceeded(rule)
     weekday_is_supported: bool = _get_weekday_is_supported(rule, max_days)
+    monthdays_exceeded: bool = (
+        rule._freq == MONTHLY and len(rule._bymonthday) > 1
+    )
 
-    return all([rrule_is_supported, weekday_is_supported, not weeks_exceeded])
+    return all(
+        [
+            rrule_is_supported,
+            weekday_is_supported,
+            not weeks_exceeded,
+            not monthdays_exceeded,
+        ]
+    )
 
 
 def _get_weekday_is_supported(rule: rrule, max_days: int) -> bool:

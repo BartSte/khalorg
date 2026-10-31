@@ -183,7 +183,11 @@ class Args:
     )
 
     format: dict = dict(
-        type=str, default=get_khalorg_format(), help="The format of the events."
+        dest="khalorg_format",
+        metavar="FORMAT",
+        type=str,
+        default=get_khalorg_format(),
+        help="The format of the events.",
     )
 
     edit_dates: dict = dict(

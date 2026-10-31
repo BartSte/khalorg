@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from os.path import join
 from subprocess import CalledProcessError, check_output
 from unittest import TestCase
@@ -113,7 +112,7 @@ class TestList(TestCase):
         expected: str = (
             "'loglevel': 'CRITICAL', "
             "'logfile': 'foo', "
-            f"'format': {repr(default_format)}, "
+            f"'khalorg_format': {repr(default_format)}, "
             "'calendar': 'calendar', "
             "'start': 'today', "
             "'stop': '2d'"
@@ -134,7 +133,7 @@ class TestList(TestCase):
         expected: str = (
             "'loglevel': 'INFO', "
             f"'logfile': '{paths.log_file}', "
-            f"'format': {repr(default_format)}, "
+            f"'khalorg_format': {repr(default_format)}, "
             "'calendar': 'calendar', "
             "'start': 'today', "
             "'stop': '1d'"
@@ -200,7 +199,7 @@ class TestSync(TestCase):
         expected: str = (
             "'loglevel': 'CRITICAL', "
             "'logfile': 'foo', "
-            f"'format': {repr(default_format)}, "
+            f"'khalorg_format': {repr(default_format)}, "
             "'start': 'today', "
             "'stop': '2d', "
             "'edit_dates': True, "
@@ -229,7 +228,7 @@ class TestSync(TestCase):
         expected: str = (
             "'loglevel': 'INFO', "
             f"'logfile': '{paths.log_file}', "
-            f"'format': {repr(default_format)}, "
+            f"'khalorg_format': {repr(default_format)}, "
             "'start': 'today', "
             "'stop': '90d', "
             "'edit_dates': False, "
