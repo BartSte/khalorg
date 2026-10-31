@@ -304,6 +304,7 @@ def rrule_is_supported(
 
     Rules with unsupported attributes cannot use an org repeater.
     A rule must contain fewer than `max_days` weekdays.
+    Only yearly through hourly frequencies have an org repeater equivalent.
     Monthly rules with multiple month days need explicit timestamps.
 
     Args:
@@ -316,6 +317,9 @@ def rrule_is_supported(
     """
     if not rule:
         return True  # empty rule is supported
+
+    if rule._freq not in (YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY):
+        return False
 
     rrule_is_supported: bool = all(
         bool(getattr(rule, x, None)) is False for x in unsupported

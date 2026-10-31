@@ -271,6 +271,10 @@ It converts simple rules to org repeaters with the form
 `+[number][h,d,w,m,y]`. For complex rules, it keeps the occurrence
 timestamps together in one org item.
 
+Org has no repeater for minutely or secondly rules. `khalorg list` writes each
+occurrence as an explicit timestamp within the requested range. Org timestamps
+use minute precision. They do not retain seconds.
+
 Monthly rules with multiple dates, such as
 `FREQ=MONTHLY;BYMONTHDAY=1,15`, use an explicit timestamp for each occurrence
 in the requested range.

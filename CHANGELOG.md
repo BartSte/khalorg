@@ -14,6 +14,8 @@ user. A change is always categorized based on the following types:
 
 ## Bug
 
+- Fixed crashes during export of minutely and secondly recurring events.
+  These rules use explicit timestamps instead of org repeaters.
 - Fixed `--format` handling in `khalorg list` and `khalorg sync` so both
   commands use the selected template.
 - Fixed event matching without a UID to compare start times. Events with the
