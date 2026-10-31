@@ -258,15 +258,18 @@ and are therefore less informative:
 
 #### Recurring events from khal
 
-The `khalorg list` command relies on the `khal list` command. Using this
-command the `RRULE` of each item is retrieved to create the correct org
-repeater. Only simple org repeaters are supported that have the
-following form: `+[number][h,d,w,m,y]`. Complex `RRULEs` are described by
-concatenating the corresponding timestamps within one agenda item,
-resulting in a list of items. For example, the agenda item below
-represents a weekly recurring event where the first meeting was moved to
-another date, resulting in a timestamp without a repeater, and one with
-a repeater.
+`khalorg list` uses `khal list` to read events and their `RRULE` values.
+It converts simple rules to org repeaters with the form
+`+[number][h,d,w,m,y]`. For complex rules, it keeps the occurrence
+timestamps together in one org item.
+
+Monthly rules with multiple dates, such as
+`FREQ=MONTHLY;BYMONTHDAY=1,15`, use an explicit timestamp for each occurrence
+in the requested range.
+
+In the following example, the first occurrence of a weekly event moved to
+another date. Its timestamp has no repeater. The timestamp for the remaining
+occurrences has a repeater.
 
 ```org
 * Meeting
