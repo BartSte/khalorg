@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 from khalorg.khal.calendar import Calendar
+from khalorg.khal.helpers import get_khal_format
 from khalorg.org.agenda_items import OrgAgendaFile, OrgAgendaItem
 
 SyncCommand = Callable[..., str]
@@ -36,6 +37,38 @@ def load_sync_agenda(path: Path) -> OrgAgendaFile:
     if path.exists():
         return OrgAgendaFile.from_path(path)
     return OrgAgendaFile.from_str("")
+
+
+def load_missing_khal_items(context: SyncContext) -> None:
+    """Load known calendar events outside the selected date range.
+
+    Args:
+        context: Agendas and calendar used for the synchronization run.
+    """
+    known_uids = {
+        item.uid
+        for item in context.org_agenda.items + context.state_agenda.items
+        if item.uid
+    }
+    listed_uids = {item.uid for item in context.khal_agenda.items}
+    khal_format = get_khal_format()
+    environment = {"calendars": context.khal_calendar.config["calendars"]}
+
+    for uid in sorted(known_uids - listed_uids):
+        events = context.khal_calendar.get_events(uid)
+        content = "\n".join(
+            khal_format.format(
+                **event.attributes(
+                    relative_to=event.start_local,
+                    env=environment,
+                    colors=False,
+                )
+            )
+            for event in sorted(events)
+            if event.calendar == context.calendar
+        )
+        agenda = OrgAgendaFile.from_str(content).apply_rrules()
+        context.khal_agenda.items.extend(agenda.items)
 
 
 def push_org_changes(

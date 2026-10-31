@@ -30,7 +30,7 @@ from khalorg.commands import (
     sync,
 )
 from khalorg.khal.calendar import Calendar
-from khalorg.org.agenda_items import OrgAgendaItem
+from khalorg.org.agenda_items import OrgAgendaFile, OrgAgendaItem
 from tests import static
 from tests.helpers import (
     assert_event_created,
@@ -758,3 +758,137 @@ def test_sync_adds_filetags(runner, tmp_path: Path):
     sync("one", org_file, state_dir, filetags=["one", "two"])
 
     assert "#+FILETAGS: :one:two:" in org_file.read_text()
+
+
+@pytest.mark.parametrize("local_changed", [False, True])
+@pytest.mark.parametrize("conflict_resolution", ["khal", "org"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_sync_handles_events_moved_outside_range(
+    runner,
+    tmp_path: Path,
+    monkeypatch,
+    local_changed: bool,
+    conflict_resolution: str,
+    dry_run: bool,
+):
+    """A remote move must preserve the event UID and conflict policy."""
+    monkeypatch.setattr(
+        "khalorg.paths.format", str(tmp_path / "unused-format.txt")
+    )
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start = datetime.combine(
+        date.today() + timedelta(days=1), datetime.min.time()
+    ) + timedelta(hours=10)
+    initial = OrgAgendaItem(
+        title="range event",
+        timestamps=[OrgDate(start, start + timedelta(hours=1))],
+        properties={},
+    )
+    new("one", org=str(initial))
+    sync("one", org_file, state_dir, stop="3d")
+    state_before = (state_dir / "one.org").read_text()
+    item = OrgAgendaFile.from_path(org_file).items[0]
+    uid = item.uid
+    moved_start = start + timedelta(days=10)
+    item.timestamps = [OrgDate(moved_start, moved_start + timedelta(hours=1))]
+    _edit("one", item, edit_dates=True)
+    if local_changed:
+        org_file.write_text(
+            org_file.read_text().replace("range event", "local edit")
+        )
+    org_before = org_file.read_text()
+
+    sync(
+        "one",
+        org_file,
+        state_dir,
+        stop="3d",
+        conflict_resolution=conflict_resolution,
+        delete_on_sync=True,
+        dry_run=dry_run,
+    )
+
+    remote = OrgAgendaFile.from_str(list_command("one", stop="30d"))
+    assert len(remote.items) == 1
+    assert remote.items[0].uid == uid
+    assert remote.items[0].first_timestamp.start == moved_start
+    org_wins = local_changed and conflict_resolution == "org"
+    expected_title = "local edit" if org_wins else "range event"
+    assert remote.items[0].title == (
+        "range event" if dry_run else expected_title
+    )
+    if dry_run:
+        assert org_file.read_text() == org_before
+        assert (state_dir / "one.org").read_text() == state_before
+    else:
+        local = OrgAgendaFile.from_path(org_file)
+        assert len(local.items) == 1
+        assert local.items[0].uid == uid
+        assert local.items[0].title == expected_title
+        if not org_wins:
+            assert local.items[0].first_timestamp.start == moved_start
+
+
+def test_sync_deletes_local_removed_event_outside_range(
+    runner, tmp_path: Path, monkeypatch
+):
+    """A narrower range must not prevent deletion of a known event."""
+    monkeypatch.setattr(
+        "khalorg.paths.format", str(tmp_path / "unused-format.txt")
+    )
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start = date.today() + timedelta(days=2)
+    initial = OrgAgendaItem(
+        title="all-day range event",
+        timestamps=[OrgDate(start)],
+        properties={},
+    )
+    new("one", org=str(initial))
+    sync("one", org_file, state_dir, stop="3d")
+    uid = OrgAgendaFile.from_path(org_file).items[0].uid
+    org_file.write_text("")
+
+    sync("one", org_file, state_dir, stop="1d", delete_on_sync=True)
+
+    assert org_file.read_text() == ""
+    assert Calendar("one").get_events(uid) == []
+
+
+def test_sync_keeps_known_series_outside_range(
+    runner, tmp_path: Path, monkeypatch
+):
+    """Known series stay synchronized without importing unrelated events."""
+    monkeypatch.setattr(
+        "khalorg.paths.format", str(tmp_path / "unused-format.txt")
+    )
+    org_file = tmp_path / "file.org"
+    state_dir = tmp_path / "state"
+    start = date.today() + timedelta(days=1)
+    initial = OrgAgendaItem(
+        title="weekly range event",
+        timestamps=[OrgDate(start, repeater=("+", 1, "w"))],
+        properties={},
+    )
+    new("one", org=str(initial))
+    sync("one", org_file, state_dir, stop="3d")
+    item = OrgAgendaFile.from_path(org_file).items[0]
+    uid = item.uid
+    moved_start = start + timedelta(days=10)
+    item.timestamps = [OrgDate(moved_start, repeater=("+", 1, "w"))]
+    _edit("one", item, edit_dates=True)
+    unrelated = OrgAgendaItem(
+        title="unrelated event",
+        timestamps=[OrgDate(start + timedelta(days=20))],
+        properties={},
+    )
+    new("one", org=str(unrelated))
+
+    sync("one", org_file, state_dir, stop="3d", delete_on_sync=True)
+
+    local = OrgAgendaFile.from_path(org_file)
+    assert len(local.items) == 1
+    assert local.items[0].uid == uid
+    assert local.items[0].first_timestamp.start == moved_start
+    assert local.items[0].first_timestamp._repeater == ("+", 1, "w")
