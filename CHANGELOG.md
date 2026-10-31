@@ -14,6 +14,8 @@ user. A change is always categorized based on the following types:
 
 ## Bug
 
+- Fixed sync failures for existing matching exports and identical edits in
+  both sources.
 - Fixed missing occurrences in calendar exports for monthly rules with multiple
   month days.
 - Fixed loss of recurrence end dates during synchronization.

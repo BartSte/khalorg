@@ -140,10 +140,10 @@ class _OrgItemSynchronizer:
             self._pull_updated_khal_item(index, item, khal_item)
         elif state_item is not None and state_item.similar(khal_item):
             self._push_updated_org_item(item)
-        elif not item.similar(khal_item):
-            self._resolve_edit_conflict(index, item, khal_item)
+        elif item.similar(khal_item):
+            return True
         else:
-            self._raise_unhandled_sync_state(item, state_item, khal_item)
+            self._resolve_edit_conflict(index, item, khal_item)
         return True
 
     def _push_new_item(
@@ -235,18 +235,6 @@ class _OrgItemSynchronizer:
                 edit_dates=self.edit_dates,
                 org=str(item),
             )
-
-    @staticmethod
-    def _raise_unhandled_sync_state(
-        item: OrgAgendaItem,
-        state_item: OrgAgendaItem | None,
-        khal_item: OrgAgendaItem,
-    ) -> None:
-        """Log and raise for a sync state without defined behavior."""
-        logging.info(f"Error syncing item {item}")
-        logging.info(f"khal_item is: {khal_item}")
-        logging.info(f"state_item is: {state_item}")
-        raise NotImplementedError
 
 
 def pull_khal_changes(
