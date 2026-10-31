@@ -14,6 +14,7 @@ user. A change is always categorized based on the following types:
 
 ## Bug
 
+- Fixed loss of recurrence end dates during synchronization.
 - Fixed duplicate events and false deletions for known events outside the
   selected sync range.
 

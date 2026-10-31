@@ -425,10 +425,9 @@ class OrgAgendaItem:
         return format(self, spec)
 
     def __format__(self, spec: str) -> str:
-        """
-        By providing a `spec`, which is a template where values that are
-        surrounded by curly-braces will be formatted. The following keys are
-        avauilable:
+        """Format the item with a template.
+
+        The template can contain these keys:
             - attendees
             - calendar
             - categories
@@ -441,18 +440,22 @@ class OrgAgendaItem:
             - title
             - uid
             - until
+            - until_rrule
             - url.
 
-        Using other keys will result in an error.
+        The until_rrule placeholder uses an explicit UNTIL property.
+        If this property is absent, the placeholder uses the RRULE end date.
+
+        An unsupported key raises KeyError.
 
         Args:
-        ----
-            spec: a template where keys surrounded by "{}" will be formatted.
+            spec: The output template.
 
         Returns:
-        -------
-            the formatted `spec`
+            The formatted org item.
 
+        Raises:
+            KeyError: The template contains an unsupported key.
         """
         uid: str = str(self.properties.get("UID", ""))
 
@@ -473,7 +476,7 @@ class OrgAgendaItem:
                 status=self.properties.get("STATUS", ""),
                 url=self.properties.get("URL", ""),
                 until=self.properties.get("UNTIL", ""),
-                until_rrule=self.until_rrule,
+                until_rrule=self.properties.get("UNTIL", self.until_rrule),
                 description=self.description,
             )
         except KeyError as error:
@@ -566,6 +569,8 @@ class OrgAgendaFile:
             if uid not in uids:
                 item.timestamps = agenda_timestamps.dates[uid]
                 item.properties["RRULE"] = agenda_timestamps.get_rrulestr(uid)
+                # Calendar imports use the recurrence rule as the source.
+                item.properties["UNTIL"] = item.until_rrule
                 uids.add(uid)
                 items.append(item)
 
